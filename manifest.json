@@ -1,12 +1,13 @@
 
+
 {
   "short_name": "نور الذكي",
   "name": "نظام نور الذكي",
   "icons": [
     {
-      "src": "./logo.png",
+      "src": "./logo.jpeg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     }
   ],
