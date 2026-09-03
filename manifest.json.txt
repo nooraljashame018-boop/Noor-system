@@ -1,0 +1,16 @@
+{
+  "short_name": "نظام الضياء",
+  "name": "نظام الجدول المدرسي - الضياء",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#ffffff",
+  "theme_color": "#1e3a8a",
+  "display": "standalone",
+  "orientation": "landscape"
+}
