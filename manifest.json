@@ -1,9 +1,10 @@
+
 {
-  "short_name": "نظام الضياء",
-  "name": "نظام الجدول المدرسي - الضياء",
+  "short_name": "نور الذكي",
+  "name": "نظام نور الذكي",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3557/3557655.png",
+      "src": "./logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
