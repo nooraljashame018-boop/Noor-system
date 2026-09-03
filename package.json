@@ -1,0 +1,12 @@
+{
+  "name": "noor-system",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "@electron/packager": "^18.4.4",
+    "electron": "^44.1.1"
+  }
+}
