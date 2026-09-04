@@ -370,119 +370,95 @@
                 else box.classList.add('hidden');
             }
         }
+function addTeacher() {
+  const name = document.getElementById('tName').value.trim();
+  const phone = document.getElementById('tPhone').value.trim();
+  const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
+  const editingId = document.getElementById('editingTeacherId').value;
+  const photoInput = document.getElementById('tPhoto');
 
-        function addTeacher() {
-            const name = document.getElementById('tName').value.trim();
-            let phone = document.getElementById('tPhone').value.trim().replace(/[^0-9]/g, '');
-            const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
-            const editingId = document.getElementById('editingTeacherId').value;
+  if (!name) {
+    alert('يرجى إدخال اسم المعلم');
+    return;
+  }
 
-            if (!name) {
-                alert('يرجى ملء اسم المعلم!');
-                return;
-            }
+  // جمع كافة الشعب والمواد المحددة
+  const selectedAssignments = [];
+  document.querySelectorAll('input[type="checkbox"][id^="sec_"]:checked').forEach(chk => {
+    const gradeIdx = chk.getAttribute('data-grade');
+    const secIdx = chk.getAttribute('data-sec');
+    const subjInput = document.getElementById(`subj_${gradeIdx}_${secIdx}`);
+    const subjValue = subjInput ? subjInput.value.trim() : '';
 
-            let selectedAssignments = [];
-            const uniqueGrades = [...new Set(schoolStructure.map(item => item.grade))];
+    selectedAssignments.push({
+      gradeIndex: parseInt(gradeIdx),
+      sectionIndex: parseInt(secIdx),
+      subject: subjValue
+    });
+  });
 
-            uniqueGrades.forEach((gName, idx) => {
-                const gradeChk = document.getElementById(`grade_chk_${idx}`);
-                if (gradeChk && gradeChk.checked) {
-                    const secBoxes = document.querySelectorAll(`input[name="sec_${idx}"]:checked`);
-                    secBoxes.forEach(b => {
-                        const secVal = b.value;
-                        const subInput = document.getElementById(`sub_${idx}_${secVal}`);
-                        const subjectName = subInput && subInput.value.trim() ? subInput.value.trim() : 'عام';
-                        
-                        selectedAssignments.push({ grade: gName, section: secVal, subject: subjectName });
-                    });
-                }
-            });
+  if (selectedAssignments.length === 0) {
+    alert('يرجى تحديد مرحلة وشعبة واحدة على الأقل للمعلم!');
+    return;
+  }
 
-            if (selectedAssignments.length === 0) {
-                alert('يرجى تحديد مرحلة وشعبة واحدة على الأقل للمعلم!');
-                return;
-            }
+  // تنفيذ الحفظ مع تحويل الصورة إلى Base64
+  const proceedWithSave = (photoBase64) => {
+    let teachers = getData(teachersDbKey) || [];
 
-            let teachers = getData(teachersDbKey) || [];
+    if (editingId) {
+      const index = teachers.findIndex(t => t.id == editingId);
+      if (index !== -1) {
+        teachers[index] = {
+          ...teachers[index],
+          name: name,
+          phone: phone,
+          maxQuota: maxQuota,
+          assignments: selectedAssignments,
+          photo: photoBase64 || teachers[index].photo || ''
+        };
+      }
+    } else {
+      const newTeacher = {
+        id: Date.now(),
+        name: name,
+        phone: phone,
+        maxQuota: maxQuota,
+        assignments: selectedAssignments,
+        photo: photoBase64 || ''
+      };
+      teachers.push(newTeacher);
+    }
 
-            if (editingId) {
-                const index = teachers.findIndex(t => t.id == editingId);
-                if (index !== -1) {
-                    teachers[index].name = name;
-                    teachers[index].phone = phone;
-                    teachers[index].maxQuota = maxQuota;
-                    teachers[index].assignments = selectedAssignments;
-                }
-            } else {
-                teachers.push({
-                    id: Date.now(),
-                    name,
-                    phone,
-                    maxQuota,
-                    assignments: selectedAssignments,
-                    isPresent: true
-                });
-            }
+    saveData(teachersDbKey, teachers);
+    resetForm();
+    renderTeachers();
+    alert('تم حفظ بيانات المعلم بنجاح');
+  };
 
-            saveData(teachersDbKey, teachers);
+  if (photoInput && photoInput.files && photoInput.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      proceedWithSave(e.target.result);
+    };
+    reader.readAsDataURL(photoInput.files[0]);
+  } else {
+    proceedWithSave('');
+  }
+}
 
-            resetForm();
-            renderTeachersCards();
-            refreshBackupTeachers();
-            renderAllStaffTable();
-            alert('تم حفظ البيانات بنجاح!');
-        }
-
-        function editTeacher(id) {
-            const teachers = getData(teachersDbKey) || [];
-            const teacher = teachers.find(t => t.id === id);
-            if (!teacher) return;
-
-            document.getElementById('editingTeacherId').value = teacher.id;
-            document.getElementById('tName').value = teacher.name;
-            document.getElementById('tPhone').value = teacher.phone || '';
-            document.getElementById('tMaxQuota').value = teacher.maxQuota;
-
-            document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit text-blue-600"></i> تعديل بيانات المعلم: ${teacher.name}`;
-            document.getElementById('saveTeacherBtn').innerText = 'تحديث البيانات';
-            document.getElementById('cancelEditBtn').classList.remove('hidden');
-
-            buildGradesUI();
-
-            const uniqueGrades = [...new Set(schoolStructure.map(item => item.grade))];
-            uniqueGrades.forEach((gName, idx) => {
-                const assignments = teacher.assignments.filter(a => a.grade === gName);
-                if (assignments.length > 0) {
-                    const gradeChk = document.getElementById(`grade_chk_${idx}`);
-                    if (gradeChk) {
-                        gradeChk.checked = true;
-                        toggleSections(idx);
-
-                        assignments.forEach(a => {
-                            const secBox = document.querySelector(`input[name="sec_${idx}"][value="${a.section}"]`);
-                            if (secBox) secBox.checked = true;
-
-                            const subInput = document.getElementById(`sub_${idx}_${a.section}`);
-                            if (subInput) subInput.value = a.subject;
-                        });
-                    }
-                }
-            });
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetForm() {
-            document.getElementById('editingTeacherId').value = '';
-            document.getElementById('tName').value = '';
-            document.getElementById('tPhone').value = '';
-            document.getElementById('tMaxQuota').value = 24;
-            document.getElementById('formTitle').innerHTML = `<i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد وتخصيص المواد ورقم التواصل`;
-            document.getElementById('saveTeacherBtn').innerText = '+ حفظ المعلم';
-            document.getElementById('cancelEditBtn').classList.add('hidden');
-            buildGradesUI();
-        }
+function resetForm() {
+  document.getElementById('editingTeacherId').value = '';
+  document.getElementById('tName').value = '';
+  document.getElementById('tPhone').value = '';
+  const photoInput = document.getElementById('tPhoto');
+  if (photoInput) photoInput.value = '';
+  document.getElementById('tMaxQuota').value = 24;
+  document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد';
+  document.getElementById('saveTeacherBtn').innerText = 'حفظ المعلم +';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+  buildGradesUI();
+}
 
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
