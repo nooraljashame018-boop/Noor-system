@@ -370,6 +370,7 @@
                 else box.classList.add('hidden');
             }
         }
+
 function addTeacher() {
   const name = document.getElementById('tName').value.trim();
   const phone = document.getElementById('tPhone').value.trim();
@@ -382,28 +383,39 @@ function addTeacher() {
     return;
   }
 
-  // جمع كافة الشعب والمواد المحددة بناءً على تحديد مربعات الشعب
+  // جمع المراحل والشعب والمواد المحددة بأي طريقة مفعلة
   const selectedAssignments = [];
+  
+  // 1. الفحص عن طريق مربعات الشعب المحددة
   document.querySelectorAll('input[type="checkbox"][id^="sec_"]:checked').forEach(chk => {
     const parts = chk.id.split('_');
     const gradeIdx = parts[1];
     const secIdx = parts[2];
     const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
-    const subjValue = subjInput ? subjInput.value.trim() : '';
-
     selectedAssignments.push({
       gradeIndex: parseInt(gradeIdx),
       sectionIndex: parseInt(secIdx),
-      subject: subjValue
+      subject: subjInput ? subjInput.value.trim() : ''
     });
   });
+
+  // 2. إذا لم توجد مربعات شعب، نفحص مربعات المراحل الرئيسية بشكل رئيسي
+  if (selectedAssignments.length === 0) {
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+      // إسناد افتراضي للمرحلة المحددة
+      selectedAssignments.push({
+        gradeIndex: 0,
+        sectionIndex: 0,
+        subject: 'مادة عامة'
+      });
+    });
+  }
 
   if (selectedAssignments.length === 0) {
     alert('يرجى تحديد مرحلة وشعبة واحدة على الأقل للمعلم!');
     return;
   }
 
-  // تنفيذ الحفظ وتحويل الصورة إلى Base64
   const proceedWithSave = (photoBase64) => {
     let teachers = getData(teachersDbKey) || [];
 
@@ -447,7 +459,6 @@ function addTeacher() {
     proceedWithSave('');
   }
 }
-
 function resetForm() {
   document.getElementById('editingTeacherId').value = '';
   document.getElementById('tName').value = '';
