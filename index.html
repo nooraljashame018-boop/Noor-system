@@ -475,7 +475,7 @@ function resetForm() {
   }
 
   container.innerHTML = '';
-            }
+            
 
             filteredTeachers.forEach(t => {
                 const assignedText = t.assignments ? t.assignments.map(a => `${a.grade} (${a.section}): ${a.subject}`).join(' | ') : '';
