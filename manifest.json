@@ -1,17 +1,21 @@
-
-
 {
   "short_name": "نور الذكي",
   "name": "نظام نور الذكي",
   "icons": [
     {
-      "src": "./logo.jpeg",
+      "src": "logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.jpeg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"
     }
   ],
-  "start_url": "./",
+  "start_url": "./index.html",
   "background_color": "#ffffff",
   "theme_color": "#1e3a8a",
   "display": "standalone",
