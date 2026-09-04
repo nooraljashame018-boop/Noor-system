@@ -808,7 +808,24 @@ function loadData() {
 
 // تشغيل الاسترجاع تلقائياً بمجرد فتح البرنامج
 window.onload = loadData;
-   <script>
+  function switchTab(viewId) {
+  // إخفاء جميع الأقسام التي ينتهي ID الخاص بها بـ View أو تبدأ بـ view
+  const views = document.querySelectorAll('[id$="View"], .view-content, .page-section');
+  views.forEach(v => {
+    v.style.display = 'none';
+  });
+
+  // إظهار القسم المحدد
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.style.display = 'block';
+  } else {
+    // محاولة البحث بحذف كلمة View أو إضافتها
+    const altTarget = document.getElementById(viewId.replace('View', ''));
+    if (altTarget) altTarget.style.display = 'block';
+  }
+}
+        <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js');
   }
