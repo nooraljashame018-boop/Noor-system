@@ -808,6 +808,10 @@ function loadData() {
 
 // تشغيل الاسترجاع تلقائياً بمجرد فتح البرنامج
 window.onload = loadData;
-</script>
+   <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script> 
 </body>
 </html>
