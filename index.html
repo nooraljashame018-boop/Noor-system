@@ -164,15 +164,10 @@
                         <input type="number" id="tMaxQuota" value="24" min="1" max="30" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
                     </div>
                 </div>
-
-                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200/60 pb-2">
-                        حدد الشعب والمادة المخصصة لها (مثال لإدخال أكثر من مادة: <span class="text-blue-700 font-black">عربي / رياضيات</span>):
-                    </span>
-                    <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
-                </div>
-
-                <div class="flex gap-2">
+<div class="mb-4">
+  <label class="block text-xs font-bold text-slate-700 mb-1">حدد الشعب والمادة المخصصة لها (مثال: عربي / رياضيات):</label>
+  <input type="text" id="teacherSubjects" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="اكتبي الشعبة والمادة هنا (مثال: الخامس أ - عربي)">
+</div>
                     <button type="button" id="saveTeacherBtn" onclick="addTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
                         + حفظ المعلم
                     </button>
