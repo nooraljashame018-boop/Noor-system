@@ -164,9 +164,11 @@
                         <input type="number" id="tMaxQuota" value="24" min="1" max="30" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
                     </div>
                 </div>
-<div class="mb-4">
-  <label class="block text-xs font-bold text-slate-700 mb-1">حدد الشعب والمادة المخصصة لها (مثال: عربي / رياضيات):</label>
-  <input type="text" id="teacherSubjects" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="اكتبي الشعبة والمادة هنا (مثال: الخامس أ - عربي)">
+<div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
+  <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200/60 pb-2">
+    حدد الشعب والمادة المخصصة لها (مثال لإدخال أكثر من مادة: <span class="text-blue-700 font-black">عربي / رياضيات</span>):
+  </span>
+  <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
 </div>
                     <button type="button" id="saveTeacherBtn" onclick="addTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
                         + حفظ المعلم
@@ -820,6 +822,43 @@ function switchTab(viewId) {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js');
 }
-</script>
+function renderGrades() {
+  const gradesData = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس"];
+  const container = document.getElementById('gradesContainer');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  gradesData.forEach((grade, gIdx) => {
+    const gradeDiv = document.createElement('div');
+    gradeDiv.className = 'bg-white p-3 rounded-lg border border-slate-200 space-y-2';
+    gradeDiv.innerHTML = `
+      <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+        <input type="checkbox" onchange="toggleGradeSecs(${gIdx})" id="grade_chk_${gIdx}" class="rounded text-emerald-600 focus:ring-emerald-500">
+        <span>الـ ${grade}</span>
+      </label>
+      <div id="grade_secs_${gIdx}" class="hidden space-y-2 pt-1 pr-4 border-r-2 border-emerald-100">
+        ${['أ', 'ب', 'ج'].map(sec => `
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 font-medium">شعبة ${sec}:</span>
+            <input type="text" placeholder="مثال: عربي / رياضيات" class="w-full p-1 border border-slate-200 rounded text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(gradeDiv);
+  });
+}
+
+function toggleGradeSecs(idx) {
+  const el = document.getElementById(`grade_secs_${idx}`);
+  const chk = document.getElementById(`grade_chk_${idx}`);
+  if (el && chk) {
+    chk.checked ? el.classList.remove('hidden') : el.classList.add('hidden');
+  }
+}
+
+// تشغيل الدالة تلقائياً
+renderGrades();
+    </script>
 </body>
 </html>
