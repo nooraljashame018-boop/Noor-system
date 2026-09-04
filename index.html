@@ -382,12 +382,13 @@ function addTeacher() {
     return;
   }
 
-  // جمع كافة الشعب والمواد المحددة
+  // جمع كافة الشعب والمواد المحددة بناءً على تحديد مربعات الشعب
   const selectedAssignments = [];
   document.querySelectorAll('input[type="checkbox"][id^="sec_"]:checked').forEach(chk => {
-    const gradeIdx = chk.getAttribute('data-grade');
-    const secIdx = chk.getAttribute('data-sec');
-    const subjInput = document.getElementById(`subj_${gradeIdx}_${secIdx}`);
+    const parts = chk.id.split('_');
+    const gradeIdx = parts[1];
+    const secIdx = parts[2];
+    const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
     const subjValue = subjInput ? subjInput.value.trim() : '';
 
     selectedAssignments.push({
@@ -402,7 +403,7 @@ function addTeacher() {
     return;
   }
 
-  // تنفيذ الحفظ مع تحويل الصورة إلى Base64
+  // تنفيذ الحفظ وتحويل الصورة إلى Base64
   const proceedWithSave = (photoBase64) => {
     let teachers = getData(teachersDbKey) || [];
 
@@ -459,28 +460,6 @@ function resetForm() {
   document.getElementById('cancelEditBtn').classList.add('hidden');
   buildGradesUI();
 }
-
-        function renderTeachersCards() {
-            const container = document.getElementById('teachersCardsList');
-            const filterValue = document.getElementById('attendanceFilter') ? document.getElementById('attendanceFilter').value : 'all';
-            container.innerHTML = '';
-
-            let teachers = getData(teachersDbKey) || [];
-
-            const totalCount = teachers.length;
-            const presentCount = teachers.filter(t => t.isPresent).length;
-            const absentCount = teachers.filter(t => !t.isPresent).length;
-
-            document.getElementById('statAll').innerText = `الكل: ${totalCount}`;
-            document.getElementById('statPresent').innerText = `الحاضرون: ${presentCount}`;
-            document.getElementById('statAbsent').innerText = `الغائبون: ${absentCount}`;
-
-            let filteredTeachers = teachers;
-            if (filterValue === 'present') {
-                filteredTeachers = teachers.filter(t => t.isPresent);
-            } else if (filterValue === 'absent') {
-                filteredTeachers = teachers.filter(t => !t.isPresent);
-            }
 
             if (filteredTeachers.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-bold text-xs bg-slate-50 rounded-xl border border-dashed border-slate-300">لا يوجد معلمون في هذه القائمة حالياً</div>`;
