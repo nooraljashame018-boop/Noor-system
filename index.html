@@ -461,9 +461,20 @@ function resetForm() {
   buildGradesUI();
 }
 
-            if (filteredTeachers.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-bold text-xs bg-slate-50 rounded-xl border border-dashed border-slate-300">لا يوجد معلمون في هذه القائمة حالياً</div>`;
-                return;
+           function renderTeachers() {
+  const container = document.getElementById('teachersContainer');
+  if (!container) return;
+
+  let teachers = getData(teachersDbKey) || [];
+  let filterVal = document.getElementById('searchTeacherInput')?.value.toLowerCase().trim() || '';
+  let filteredTeachers = teachers.filter(t => t.name.toLowerCase().includes(filterVal));
+
+  if (filteredTeachers.length === 0) {
+    container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-bold text-xs bg-slate-50 rounded-xl">لا يوجد معلمون مضافون حالياً</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
             }
 
             filteredTeachers.forEach(t => {
