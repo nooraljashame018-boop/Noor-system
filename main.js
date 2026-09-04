@@ -1,23 +1,13 @@
-function switchTab(tabId) {
-  // 1. إخفاء جميع الشاشات والأقسام
-  const allViews = document.querySelectorAll('.view-content, [id$="View"], .page-section');
-  allViews.forEach(view => {
-    view.style.display = 'none';
+function switchTab(viewId) {
+  // إخفاء كل العناصر التي تمتلك كلاس tab-content بغض النظر عن نوع الوسم (section أو div)
+  const allTabs = document.querySelectorAll('.tab-content');
+  allTabs.forEach(tab => {
+    tab.style.display = 'none';
   });
 
-  // 2. إظهار الشاشة المطلوبة فقط
-  const targetView = document.getElementById(tabId);
-  if (targetView) {
-    targetView.style.display = 'block';
-  }
-
-  // 3. تحديث الزر النشط (Active Class)
-  const allButtons = document.querySelectorAll('.nav-btn');
-  allButtons.forEach(btn => {
-    btn.classList.remove('active');
-  });
-
-  if (event && event.currentTarget) {
-    event.currentTarget.classList.add('active');
+  // إظهار القسم المطلوبة
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.style.display = 'block';
   }
 }
