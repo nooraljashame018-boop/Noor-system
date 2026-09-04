@@ -155,10 +155,16 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">اسم المعلم:</label>
                         <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب (مع رمز الدولة):</label>
-                        <input type="tel" id="tPhone" placeholder="مثال: 9647700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
-                    </div>
+                
+                      <div>
+  <label class="block text-xs font-bold text-slate-700 mb-1">صورة المعلم:</label>
+  <input type="file" id="tPhoto" accept="image/*" class="w-full text-xs p-1.5 border border-slate-200 rounded-xl bg-white focus:outline-none">
+</div>
+<div>
+  <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب (مع رمز الدولة):</label>
+  <input type="tel" id="tPhone" placeholder="9647700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none">
+</div>  
+    
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">الحد الأقصى للنصاب (حصص/أسبوع):</label>
                         <input type="number" id="tMaxQuota" value="24" min="1" max="30" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
