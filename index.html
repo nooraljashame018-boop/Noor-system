@@ -362,53 +362,49 @@ window.getTeachers = function() {
             if (chk && box) box.classList.toggle('hidden', !chk.checked);
         }
 
-        function addTeacher() {
-            const name = document.getElementById('tName').value.trim();
-            const phone = document.getElementById('tPhone').value.trim();
-            const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
-            const editingId = document.getElementById('editingTeacherId').value;
+      function addTeacher() {
+    const name = document.getElementById('tName').value.trim();
+    const phone = document.getElementById('tPhone').value.trim();
+    const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
 
-            if (!name) { alert('يرجى إدخال اسم المعلم'); return; }
+    if (!name) { 
+        alert('يرجى إدخال اسم المعلم أولاً!'); 
+        return; 
+    }
 
-            const selectedAssignments = [];
-            document.querySelectorAll('input[id^="sec_"]:checked').forEach(chk => {
-                const parts = chk.id.split('_');
-                const gIdx = parseInt(parts[1]);
-                const sIdx = parseInt(parts[2]);
-                const subjInput = document.getElementById(`sub_${gIdx}_${sIdx}`);
-                const noteInput = document.getElementById(`note_${gIdx}_${sIdx}`);
-                
-                selectedAssignments.push({
-                    gradeIndex: gIdx,
-                    sectionIndex: sIdx,
-                    subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام',
-                    note: (noteInput && noteInput.value.trim()) ? noteInput.value.trim() : ''
-                });
-            });
+    const selectedAssignments = [];
+    document.querySelectorAll('input[id^="sec_"]:checked').forEach(chk => {
+        const parts = chk.id.split('_');
+        const gIdx = parseInt(parts[1]);
+        const sIdx = parseInt(parts[2]);
+        const subjInput = document.getElementById(`sub_${gIdx}_${sIdx}`);
+        
+        selectedAssignments.push({
+            gradeIndex: gIdx,
+            sectionIndex: sIdx,
+            subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام'
+        });
+    });
 
-            let teachers = getData('teachersData') || getData('teachers_data') || [];
+    let teachers = getTeachers();
+    
+    teachers.push({
+        id: Date.now(),
+        name: name,
+        phone: phone,
+        maxQuota: maxQuota,
+        status: 'present',
+        isPresent: true,
+        assignments: selectedAssignments
+    });
 
-            if (editingId) {
-                const index = teachers.findIndex(t => t.id == editingId);
-                if (index !== -1) {
-                    teachers[index] = { ...teachers[index], name, phone, maxQuota, assignments: selectedAssignments };
-                }
-            } else {
-                teachers.push({
-                    id: Date.now(),
-                    name, phone, maxQuota,
-                    status: 'present',
-                    isPresent: true,
-                    assignments: selectedAssignments
-                });
-            }
+    saveTeachers(teachers);
+    refreshAllSystemViews();
+    renderSchedule();
 
-            saveData('teachersData', teachers);
-            saveData('teachers_data', teachers);
-            resetForm();
-            refreshAllSystemViews();
-            alert('تم حفظ المعلم وربط الشعب وتحديث جميع الجداول بنجاح!');
-        }
+    alert('تم حفظ المعلم وظهر في كافة الجداول والقوائم بنجاح!');
+    resetForm();
+}
 
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
