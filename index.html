@@ -269,7 +269,11 @@
     </main>
 
     <script>
-  const scheduleDbKey = 'schedule_data';
+ // تفريغ وتعديل مفتاح التخزين تلقائياً عند الفتح
+if (!localStorage.getItem('teachersData') && localStorage.getItem('teachers_data')) {
+    localStorage.setItem('teachersData', localStorage.getItem('teachers_data'));
+}
+        const scheduleDbKey = 'schedule_data';
   const teachersDbKey = 'teachersData';
   const backupDbKey = 'backup_data';
         const daysList = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
