@@ -335,42 +335,65 @@
             }
         }
 
-        function buildGradesUI() {
-            const container = document.getElementById('gradesContainer');
-            let html = '';
-            const uniqueGrades = [...new Set(schoolStructure.map(item => item.grade))];
+      // 1. بناء واجهة المراحل والشعب الفرعية المتفرعة ديناميكياً
+function buildGradesUI() {
+  const container = document.getElementById('gradesContainer');
+  if (!container) return;
 
-            uniqueGrades.forEach((gName, idx) => {
-                html += `
-                    <div class="bg-white p-2.5 rounded-xl border border-emerald-100 flex flex-col gap-2">
-                        <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer text-sm">
-                            <input type="checkbox" id="grade_chk_${idx}" onchange="toggleSections(${idx})" class="rounded text-emerald-600">
-                            <span>الـ ${gName}</span>
-                        </label>
-                        <div id="sections_box_${idx}" class="hidden flex flex-col gap-1.5 pr-2">
-                            ${['أ', 'ب', 'ج'].map(sec => `
-                                <div class="flex items-center justify-between gap-1 bg-slate-50 p-1 rounded border border-slate-200">
-                                    <label class="flex items-center gap-1 cursor-pointer hover:text-emerald-700 text-xs">
-                                        <input type="checkbox" name="sec_${idx}" value="${sec}" class="rounded text-emerald-600"> شعبة ${sec}
-                                    </label>
-                                    <input type="text" id="sub_${idx}_${sec}" placeholder="مثال: عربي / رياضيات" class="w-32 border border-slate-300 px-1.5 py-1 rounded text-xs outline-none bg-white">
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-        }
+  const grades = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
+  const sections = ['أ', 'ب', 'ج', 'د'];
+  let html = '';
 
-        function toggleSections(idx) {
-            const chk = document.getElementById(`grade_chk_${idx}`);
-            const box = document.getElementById(`sections_box_${idx}`);
-            if (chk && box) {
-                if (chk.checked) box.classList.remove('hidden');
-                else box.classList.add('hidden');
-            }
-        }
+  grades.forEach((gradeName, gIdx) => {
+    html += `
+      <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 mb-2">
+        <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer mb-2">
+          <input type="checkbox" id="grade_chk_${gIdx}" onchange="toggleGradeSecs(${gIdx})" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+          <span>الصف ${gradeName}</span>
+        </label>
 
+        <div id="grade_secs_${gIdx}" class="hidden flex flex-col gap-2.5 mr-5 pt-2 border-r-2 border-emerald-300 pr-3">
+          ${sections.map((secName, sIdx) => `
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+              <label class="flex items-center gap-2 font-semibold text-xs text-slate-800 cursor-pointer">
+                <input type="checkbox" id="sec_${gIdx}_${sIdx}" onchange="toggleSubjInputs(${gIdx}, ${sIdx})" class="rounded text-emerald-600 w-3.5 h-3.5">
+                <span>شعبة ${secName}</span>
+              </label>
+
+              <div id="subj_box_${gIdx}_${sIdx}" class="hidden grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100">
+                <div>
+                  <label class="block text-[10px] text-slate-500 font-bold mb-1">المادة المخصصة:</label>
+                  <input type="text" id="sub_${gIdx}_${sIdx}" placeholder="مثال: رياضيات" class="w-full text-xs p-1.5 border rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-500 font-bold mb-1">عدد الحصص / ملاحظة:</label>
+                  <input type="text" id="note_${gIdx}_${sIdx}" placeholder="مثال: 4 حصص" class="w-full text-xs p-1.5 border rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none">
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// دالة إظهار وإخفاء الحقول المتفرعة للشعبة عند تحديدها
+function toggleSubjInputs(gIdx, sIdx) {
+  const chk = document.getElementById(`sec_${gIdx}_${sIdx}`);
+  const box = document.getElementById(`subj_box_${gIdx}_${sIdx}`);
+  if (chk && box) {
+    if (chk.checked) {
+      box.classList.remove('hidden');
+    } else {
+      box.classList.add('hidden');
+    }
+  }
+}
+
+// 2. دالة إضافة معلم جديد مع معالجة الحقول المتفرعة وتحديث الجداول تلقائياً
 function addTeacher() {
   const name = document.getElementById('tName').value.trim();
   const phone = document.getElementById('tPhone').value.trim();
@@ -385,26 +408,26 @@ function addTeacher() {
 
   const selectedAssignments = [];
   
-  document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
+  // قراءة كل شعبة محددة مع الحقلين المتفرعين الخاصين بها
+  document.querySelectorAll('input[id^="sec_"]:checked').forEach(chk => {
     const parts = chk.id.split('_');
-    if (parts.length >= 3) {
-      const gradeIdx = parts[1];
-      const secIdx = parts[2];
-      const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
-      selectedAssignments.push({
-        gradeIndex: parseInt(gradeIdx),
-        sectionIndex: parseInt(secIdx),
-        subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام'
-      });
-    }
+    const gradeIdx = parseInt(parts[1]);
+    const secIdx = parseInt(parts[2]);
+    
+    const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
+    const noteInput = document.getElementById(`note_${gradeIdx}_${secIdx}`);
+    
+    selectedAssignments.push({
+      gradeIndex: gradeIdx,
+      sectionIndex: secIdx,
+      subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام',
+      note: (noteInput && noteInput.value.trim()) ? noteInput.value.trim() : ''
+    });
   });
 
+  // إذا لم يُحدد شعبة، تعيين شعبة عامة لتفادي أخطاء الحفظ
   if (selectedAssignments.length === 0) {
-    selectedAssignments.push({
-      gradeIndex: 0,
-      sectionIndex: 0,
-      subject: 'مادة عامة'
-    });
+    selectedAssignments.push({ gradeIndex: 0, sectionIndex: 0, subject: 'مادة عامة', note: '' });
   }
 
   const proceedWithSave = (photoBase64) => {
@@ -428,7 +451,7 @@ function addTeacher() {
         name: name,
         phone: phone,
         maxQuota: maxQuota,
-        status: 'present', // الحالة الافتراضية: حاضر (present, absent, leave)
+        status: 'present',
         isPresent: true,
         assignments: selectedAssignments,
         photo: photoBase64 || ''
@@ -439,41 +462,36 @@ function addTeacher() {
     saveData(teachersDbKey, teachers);
     resetForm();
     
-    // تحديث الجداول والشاشات تلقائياً
-    refreshSystemData();
+    // تحديث وتوليد جميع الجداول والجداول الموحدة فوراً
+    refreshAllSystemViews();
     
-    alert('تم حفظ المعلم وتحديث جدول البدلاء والمراقبة الذكي تلقائياً!');
+    alert('تم حفظ المعلم وربط الشعب وتحديث جميع الجداول بنجاح!');
   };
 
   if (photoInput && photoInput.files && photoInput.files[0]) {
     const reader = new FileReader();
-    reader.onload = function(e) {
-      proceedWithSave(e.target.result);
-    };
+    reader.onload = function(e) { proceedWithSave(e.target.result); };
     reader.readAsDataURL(photoInput.files[0]);
   } else {
     proceedWithSave('');
   }
 }
 
-// دالة تحديث حالة المعلم (حاضر / غائب / مجاز) وتوليد الجدول تلقائياً
+// دالة تحديث حالة المعلم وتفعيل التوليد الفوري
 function setTeacherStatus(teacherId, status) {
   let teachers = getData(teachersDbKey) || [];
   const index = teachers.findIndex(t => t.id == teacherId);
-  
   if (index !== -1) {
     teachers[index].status = status;
     teachers[index].isPresent = (status === 'present');
-    
     saveData(teachersDbKey, teachers);
-    refreshSystemData();
+    refreshAllSystemViews();
   }
 }
 
-// دالة إعادة تحديث وتوليد جميع الجداول والمراقبة فوراً
-function refreshSystemData() {
-  if (typeof renderTeachers === 'function') renderTeachers();
-  if (typeof renderTeachersCards === 'function') renderTeachersCards();
+// دالة لتوليد وتحديث كافة شاشات وجداول النظام بدون استثناء
+function refreshAllSystemViews() {
+  if (typeof renderTeachers === 'function') renderTeachers();if (typeof renderTeachersCards === 'function') renderTeachersCards();
   if (typeof refreshBackupTeachers === 'function') refreshBackupTeachers();
   if (typeof renderSchedule === 'function') renderSchedule();
 }
@@ -488,7 +506,7 @@ function resetForm() {
   document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد';
   document.getElementById('saveTeacherBtn').innerText = 'حفظ المعلم +';
   document.getElementById('cancelEditBtn').classList.add('hidden');
-  if (typeof buildGradesUI === 'function') buildGradesUI();
+  buildGradesUI();
 }
 
 function renderTeachers() {
@@ -504,12 +522,14 @@ function renderTeachers() {
     return;
   }
 
+  const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
+  const secNames = ['أ', 'ب', 'ج', 'د'];
+
   container.innerHTML = '';
   filteredTeachers.forEach(t => {
-    const assignedText = t.assignments ? t.assignments.map(a => `الصف ${a.gradeIndex + 1} (${a.sectionIndex + 1}): ${a.subject}`).join(' | ') : '';
+    const assignedText = t.assignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex] || a.gradeIndex + 1} (${secNames[a.sectionIndex] || a.sectionIndex + 1}): ${a.subject}`).join(' | ') : '';
     const whatsappUrl = t.phone ? `https://wa.me/${t.phone}` : '#';
     
-    // تحديد لون وعنوان الحالة
     const status = t.status || (t.isPresent ? 'present' : 'absent');
     let statusBg = 'bg-emerald-500';
     let cardBorder = 'border-emerald-300 bg-emerald-50/20';
@@ -523,7 +543,7 @@ function renderTeachers() {
     }
 
     container.innerHTML += `
-      <div class="bg-white p-4 rounded-2xl border flex flex-col justify-between ${cardBorder} shadow-sm transition-all">
+      <div class="bg-white p-4 rounded-2xl border flex flex-col justify-between ${cardBorder} shadow-sm transition-all mb-3">
         <div class="mb-3">
           <div class="flex justify-between items-start mb-1">
             <h4 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
@@ -543,9 +563,6 @@ function renderTeachers() {
               <i class="fas fa-check-circle"></i> حاضر
             </button>
             <button onclick="setTeacherStatus(${t.id}, 'absent')" class="py-1 rounded-lg transition ${status === 'absent' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
-              <i class="fas fa-times-circle"></i> غائب
-            </button>
-            <button onclick="setTeacherStatus(${t.id}, 'leave')" class="py-1 rounded-lg transition ${status === 'leave' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
               <i class="fas fa-user-clock"></i> مجاز
             </button>
           </div>
