@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v7.2
+                نظام إدارة الجداول الذكي v7.3
             </div>
         </div>
     </aside>
@@ -114,7 +114,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
-                        <input type="tel" id="tPhone" placeholder="9647700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                        <input type="tel" id="tPhone" placeholder="07700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">عدد الحصص الأسبوعية المطلوبة:</label>
@@ -164,7 +164,7 @@
                             <tr>
                                 <th class="p-3">الصورة</th>
                                 <th class="p-3">اسم المعلم</th>
-                                <th class="p-3">رقم الهاتف</th>
+                                <th class="p-3">رقم الهاتف (واتساب)</th>
                                 <th class="p-3">الصفوف والشعب</th>
                                 <th class="p-3 text-center">الحصص</th>
                                 <th class="p-3 text-center">وقت الحضور اليوم</th>
@@ -193,6 +193,16 @@
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5', 'الحصة 6'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
+
+        // دالة تنظيف رقم الهاتف وتحويله لرابط واتساب
+        function formatWhatsappUrl(phone) {
+            if (!phone) return '#';
+            let cleaned = phone.replace(/\D/g, ''); // إزالة الأشكال والرموز
+            if (cleaned.startsWith('07')) {
+                cleaned = '964' + cleaned.substring(1); // تحويل الرقم العراقي للصيغة الدولية
+            }
+            return `https://wa.me/${cleaned}`;
+        }
 
         function getTeachers() {
             try { return JSON.parse(localStorage.getItem('app_teachers_v7') || '[]'); } catch(e) { return []; }
@@ -379,7 +389,6 @@
             alert('تم إعادة توليد الجدول الأسبوعي كاملاً بنجاح!');
         }
 
-        // دالة تسجيل الحضور بالوقت والتاريخ
         function recordAttendance(id) {
             let list = getTeachers();
             let idx = list.findIndex(t => t.id == id);
@@ -446,7 +455,14 @@
                             ${t.photo ? `<img src="${t.photo}" class="w-11 h-11 rounded-full object-cover border border-slate-300">` : `<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm"><i class="fas fa-user"></i></div>`}
                             <div class="flex-1">
                                 <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
-                                <div class="text-[11px] text-slate-500 font-bold">الحصص الأسبوعية: ${t.maxQuota}</div>
+                                <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-0.5">
+                                    <span>الحصص: ${t.maxQuota}</span>
+                                    ${t.phone ? `
+                                        <a href="${formatWhatsappUrl(t.phone)}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
+                                            <i class="fab fa-whatsapp text-emerald-500 text-xs"></i> ${t.phone}
+                                        </a>
+                                    ` : ''}
+                                </div>
                             </div>
                             <button onclick="deleteTeacher(${t.id})" class="text-slate-300 hover:text-red-600 transition"><i class="fas fa-trash"></i></button>
                         </div>
@@ -487,7 +503,13 @@
                         ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-user text-xs"></i></div>`}
                     </td>
                     <td class="p-3 font-bold">${t.name}</td>
-                    <td class="p-3">${t.phone || '-'}</td>
+                    <td class="p-3">
+                        ${t.phone ? `
+                            <a href="${formatWhatsappUrl(t.phone)}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition">
+                                <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> ${t.phone}
+                            </a>
+                        ` : '-'}
+                    </td>
                     <td class="p-3">${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join(', ')}</td>
                     <td class="p-3 text-center font-bold">${t.maxQuota}</td>
                     <td class="p-3 text-center font-bold text-blue-600">${t.checkInTime ? t.checkInTime : '-'}</td>
@@ -513,7 +535,11 @@
                             <span class="text-[10px] text-emerald-600 font-bold">حاضر منذ: ${t.checkInTime}</span>
                         </div>
                     </div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    ${t.phone ? `
+                        <a href="${formatWhatsappUrl(t.phone)}" target="_blank" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg text-sm">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    ` : '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>'}
                 </div>
             `).join('');
         }
