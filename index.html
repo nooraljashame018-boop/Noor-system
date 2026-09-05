@@ -479,7 +479,7 @@ function addTeacher() {
 
 // دالة تحديث حالة المعلم وتفعيل التوليد الفوري
 function setTeacherStatus(teacherId, status) {
-  let teachers = getData(teachersDbKey) || [];
+  let teachers = getData('teachers') || getData(teachersDbKey) || [];
   const index = teachers.findIndex(t => t.id == teacherId);
   if (index !== -1) {
     teachers[index].status = status;
@@ -513,7 +513,7 @@ function renderTeachers() {
   const container = document.getElementById('teachersContainer') || document.getElementById('teachersList');
   if (!container) return;
 
-  let teachers = getData(teachersDbKey) || [];
+ let teachers = getData('teachers') || getData(teachersDbKey) || [];
   let filterVal = document.getElementById('searchTeacherInput')?.value.toLowerCase().trim() || '';
   let filteredTeachers = teachers.filter(t => t.name.toLowerCase().includes(filterVal));
 
