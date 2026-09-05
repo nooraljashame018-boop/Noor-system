@@ -385,31 +385,26 @@ function addTeacher() {
 
   const selectedAssignments = [];
   
-  document.querySelectorAll('input[type="checkbox"][id^="sec_"]:checked').forEach(chk => {
+  document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
     const parts = chk.id.split('_');
-    const gradeIdx = parts[1];
-    const secIdx = parts[2];
-    const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
-    selectedAssignments.push({
-      gradeIndex: parseInt(gradeIdx),
-      sectionIndex: parseInt(secIdx),
-      subject: subjInput ? subjInput.value.trim() : ''
-    });
+    if (parts.length >= 3) {
+      const gradeIdx = parts[1];
+      const secIdx = parts[2];
+      const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
+      selectedAssignments.push({
+        gradeIndex: parseInt(gradeIdx),
+        sectionIndex: parseInt(secIdx),
+        subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام'
+      });
+    }
   });
 
   if (selectedAssignments.length === 0) {
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
-      selectedAssignments.push({
-        gradeIndex: 0,
-        sectionIndex: 0,
-        subject: 'مادة عامة'
-      });
+    selectedAssignments.push({
+      gradeIndex: 0,
+      sectionIndex: 0,
+      subject: 'مادة عامة'
     });
-  }
-
-  if (selectedAssignments.length === 0) {
-    alert('يرجى تحديد مرحلة وشعبة واحدة على الأقل للمعلم!');
-    return;
   }
 
   const proceedWithSave = (photoBase64) => {
@@ -433,6 +428,8 @@ function addTeacher() {
         name: name,
         phone: phone,
         maxQuota: maxQuota,
+        status: 'present', // الحالة الافتراضية: حاضر (present, absent, leave)
+        isPresent: true,
         assignments: selectedAssignments,
         photo: photoBase64 || ''
       };
@@ -441,8 +438,11 @@ function addTeacher() {
 
     saveData(teachersDbKey, teachers);
     resetForm();
-    renderTeachers();
-    alert('تم حفظ بيانات المعلم بنجاح');
+    
+    // تحديث الجداول والشاشات تلقائياً
+    refreshSystemData();
+    
+    alert('تم حفظ المعلم وتحديث جدول البدلاء والمراقبة الذكي تلقائياً!');
   };
 
   if (photoInput && photoInput.files && photoInput.files[0]) {
@@ -456,6 +456,28 @@ function addTeacher() {
   }
 }
 
+// دالة تحديث حالة المعلم (حاضر / غائب / مجاز) وتوليد الجدول تلقائياً
+function setTeacherStatus(teacherId, status) {
+  let teachers = getData(teachersDbKey) || [];
+  const index = teachers.findIndex(t => t.id == teacherId);
+  
+  if (index !== -1) {
+    teachers[index].status = status;
+    teachers[index].isPresent = (status === 'present');
+    
+    saveData(teachersDbKey, teachers);
+    refreshSystemData();
+  }
+}
+
+// دالة إعادة تحديث وتوليد جميع الجداول والمراقبة فوراً
+function refreshSystemData() {
+  if (typeof renderTeachers === 'function') renderTeachers();
+  if (typeof renderTeachersCards === 'function') renderTeachersCards();
+  if (typeof refreshBackupTeachers === 'function') refreshBackupTeachers();
+  if (typeof renderSchedule === 'function') renderSchedule();
+}
+
 function resetForm() {
   document.getElementById('editingTeacherId').value = '';
   document.getElementById('tName').value = '';
@@ -466,7 +488,7 @@ function resetForm() {
   document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد';
   document.getElementById('saveTeacherBtn').innerText = 'حفظ المعلم +';
   document.getElementById('cancelEditBtn').classList.add('hidden');
-  buildGradesUI();
+  if (typeof buildGradesUI === 'function') buildGradesUI();
 }
 
 function renderTeachers() {
@@ -484,15 +506,28 @@ function renderTeachers() {
 
   container.innerHTML = '';
   filteredTeachers.forEach(t => {
-    const assignedText = t.assignments ? t.assignments.map(a => `${a.gradeIndex + 1} (${a.sectionIndex + 1}): ${a.subject}`).join(' | ') : '';
+    const assignedText = t.assignments ? t.assignments.map(a => `الصف ${a.gradeIndex + 1} (${a.sectionIndex + 1}): ${a.subject}`).join(' | ') : '';
     const whatsappUrl = t.phone ? `https://wa.me/${t.phone}` : '#';
+    
+    // تحديد لون وعنوان الحالة
+    const status = t.status || (t.isPresent ? 'present' : 'absent');
+    let statusBg = 'bg-emerald-500';
+    let cardBorder = 'border-emerald-300 bg-emerald-50/20';
+    
+    if (status === 'absent') {
+      statusBg = 'bg-red-500';
+      cardBorder = 'border-red-200 bg-red-50/20';
+    } else if (status === 'leave') {
+      statusBg = 'bg-amber-500';
+      cardBorder = 'border-amber-200 bg-amber-50/20';
+    }
 
     container.innerHTML += `
-      <div class="bg-white p-4 rounded-2xl border flex flex-col justify-between ${t.isPresent ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200'} shadow-sm">
+      <div class="bg-white p-4 rounded-2xl border flex flex-col justify-between ${cardBorder} shadow-sm transition-all">
         <div class="mb-3">
           <div class="flex justify-between items-start mb-1">
             <h4 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full ${t.isPresent ? 'bg-emerald-500' : 'bg-red-500'} inline-block"></span>
+              <span class="w-2.5 h-2.5 rounded-full ${statusBg} inline-block"></span>
               ${t.name}
             </h4>
             <button onclick="deleteTeacher(${t.id})" class="text-slate-400 hover:text-red-600 text-xs p-1"><i class="fas fa-trash"></i></button>
@@ -501,8 +536,21 @@ function renderTeachers() {
           <span class="text-xs text-slate-600 font-bold block mt-1">النصاب الأقصى: ${t.maxQuota || 24} حصة</span>
           ${t.phone ? `<span class="text-[11px] text-slate-500 block mt-0.5"><i class="fas fa-phone text-slate-400"></i> ${t.phone}</span>` : ''}
         </div>
+
         <div class="pt-2 border-t border-slate-200 flex flex-col gap-2">
-          ${t.phone ? `<a href="${whatsappUrl}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 rounded-xl flex items-center justify-center gap-1"><i class="fab fa-whatsapp text-sm"></i> مراسلة عبر الواتساب</a>` : ''}
+          <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold text-center">
+            <button onclick="setTeacherStatus(${t.id}, 'present')" class="py-1 rounded-lg transition ${status === 'present' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
+              <i class="fas fa-check-circle"></i> حاضر
+            </button>
+            <button onclick="setTeacherStatus(${t.id}, 'absent')" class="py-1 rounded-lg transition ${status === 'absent' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
+              <i class="fas fa-times-circle"></i> غائب
+            </button>
+            <button onclick="setTeacherStatus(${t.id}, 'leave')" class="py-1 rounded-lg transition ${status === 'leave' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
+              <i class="fas fa-user-clock"></i> مجاز
+            </button>
+          </div>
+
+          ${t.phone ? `<a href="${whatsappUrl}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 rounded-xl flex items-center justify-center gap-1 mt-1"><i class="fab fa-whatsapp text-sm"></i> مراسلة عبر الواتساب</a>` : ''}
         </div>
       </div>
     `;
