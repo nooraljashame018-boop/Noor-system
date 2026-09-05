@@ -49,8 +49,14 @@
                 </button>
             </nav>
         </div>
-        <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-            نظام إدارة الجداول v6.2
+
+        <div class="space-y-3">
+            <button onclick="manualRefreshAll()" class="w-full bg-blue-600/30 hover:bg-blue-600 border border-blue-500/50 text-blue-200 hover:text-white py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                <i class="fas fa-rotate text-sm"></i> تحديث الكل
+            </button>
+            <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
+                نظام إدارة الجداول v6.3
+            </div>
         </div>
     </aside>
 
@@ -64,9 +70,14 @@
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام</h2>
                     <p class="text-xs text-slate-500">من الصف الأول إلى السادس ابتدائي (شعب أ، ب، ج)</p>
                 </div>
-                <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-2">
-                    <i class="fas fa-print"></i> طباعة الجدول (PDF)
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="renderSchedule()" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
+                        <i class="fas fa-rotate"></i> تحديث الجدول
+                    </button>
+                    <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-2">
+                        <i class="fas fa-print"></i> طباعة الجدول (PDF)
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
@@ -125,6 +136,9 @@
                         <i class="fas fa-users text-blue-600"></i> إدارة الحضور والغياب للمعلمين
                     </h3>
                     <div class="flex items-center gap-3">
+                        <button onclick="renderTeachersCards()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl border border-slate-300 transition flex items-center gap-1.5">
+                            <i class="fas fa-rotate text-blue-600"></i> تحديث السجل
+                        </button>
                         <label class="text-xs font-bold text-slate-600">عرض بحسب الحالة:</label>
                         <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
                             <option value="all">جميع المعلمين</option>
@@ -147,9 +161,14 @@
         <!-- 3. جميع الكادر المدرسي -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <i class="fas fa-users-line text-indigo-600"></i> سجل الكادر التعليمي العام
-                </h3>
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-users-line text-indigo-600"></i> سجل الكادر التعليمي العام
+                    </h3>
+                    <button onclick="renderAllStaffTable()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fas fa-rotate"></i> تحديث الكادر
+                    </button>
+                </div>
                 <div class="overflow-x-auto border border-slate-200 rounded-xl">
                     <table class="w-full text-right border-collapse text-xs">
                         <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
@@ -172,9 +191,14 @@
         <!-- 4. بدلاء الشواغر -->
         <section id="backupView" class="tab-content hidden space-y-4">
             <div class="bg-amber-50 rounded-2xl border border-amber-200 p-5">
-                <h3 class="text-sm font-bold text-amber-900 flex items-center gap-2 mb-4 border-b border-amber-200 pb-3">
-                    <i class="fas fa-shield-alt text-amber-600"></i> قائمة المعلمين الحاضرين لسد الشواغر اليومية
-                </h3>
+                <div class="flex justify-between items-center border-b border-amber-200 pb-3 mb-4">
+                    <h3 class="text-sm font-bold text-amber-900 flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-amber-600"></i> قائمة المعلمين الحاضرين لسد الشواغر اليومية
+                    </h3>
+                    <button onclick="refreshBackupTeachers()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fas fa-rotate"></i> تحديث الشواغر
+                    </button>
+                </div>
                 <div id="backupTeachersList" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
             </div>
         </section>
@@ -321,6 +345,10 @@
             if(!confirm('هل أنت متأكد من حذف المعلم؟')) return;
             let list = getTeachers().filter(t => t.id != id);
             saveTeachers(list);
+            refreshAllViews();
+        }
+
+        function manualRefreshAll() {
             refreshAllViews();
         }
 
