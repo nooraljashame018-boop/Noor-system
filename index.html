@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v7.4
+                نظام إدارة الجداول الذكي v7.5
             </div>
         </div>
     </aside>
@@ -188,6 +188,49 @@
 
     </main>
 
+    <!-- نافذة تعديل بيانات المعلم (Modal) -->
+    <div id="editTeacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-pen text-blue-400"></i> تعديل بيانات المعلم</h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto space-y-4">
+                <input type="hidden" id="editTeacherId">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">اسم المعلم:</label>
+                        <input type="text" id="editTName" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
+                        <input type="tel" id="editTPhone" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">عدد الحصص الأسبوعية:</label>
+                        <input type="number" id="editTMaxQuota" min="1" max="30" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">تغيير الصورة (اختياري):</label>
+                    <input type="file" id="editTPhoto" accept="image/*" class="w-full text-xs text-slate-500 border border-slate-200 p-1 rounded-xl">
+                </div>
+
+                <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 space-y-2">
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-1">الصفوف والشعب والمواد:</span>
+                    <div id="editGradesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إلغاء</button>
+                <button onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md">حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
         const secNames = ['أ', 'ب', 'ج'];
@@ -204,7 +247,6 @@
             return cleaned;
         }
 
-        // دالة إنشاء وإرسال جدول المعلم عبر الواتساب
         function sendTeacherScheduleWhatsApp(teacherId) {
             let teachers = getTeachers();
             let teacher = teachers.find(t => t.id == teacherId);
@@ -242,7 +284,6 @@
                 return;
             }
 
-            // بناء نص الرسالة
             let msg = `السلام عليكم أستاذ/ة *${teacher.name}* 🌸\n`;
             msg += `إليك جدول الحصص الأسبوعي الخاص بك في *مدرسة الضياء*:\n\n`;
 
@@ -286,7 +327,7 @@
         }
 
         window.onload = function() {
-            buildGradesForm();
+            buildGradesForm('gradesContainer', '');
             refreshAllViews();
         };
 
@@ -298,28 +339,28 @@
             refreshAllViews();
         }
 
-        function buildGradesForm() {
-            const container = document.getElementById('gradesContainer');
+        function buildGradesForm(containerId, prefix = '') {
+            const container = document.getElementById(containerId);
             let html = '';
             gradeNames.forEach((gName, gIdx) => {
                 html += `
                   <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
                     <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer mb-2">
-                      <input type="checkbox" id="g_chk_${gIdx}" onchange="document.getElementById('g_box_${gIdx}').classList.toggle('hidden', !this.checked)" class="rounded text-emerald-600">
+                      <input type="checkbox" id="${prefix}g_chk_${gIdx}" onchange="document.getElementById('${prefix}g_box_${gIdx}').classList.toggle('hidden', !this.checked)" class="rounded text-emerald-600">
                       <span>الصف ${gName}</span>
                     </label>
-                    <div id="g_box_${gIdx}" class="hidden flex flex-col gap-2 mr-4 border-r-2 border-emerald-400 pr-2 pt-1">
+                    <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 mr-4 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="flex flex-col gap-1 border-b border-slate-100 pb-2">
                           <label class="text-xs font-semibold">
-                            <input type="checkbox" id="sec_${gIdx}_${sIdx}" class="rounded text-emerald-600"> شعبة ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" class="rounded text-emerald-600"> شعبة ${sName}
                           </label>
                           <div class="grid grid-cols-2 gap-1 mt-1">
-                            <select id="sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                            <select id="${prefix}sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
                                 <option value="">المادة الأولى</option>
                                 ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
-                            <select id="sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                            <select id="${prefix}sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
                                 <option value="">المادة الثانية (اختياري)</option>
                                 ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
@@ -380,7 +421,7 @@
                 document.getElementById('tName').value = '';
                 document.getElementById('tPhone').value = '';
                 document.getElementById('tPhoto').value = '';
-                buildGradesForm();
+                buildGradesForm('gradesContainer', '');
                 refreshAllViews();
                 alert('تم حفظ المعلم وتوليد حصصه تلقائياً!');
             };
@@ -391,6 +432,107 @@
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
                 processSave('');
+            }
+        }
+
+        // فتح نافذة تعديل بيانات المعلم
+        function openEditModal(teacherId) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == teacherId);
+            if (!teacher) return;
+
+            document.getElementById('editTeacherId').value = teacher.id;
+            document.getElementById('editTName').value = teacher.name;
+            document.getElementById('editTPhone').value = teacher.phone || '';
+            document.getElementById('editTMaxQuota').value = teacher.maxQuota;
+
+            buildGradesForm('editGradesContainer', 'edit_');
+
+            // تعبئة الاختيارات السابقة للمعلم
+            teacher.assignments.forEach(asgn => {
+                let gIdx = asgn.gradeIndex;
+                let sIdx = asgn.sectionIndex;
+
+                let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                let gBox = document.getElementById(`edit_g_box_${gIdx}`);
+                let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+
+                if (gChk) gChk.checked = true;
+                if (gBox) gBox.classList.remove('hidden');
+                if (sChk) sChk.checked = true;
+
+                let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
+                let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
+
+                if (sub1 && !sub1.value) {
+                    sub1.value = asgn.subject;
+                } else if (sub2) {
+                    sub2.value = asgn.subject;
+                }
+            });
+
+            document.getElementById('editTeacherModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editTeacherModal').classList.add('hidden');
+        }
+
+        function saveTeacherEdits() {
+            let id = document.getElementById('editTeacherId').value;
+            let teachers = getTeachers();
+            let idx = teachers.findIndex(t => t.id == id);
+            if (idx === -1) return;
+
+            let name = document.getElementById('editTName').value.trim();
+            let phone = document.getElementById('editTPhone').value.trim();
+            let maxQuota = parseInt(document.getElementById('editTMaxQuota').value) || 12;
+            let photoInput = document.getElementById('editTPhoto');
+
+            if (!name) { alert('اسم المعلم مطلوب'); return; }
+
+            const assignments = [];
+            document.querySelectorAll('input[id^="edit_sec_"]:checked').forEach(chk => {
+                const parts = chk.id.split('_');
+                const gIdx = parseInt(parts[2]);
+                const sIdx = parseInt(parts[3]);
+                
+                const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
+                const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+
+                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+            });
+
+            const processUpdate = (photoBase64) => {
+                teachers[idx].name = name;
+                teachers[idx].phone = phone;
+                teachers[idx].maxQuota = maxQuota;
+                teachers[idx].assignments = assignments;
+                if (photoBase64) teachers[idx].photo = photoBase64;
+
+                saveTeachers(teachers);
+
+                // إزالة حصص المعلم القديمة وإعادة توليد الحصص
+                let grid = getScheduleData();
+                Object.keys(grid).forEach(k => {
+                    if (grid[k] && grid[k].tId == id) delete grid[k];
+                });
+                saveScheduleData(grid);
+                autoDistributeTeacherSlots(teachers[idx]);
+
+                closeEditModal();
+                refreshAllViews();
+                alert('تم تحديث بيانات المعلم وجدول الحصص بنجاح!');
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { processUpdate(e.target.result); };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                processUpdate(null);
             }
         }
 
@@ -524,7 +666,10 @@
                                     ` : ''}
                                 </div>
                             </div>
-                            <button onclick="deleteTeacher(${t.id})" class="text-slate-300 hover:text-red-600 transition"><i class="fas fa-trash"></i></button>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition p-1"><i class="fas fa-pen-to-square"></i></button>
+                                <button onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition p-1"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
                             ${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>')}
