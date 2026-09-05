@@ -262,6 +262,19 @@
     </main>
 
     <script>
+        // كود إجباري لدمج وتفعيل كافة البيانات والجداول تلقائياً
+window.getTeachers = function() {
+    try {
+        const d1 = JSON.parse(localStorage.getItem('teachersData') || '[]');
+        const d2 = JSON.parse(localStorage.getItem('teachers_data') || '[]');
+        const all = [...d1, ...d2];
+        return Array.from(new Map(all.map(item => [item.id, item])).values()).map(t => ({
+            ...t,
+            isPresent: t.status === 'present' || t.isPresent === true || t.isPresent === undefined,
+            status: (t.status === 'present' || t.isPresent === true || t.isPresent === undefined) ? 'present' : 'absent'
+        }));
+    } catch(e) { return []; }
+};
         const teachersDbKey = 'teachersData';
 
         function getData(key) {
