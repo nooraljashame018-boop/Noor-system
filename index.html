@@ -383,10 +383,8 @@ function addTeacher() {
     return;
   }
 
-  // جمع المراحل والشعب والمواد المحددة بأي طريقة مفعلة
   const selectedAssignments = [];
   
-  // 1. الفحص عن طريق مربعات الشعب المحددة
   document.querySelectorAll('input[type="checkbox"][id^="sec_"]:checked').forEach(chk => {
     const parts = chk.id.split('_');
     const gradeIdx = parts[1];
@@ -399,10 +397,8 @@ function addTeacher() {
     });
   });
 
-  // 2. إذا لم توجد مربعات شعب، نفحص مربعات المراحل الرئيسية بشكل رئيسي
   if (selectedAssignments.length === 0) {
     document.querySelectorAll('input[type="checkbox"]:checked').forEach(chk => {
-      // إسناد افتراضي للمرحلة المحددة
       selectedAssignments.push({
         gradeIndex: 0,
         sectionIndex: 0,
@@ -459,6 +455,7 @@ function addTeacher() {
     proceedWithSave('');
   }
 }
+
 function resetForm() {
   document.getElementById('editingTeacherId').value = '';
   document.getElementById('tName').value = '';
@@ -472,7 +469,7 @@ function resetForm() {
   buildGradesUI();
 }
 
-    function renderTeachers() {
+function renderTeachers() {
   const container = document.getElementById('teachersContainer') || document.getElementById('teachersList');
   if (!container) return;
 
@@ -509,327 +506,6 @@ function resetForm() {
         </div>
       </div>
     `;
-  });
-}
-                            
-                            <div class="flex items-center justify-between gap-2">
-                                <button onclick="editTeacher(${t.id})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 shadow-sm transition">
-                                    <i class="fas fa-edit"></i> تعديل
-                                </button>
-
-                                <div class="flex gap-1">
-                                    <button onclick="setAttendance(${t.id}, true)" class="px-3 py-1.5 rounded-lg font-bold text-xs transition ${t.isPresent ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-emerald-100'}">
-                                        حاضر
-                                    </button>
-                                    <button onclick="setAttendance(${t.id}, false)" class="px-3 py-1.5 rounded-lg font-bold text-xs transition ${!t.isPresent ? 'bg-red-600 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-red-100'}">
-                                        غائب
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function renderAllStaffTable() {
-            const body = document.getElementById('allStaffTableBody');
-            let teachers = getData(teachersDbKey) || [];
-
-            if (teachers.length === 0) {
-                body.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400 font-bold">لا يوجد كادر تعليمي مضاف حتى الآن</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            teachers.forEach((t, idx) => {
-                const classes = t.assignments ? [...new Set(t.assignments.map(a => `${a.grade} (${a.section})`))].join('، ') : '-';
-                const subjects = t.assignments ? [...new Set(t.assignments.map(a => a.subject))].join('، ') : '-';
-                const whatsappUrl = t.phone ? `https://wa.me/${t.phone}` : '';
-
-                html += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold text-slate-500">${idx + 1}</td>
-                        <td class="p-3 font-bold text-slate-800">${t.name}</td>
-                        <td class="p-3 text-slate-600 font-mono">${t.phone || '-'}</td>
-                        <td class="p-3 text-slate-600">${classes}</td>
-                        <td class="p-3 font-bold text-blue-700">${subjects}</td>
-                        <td class="p-3 text-center font-bold text-slate-700">${t.maxQuota || 24} حصة</td>
-                        <td class="p-3 text-center">
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
-                                ${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}
-                            </span>
-                        </td>
-                        <td class="p-3 text-center">
-                            ${t.phone ? `
-                                <a href="${whatsappUrl}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1 rounded-lg text-xs transition">
-                                    <i class="fab fa-whatsapp"></i> واتساب
-                                </a>
-                            ` : '<span class="text-slate-400">-</span>'}
-                        </td>
-                    </tr>`;
-            });
-            body.innerHTML = html;
-        }
-
-        function setAttendance(id, status) {
-            let teachers = getData(teachersDbKey) || [];
-            const teacher = teachers.find(t => t.id === id);
-            if (teacher) {
-                teacher.isPresent = status;
-                saveData(teachersDbKey, teachers);
-                renderTeachersCards();
-                refreshBackupTeachers();
-                renderAllStaffTable();
-            }
-        }
-
-        function deleteTeacher(id) {
-            if (!confirm('هل تريد حذف المعلم؟')) return;
-            let teachers = getData(teachersDbKey) || [];
-            teachers = teachers.filter(t => t.id !== id);
-            saveData(teachersDbKey, teachers);
-            renderTeachersCards();
-            refreshBackupTeachers();
-            renderAllStaffTable();
-        }
-
-        function refreshBackupTeachers() {
-            let teachers = getData(teachersDbKey) || [];
-            const presentTeachers = teachers.filter(t => t.isPresent);
-            let backupList = [];
-
-            presentTeachers.forEach(t => {
-                const subjects = t.assignments ? [...new Set(t.assignments.map(a => a.subject))].join('، ') : 'عام';
-                backupList.push({
-                    id: t.id,
-                    name: t.name,
-                    phone: t.phone,
-                    subject: subjects,
-                    maxQuota: t.maxQuota || 24
-                });
-            });
-
-            saveData(backupDbKey, backupList);
-            renderBackupTeachersUI(backupList);
-        }
-
-        function renderBackupTeachersUI(backups) {
-            const container = document.getElementById('backupTeachersList');
-            container.innerHTML = '';
-
-            if (!backups || backups.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 text-xs font-bold">لا يوجد معلمون حاضرون متاحون للبدائل حالياً</div>`;
-                return;
-            }
-
-            backups.forEach((b, idx) => {
-                const whatsappUrl = b.phone ? `https://wa.me/${b.phone}` : '';
-                container.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-amber-200 text-center shadow-sm hover:shadow-md transition">
-                        <span class="text-xs text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">بديل شاغر ${idx + 1}</span>
-                        <div class="font-bold text-slate-800 text-sm mt-1">${b.name}</div>
-                        <div class="text-xs text-blue-600 font-semibold mt-0.5">${b.subject}</div>
-                        <div class="text-[10px] text-slate-400 mt-1 mb-2">جاهز لسد الشغور (النصاب: ${b.maxQuota})</div>
-                        ${b.phone ? `
-                            <a href="${whatsappUrl}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 rounded-lg text-xs inline-flex items-center justify-center gap-1 transition">
-                                <i class="fab fa-whatsapp"></i> مراسلة المعلم
-                            </a>
-                        ` : ''}
-                    </div>`;
-            });
-        }
-
-        function generateSmartSchedule() {
-            const teachers = getData(teachersDbKey) || [];
-            const presentTeachers = teachers.filter(t => t.isPresent);
-
-            if (presentTeachers.length === 0) {
-                alert('يرجى إضافة معلم حاضر واحد على الأقل!');
-                return;
-            }
-
-            let teacherLessonCount = {};
-            presentTeachers.forEach(t => teacherLessonCount[t.id] = 0);
-
-            let newSchedule = [];
-
-            daysList.forEach(day => {
-                for (let lessonNum = 1; lessonNum <= 6; lessonNum++) {
-                    let busyTeacherIdsInThisLesson = [];
-
-                    schoolStructure.forEach(item => {
-                        const availableTeachers = presentTeachers.filter(t => 
-                            !busyTeacherIdsInThisLesson.includes(t.id) &&
-                            (teacherLessonCount[t.id] < (t.maxQuota || 24)) &&
-                            t.assignments && t.assignments.some(a => a.grade === item.grade && a.section === item.section)
-                        );
-
-                        if (availableTeachers.length > 0) {
-                            const chosenTeacher = availableTeachers[Math.floor(Math.random() * availableTeachers.length)];
-                            const assignment = chosenTeacher.assignments.find(a => a.grade === item.grade && a.section === item.section);
-
-                            busyTeacherIdsInThisLesson.push(chosenTeacher.id);
-                            teacherLessonCount[chosenTeacher.id]++;
-
-                            let subTitle = assignment ? assignment.subject : 'عام';
-
-                            if (subTitle.includes('/') || subTitle.includes('و') || subTitle.includes(',')) {
-                                const subArray = subTitle.split(/[/,و]+/).map(s => s.trim()).filter(Boolean);
-                                if (subArray.length > 0) {
-                                    subTitle = subArray[Math.floor(Math.random() * subArray.length)];
-                                }
-                            }
-
-                            newSchedule.push({
-                                day: day,
-                                lessonNum: lessonNum,
-                                grade: item.grade,
-                                section: item.section,
-                                subject: subTitle,
-                                teacher: chosenTeacher.name
-                            });
-                        } else {
-                            newSchedule.push({
-                                day: day,
-                                lessonNum: lessonNum,
-                                grade: item.grade,
-                                section: item.section,
-                                subject: 'شاغر',
-                                teacher: '-'
-                            });
-                        }
-                    });
-                }
-            });
-
-            saveData(scheduleDbKey, newSchedule);
-            renderSchedule();
-            alert('تم توليد الجدول الأسبوعي الذكي بنجاح!');
-        }
-
-        function renderSchedule() {
-            const headerGrades = document.getElementById('tableHeaderGrades');
-            const headerSub = document.getElementById('tableHeaderSubColumns');
-            const body = document.getElementById('scheduleTableBody');
-
-            let gradesHtml = '<th class="p-2 border border-slate-700 bg-slate-900 w-16" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 w-12" rowspan="2">الحصة</th>';
-            let subColsHtml = '';
-
-            const uniqueGrades = [...new Set(schoolStructure.map(item => item.grade))];
-            uniqueGrades.forEach(g => {
-                gradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white font-bold" colspan="3">الصف ${g}</th>`;
-            });
-
-            schoolStructure.forEach(item => {
-                subColsHtml += `<th class="p-1.5 border border-slate-300 text-slate-800 text-xs">شعبة (${item.section})</th>`;
-            });
-
-            headerGrades.innerHTML = gradesHtml;
-            headerSub.innerHTML = subColsHtml;
-
-            const schedule = getData(scheduleDbKey) || [];
-
-            let bodyHtml = '';
-
-            daysList.forEach(day => {
-                for (let l = 1; l <= 6; l++) {
-                    bodyHtml += `<tr class="hover:bg-slate-50 border-b border-slate-200">`;
-                    if (l === 1) {
-                        bodyHtml += `<td class="bg-day font-bold border border-slate-400 p-2 text-xs" rowspan="6">${day}</td>`;
-                    }
-                    bodyHtml += `<td class="bg-lesson font-bold border border-slate-300 p-1.5 text-xs">${l}</td>`;
-
-                    schoolStructure.forEach(item => {
-                        const cellData = schedule.find(s => s.day === day && s.lessonNum === l && s.grade === item.grade && s.section === item.section);
-                        
-                        if (cellData && cellData.subject !== 'شاغر') {
-                            bodyHtml += `
-                                <td class="border border-slate-300 p-1 text-center text-xs">
-                                    <div class="cell-sub text-slate-900 font-bold">${cellData.subject}</div>
-                                    <div class="cell-teacher text-[10px] rounded px-1 py-0.5 mt-0.5 border border-slate-200">${cellData.teacher}</div>
-                                </td>`;
-                        } else {
-                            bodyHtml += `
-                                <td class="cell-vacant border border-slate-300 p-1 text-center text-xs">
-                                    <div>شاغر</div>
-                                    <div class="text-[9px] opacity-75 font-normal">-</div>
-                                </td>`;
-                        }
-                    });
-
-                    bodyHtml += `</tr>`;
-                }
-            });
-
-            body.innerHTML = bodyHtml;
-        }
-
-        function clearSchedule() {
-            if (!confirm('هل أنت تأكد من تفريغ الجدول بالكامل؟')) return;
-            saveData(scheduleDbKey, []);
-            renderSchedule();
-        }
-    // دالة حفظ البيانات في ذاكرة الجهاز
-function saveData() {
-    const scheduleData = {
-        // ضعي هنا الأسطر التي تجمع بيانات الجدول أو المدخلات
-        tableHTML: document.getElementById('scheduleView').innerHTML 
-    };
-    localStorage.setItem('noor_schedule_data', JSON.stringify(scheduleData));
-}
-
-// دالة استرجاع البيانات تلقائياً عند فتح التطبيق
-function loadData() {
-    const savedData = localStorage.getItem('noor_schedule_data');
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        document.getElementById('scheduleView').innerHTML = data.tableHTML;
-    }
-}
-
-// تشغيل الاسترجاع تلقائياً بمجرد فتح البرنامج
-window.onload = loadData;
- window.onload = loadData;
-
-function switchTab(viewId) {
-  const allTabs = document.querySelectorAll('.tab-content');
-  allTabs.forEach(tab => {
-    tab.style.display = 'none';
-  });
-
-  const target = document.getElementById(viewId);
-  if (target) {
-    target.style.display = 'block';
-  }
-}
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
-function renderGrades() {
-  const gradesData = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس"];
-  const container = document.getElementById('gradesContainer');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  gradesData.forEach((grade, gIdx) => {
-    const gradeDiv = document.createElement('div');
-    gradeDiv.className = 'bg-white p-3 rounded-lg border border-slate-200 space-y-2';
-    gradeDiv.innerHTML = `
-      <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
-        <input type="checkbox" onchange="toggleGradeSecs(${gIdx})" id="grade_chk_${gIdx}" class="rounded text-emerald-600 focus:ring-emerald-500">
-        <span>الـ ${grade}</span>
-      </label>
-      <div id="grade_secs_${gIdx}" class="hidden space-y-2 pt-1 pr-4 border-r-2 border-emerald-100">
-        ${['أ', 'ب', 'ج'].map(sec => `
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 font-medium">شعبة ${sec}:</span>
-            <input type="text" placeholder="مثال: عربي / رياضيات" class="w-full p-1 border border-slate-200 rounded text-xs bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
-          </div>
-        `).join('')}
-      </div>
-    `;
-    container.appendChild(gradeDiv);
   });
 }
 function toggleGradeSecs(idx) {
