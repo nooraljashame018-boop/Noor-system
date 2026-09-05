@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث الكل
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول v6.3
+                نظام إدارة الجداول v6.4
             </div>
         </div>
     </aside>
@@ -68,9 +68,12 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام</h2>
-                    <p class="text-xs text-slate-500">من الصف الأول إلى السادس ابتدائي (شعب أ، ب، ج)</p>
+                    <p class="text-xs text-slate-500">توزيع الحصص المباشر للصفوف والشعب</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
+                        <i class="fas fa-trash-alt"></i> مسح الجدول
+                    </button>
                     <button onclick="renderSchedule()" class="bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
                         <i class="fas fa-rotate"></i> تحديث الجدول
                     </button>
@@ -213,13 +216,29 @@
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
 
         function getTeachers() {
-            try {
-                return JSON.parse(localStorage.getItem('app_teachers_v6') || '[]');
-            } catch(e) { return []; }
+            try { return JSON.parse(localStorage.getItem('app_teachers_v6') || '[]'); } catch(e) { return []; }
         }
 
         function saveTeachers(list) {
             localStorage.setItem('app_teachers_v6', JSON.stringify(list));
+        }
+
+        function getScheduleData() {
+            try { return JSON.parse(localStorage.getItem('app_schedule_grid') || '{}'); } catch(e) { return {}; }
+        }
+
+        function setScheduleCell(key, val) {
+            let data = getScheduleData();
+            if(!val) delete data[key];
+            else data[key] = val;
+            localStorage.setItem('app_schedule_grid', JSON.stringify(data));
+        }
+
+        function clearScheduleGrid() {
+            if(confirm('هل انت متأكد من مسح جميع حصص الجدول؟')) {
+                localStorage.removeItem('app_schedule_grid');
+                renderSchedule();
+            }
         }
 
         window.onload = function() {
@@ -454,7 +473,8 @@
             const hSub = document.getElementById('tableHeaderSubColumns');
             const tbody = document.getElementById('scheduleTableBody');
 
-            let list = getTeachers();
+            let teachersList = getTeachers();
+            let savedGrid = getScheduleData();
 
             let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">الحصة</th>`;
             let hSubHtml = '';
@@ -470,7 +490,7 @@
             hSub.innerHTML = hSubHtml;
 
             let tbodyHtml = '';
-            days.forEach((day) => {
+            days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
                     tbodyHtml += `<tr class="hover:bg-slate-50 border-b border-slate-200">`;
                     if (lIdx === 0) {
@@ -480,17 +500,49 @@
 
                     gradeNames.forEach((_, gIdx) => {
                         secNames.forEach((_, sIdx) => {
-                            let assigned = list.find(t => t.assignments && t.assignments.some(a => a.gradeIndex === gIdx && a.sectionIndex === sIdx));
-                            if (assigned) {
-                                let assignment = assigned.assignments.find(a => a.gradeIndex === gIdx && a.sectionIndex === sIdx);
-                                if (!assigned.isPresent) {
-                                    tbodyHtml += `<td class="p-1 border border-slate-300 bg-red-100 text-red-700 font-bold text-[10px]">شاغر (${assignment.subject})</td>`;
-                                } else {
-                                    tbodyHtml += `<td class="p-1 border border-slate-300 bg-white text-slate-800 text-[10px]"><div class="font-bold text-blue-900">${assignment.subject}</div><div class="text-[9px] text-slate-500">${assigned.name}</div></td>`;
+                            let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                            let cellValue = savedGrid[cellKey] || '';
+
+                            let selectHtml = `<select onchange="setScheduleCell('${cellKey}', this.value); renderSchedule();" class="w-full text-[10px] p-1 border border-slate-200 rounded font-bold outline-none no-print">`;
+                            selectHtml += `<option value="">- شاغر / فارغ -</option>`;
+
+                            teachersList.forEach(t => {
+                                let tAssignments = t.assignments.filter(a => a.gradeIndex === gIdx && a.sectionIndex === sIdx);
+                                tAssignments.forEach(a => {
+                                    let val = `${t.id}:${a.subject}`;
+                                    let isSelected = (cellValue === val) ? 'selected' : '';
+                                    selectHtml += `<option value="${val}" ${isSelected}>${a.subject} (${t.name})</option>`;
+                                });
+                            });
+                            selectHtml += `</select>`;
+
+                            let displayCell = '-';
+                            let bgClass = 'bg-white';
+
+                            if (cellValue) {
+                                let parts = cellValue.split(':');
+                                let tId = parts[0];
+                                let subj = parts[1];
+                                let tObj = teachersList.find(t => t.id == tId);
+
+                                if (tObj) {
+                                    if (!tObj.isPresent) {
+                                        bgClass = 'bg-red-100 text-red-800 font-bold';
+                                        displayCell = `🔴 شاغر (${subj})`;
+                                    } else {
+                                        bgClass = 'bg-emerald-50 text-emerald-900 font-bold';
+                                        displayCell = `<div>${subj}</div><div class="text-[9px] text-slate-500 font-normal">${tObj.name}</div>`;
+                                    }
                                 }
-                            } else {
-                                tbodyHtml += `<td class="p-1 border border-slate-300 bg-slate-50 text-slate-400 text-[10px]">-</td>`;
                             }
+
+                            tbodyHtml += `<td class="p-1 border border-slate-300 ${bgClass} text-[10px] min-w-[90px]">
+                                <div class="hidden print:block">${displayCell}</div>
+                                <div class="no-print space-y-1">
+                                    <div>${displayCell}</div>
+                                    ${selectHtml}
+                                </div>
+                            </td>`;
                         });
                     });
 
