@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v7.3
+                نظام إدارة الجداول الذكي v7.4
             </div>
         </div>
     </aside>
@@ -169,6 +169,7 @@
                                 <th class="p-3 text-center">الحصص</th>
                                 <th class="p-3 text-center">وقت الحضور اليوم</th>
                                 <th class="p-3 text-center">الحالة</th>
+                                <th class="p-3 text-center">إرسال الجدول</th>
                             </tr>
                         </thead>
                         <tbody id="allStaffTableBody" class="divide-y divide-slate-200"></tbody>
@@ -194,14 +195,71 @@
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5', 'الحصة 6'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
 
-        // دالة تنظيف رقم الهاتف وتحويله لرابط واتساب
-        function formatWhatsappUrl(phone) {
-            if (!phone) return '#';
-            let cleaned = phone.replace(/\D/g, ''); // إزالة الأشكال والرموز
+        function formatWhatsappPhone(phone) {
+            if (!phone) return null;
+            let cleaned = phone.replace(/\D/g, '');
             if (cleaned.startsWith('07')) {
-                cleaned = '964' + cleaned.substring(1); // تحويل الرقم العراقي للصيغة الدولية
+                cleaned = '964' + cleaned.substring(1);
             }
-            return `https://wa.me/${cleaned}`;
+            return cleaned;
+        }
+
+        // دالة إنشاء وإرسال جدول المعلم عبر الواتساب
+        function sendTeacherScheduleWhatsApp(teacherId) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == teacherId);
+            if (!teacher) return;
+
+            if (!teacher.phone) {
+                alert('يرجى إضافة رقم هاتف للمعلم أولاً لإرسال الجدول له عبر الواتساب');
+                return;
+            }
+
+            let grid = getScheduleData();
+            let teacherSchedule = [];
+
+            days.forEach((day, dIdx) => {
+                lessons.forEach((lesson, lIdx) => {
+                    gradeNames.forEach((gName, gIdx) => {
+                        secNames.forEach((sName, sIdx) => {
+                            let key = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                            if (grid[key] && grid[key].tId == teacherId) {
+                                teacherSchedule.push({
+                                    day: day,
+                                    lesson: lesson,
+                                    grade: gName,
+                                    section: sName,
+                                    subject: grid[key].subject
+                                });
+                            }
+                        });
+                    });
+                });
+            });
+
+            if (teacherSchedule.length === 0) {
+                alert('لا توجد حصص مخصصة لهذا المعلم في الجدول الحالي');
+                return;
+            }
+
+            // بناء نص الرسالة
+            let msg = `السلام عليكم أستاذ/ة *${teacher.name}* 🌸\n`;
+            msg += `إليك جدول الحصص الأسبوعي الخاص بك في *مدرسة الضياء*:\n\n`;
+
+            let currentDay = '';
+            teacherSchedule.forEach(item => {
+                if (item.day !== currentDay) {
+                    currentDay = item.day;
+                    msg += `📌 *يوم ${currentDay}:*\n`;
+                }
+                msg += `  • ${item.lesson}: الصف ${item.grade} (${item.section}) - مادة ${item.subject}\n`;
+            });
+
+            msg += `\nنتمنى لك أسبوعاً دراسياً موفقاً وشكراً لجهودك! ✨`;
+
+            let phoneNum = formatWhatsappPhone(teacher.phone);
+            let encodedMsg = encodeURIComponent(msg);
+            window.open(`https://wa.me/${phoneNum}?text=${encodedMsg}`, '_blank');
         }
 
         function getTeachers() {
@@ -448,7 +506,9 @@
                 return;
             }
 
-            container.innerHTML = filtered.map(t => `
+            container.innerHTML = filtered.map(t => {
+                let waPhone = formatWhatsappPhone(t.phone);
+                return `
                 <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200'} shadow-sm flex flex-col justify-between">
                     <div>
                         <div class="flex items-center gap-3 mb-2">
@@ -458,7 +518,7 @@
                                 <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-0.5">
                                     <span>الحصص: ${t.maxQuota}</span>
                                     ${t.phone ? `
-                                        <a href="${formatWhatsappUrl(t.phone)}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
+                                        <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
                                             <i class="fab fa-whatsapp text-emerald-500 text-xs"></i> ${t.phone}
                                         </a>
                                     ` : ''}
@@ -471,12 +531,16 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="space-y-2">
+                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="w-full py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> إرسال الجدول للمعلم
+                        </button>
+
                         ${t.isPresent ? `
-                            <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center mb-2 font-bold text-xs flex items-center justify-center gap-1.5">
+                            <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5">
                                 <i class="fas fa-circle-check text-emerald-600"></i> تم تسجيل الحضور: ${t.checkInTime}
                             </div>
-                            <button onclick="recordAttendance(${t.id})" class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                            <button onclick="recordAttendance(${t.id})" class="w-full py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
                                 إلغاء تسجيل الحضور
                             </button>
                         ` : `
@@ -486,18 +550,21 @@
                         `}
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function renderAllStaffTable() {
             const body = document.getElementById('allStaffTableBody');
             let list = getTeachers();
             if (list.length === 0) {
-                body.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">لا يوجد معلمون</td></tr>`;
+                body.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">لا يوجد معلمون</td></tr>`;
                 return;
             }
 
-            body.innerHTML = list.map((t) => `
+            body.innerHTML = list.map((t) => {
+                let waPhone = formatWhatsappPhone(t.phone);
+                return `
                 <tr>
                     <td class="p-3">
                         ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-user text-xs"></i></div>`}
@@ -505,7 +572,7 @@
                     <td class="p-3 font-bold">${t.name}</td>
                     <td class="p-3">
                         ${t.phone ? `
-                            <a href="${formatWhatsappUrl(t.phone)}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition">
+                            <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition">
                                 <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> ${t.phone}
                             </a>
                         ` : '-'}
@@ -514,8 +581,14 @@
                     <td class="p-3 text-center font-bold">${t.maxQuota}</td>
                     <td class="p-3 text-center font-bold text-blue-600">${t.checkInTime ? t.checkInTime : '-'}</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
+                    <td class="p-3 text-center">
+                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1">
+                            <i class="fab fa-whatsapp text-sm"></i> إرسال
+                        </button>
+                    </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function refreshBackupTeachers() {
@@ -526,7 +599,9 @@
                 return;
             }
 
-            container.innerHTML = list.map(t => `
+            container.innerHTML = list.map(t => {
+                let waPhone = formatWhatsappPhone(t.phone);
+                return `
                 <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex justify-between items-center">
                     <div class="flex items-center gap-2">
                         ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold"><i class="fas fa-user"></i></div>`}
@@ -536,12 +611,13 @@
                         </div>
                     </div>
                     ${t.phone ? `
-                        <a href="${formatWhatsappUrl(t.phone)}" target="_blank" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg text-sm">
+                        <a href="https://wa.me/${waPhone}" target="_blank" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg text-sm">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     ` : '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>'}
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function renderSchedule() {
