@@ -17,9 +17,7 @@
     <!-- Tajawal Font -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Tajawal', sans-serif;
-        }
+        body { font-family: 'Tajawal', sans-serif; }
         .bg-day { background-color: #a81c37; color: white; }
         .bg-lesson { background-color: #f7e082; color: #333; }
         .cell-sub { background-color: #ffffff; font-weight: 600; }
@@ -27,46 +25,19 @@
         .cell-vacant { background-color: #fef2f2; color: #dc2626; font-weight: bold; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
 
-        thead th {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
+        thead th { position: sticky; top: 0; z-index: 20; }
 
         @media print {
-            aside, .no-print, button, input, select, .tab-content:not(#scheduleView) { 
-                display: none !important; 
-            }
+            aside, .no-print, button, input, select, .tab-content:not(#scheduleView) { display: none !important; }
             body, main, #scheduleView, .print-area {
-                background: #ffffff !important;
-                color: #000000 !important;
-                width: 100% !important;
-                height: auto !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                box-shadow: none !important;
-                border: none !important;
+                background: #ffffff !important; color: #000000 !important; width: 100% !important;
+                height: auto !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;
+                box-shadow: none !important; border: none !important;
             }
-            .overflow-x-auto, .overflow-y-auto, .max-h-\[70vh\] {
-                max-height: none !important;
-                overflow: visible !important;
-                border: none !important;
-            }
-            table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                font-size: 7.5pt !important;
-                page-break-inside: auto;
-            }
+            .overflow-x-auto, .overflow-y-auto, .max-h-\[70vh\] { max-height: none !important; overflow: visible !important; border: none !important; }
+            table { width: 100% !important; border-collapse: collapse !important; font-size: 7.5pt !important; page-break-inside: auto; }
             tr { page-break-inside: avoid; page-break-after: auto; }
-            th, td {
-                border: 1px solid #475569 !important;
-                padding: 3px 1px !important;
-                text-align: center !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
+            th, td { border: 1px solid #475569 !important; padding: 3px 1px !important; text-align: center !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .bg-day { background-color: #a81c37 !important; color: #ffffff !important; }
             .bg-lesson { background-color: #f7e082 !important; color: #000000 !important; }
             .cell-vacant { background-color: #fee2e2 !important; color: #dc2626 !important; }
@@ -89,7 +60,7 @@
                     <i class="fas fa-table-cells text-blue-400 text-base"></i> الجدول الأسبوعي العام
                 </button>
                 
-                <button onclick="switchTab('teachersView')" id="btn-teachersView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+            <button onclick="switchTab('teachersView')" id="btn-teachersView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
                     <i class="fas fa-user-plus text-emerald-400 text-base"></i> إدارة المعلمين والحضور
                 </button>
 
@@ -119,18 +90,11 @@
                     <p class="text-xs text-slate-500">18 شعبة مستقلة مع دعم تعدّد المواد والصفوف للمعلم الواحد</p>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="generateSmartSchedule()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-blue-700 transition text-xs shadow-md flex items-center gap-2">
-                        <i class="fas fa-cogs"></i> توليد الجدول
-                    </button>
                     <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-2">
                         <i class="fas fa-print"></i> طباعة الجدول (PDF)
                     </button>
-                    <button onclick="clearSchedule()" class="bg-gray-700 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-800 transition">
-                        تفريغ
-                    </button>
                 </div>
             </div>
-
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
                 <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[70vh] overflow-y-auto">
                     <table class="w-full text-center border-collapse text-xs whitespace-nowrap">
@@ -159,33 +123,32 @@
                         <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
                     </div>
                 
-                      <div>
-  <label class="block text-xs font-bold text-slate-700 mb-1">صورة المعلم:</label>
-  <input type="file" id="tPhoto" accept="image/*" class="w-full text-xs p-1.5 border border-slate-200 rounded-xl bg-white focus:outline-none">
-</div>
-<div>
-  <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب (مع رمز الدولة):</label>
-  <input type="tel" id="tPhone" placeholder="9647700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none">
-</div>  
-    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">صورة المعلم:</label>
+                        <input type="file" id="tPhoto" accept="image/*" class="w-full text-xs p-1.5 border border-slate-200 rounded-xl bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب (مع رمز الدولة):</label>
+                        <input type="tel" id="tPhone" placeholder="9647700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none">
+                    </div>  
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">الحد الأقصى للنصاب (حصص/أسبوع):</label>
                         <input type="number" id="tMaxQuota" value="24" min="1" max="30" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white transition">
                     </div>
                 </div>
-<div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-  <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200/60 pb-2">
-    حدد الشعب والمادة المخصصة لها (مثال لإدخال أكثر من مادة: <span class="text-blue-700 font-black">عربي / رياضيات</span>):
-  </span>
-  <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
-</div>
-                    <button type="button" id="saveTeacherBtn" onclick="addTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
-                        + حفظ المعلم
-                    </button>
-                    <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden px-4 bg-gray-500 text-white font-bold py-2.5 rounded-xl hover:bg-gray-600 transition text-sm">
-                        إلغاء التعديل
-                    </button>
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200/60 pb-2">
+                        حدد الشعب والمادة المخصصة لها (مثال لإدخال أكثر من مادة: <span class="text-blue-700 font-black">عربي / رياضيات</span>):
+                    </span>
+                    <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
+
+                <button type="button" id="saveTeacherBtn" onclick="addTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
+                    + حفظ المعلم
+                </button>
+                <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden px-4 bg-gray-500 text-white font-bold py-2.5 rounded-xl hover:bg-gray-600 transition text-sm">
+                    إلغاء التعديل
+                </button>
             </div>
 
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -205,7 +168,38 @@
                         </select>
                     </div>
                 </div>
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200/60 pb-2">
+                        حدد الشعب والمادة المخصصة لها (مثال لإدخال أكثر من مادة: <span class="text-blue-700 font-black">عربي / رياضيات</span>):
+                    </span>
+                    <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
+                </div>
 
+                <button type="button" id="saveTeacherBtn" onclick="addTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
+                    + حفظ المعلم
+                </button>
+                <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden px-4 bg-gray-500 text-white font-bold py-2.5 rounded-xl hover:bg-gray-600 transition text-sm">
+                    إلغاء التعديل
+                </button>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-users text-blue-600"></i> إدارة الحضور والغياب للمعلمين
+                    </h3>
+
+                    <div class="flex items-center gap-3">
+                        <label for="attendanceFilter" class="text-xs font-bold text-slate-600 flex items-center gap-1.5 whitespace-nowrap">
+                            <i class="fas fa-filter text-blue-500"></i> عرض بحسب الحالة:
+                        </label>
+                        <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none cursor-pointer shadow-sm hover:bg-blue-100 transition">
+                            <option value="all">جميع المعلمين</option>
+                            <option value="present">🟢 قائمة الحضور فقط</option>
+                            <option value="absent">🔴 قائمة الغياب فقط</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="flex gap-4 text-xs font-bold">
                     <span id="statAll" class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200">الكل: 0</span>
                     <span id="statPresent" class="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-200">الحاضرون: 0</span>
@@ -239,7 +233,6 @@
                                 <th class="p-3">اسم المعلم</th>
                                 <th class="p-3">رقم الهاتف</th>
                                 <th class="p-3">الصفوف والشعب المخصصة</th>
-                                <th class="p-3">المواد المدرسة</th>
                                 <th class="p-3 text-center">النصاب الأقصى</th>
                                 <th class="p-3 text-center">حالة الحضور</th>
                                 <th class="p-3 text-center">الواتساب</th>
@@ -269,59 +262,24 @@
     </main>
 
     <script>
- // تفريغ وتعديل مفتاح التخزين تلقائياً عند الفتح
-if (!localStorage.getItem('teachersData') && localStorage.getItem('teachers_data')) {
-    localStorage.setItem('teachersData', localStorage.getItem('teachers_data'));
-}
-        const scheduleDbKey = 'schedule_data';
-  const teachersDbKey = 'teachersData';
-  const backupDbKey = 'backup_data';
-        const daysList = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-        
-        const schoolStructure = [
-            { grade: 'الأول', section: 'أ', color: '#1a5276' },
-            { grade: 'الأول', section: 'ب', color: '#1a5276' },
-            { grade: 'الأول', section: 'ج', color: '#1a5276' },
-            { grade: 'الثاني', section: 'أ', color: '#117a65' },
-            { grade: 'الثاني', section: 'ب', color: '#117a65' },
-            { grade: 'الثاني', section: 'ج', color: '#117a65' },
-            { grade: 'الثالث', section: 'أ', color: '#78281f' },
-            { grade: 'الثالث', section: 'ب', color: '#78281f' },
-            { grade: 'الثالث', section: 'ج', color: '#78281f' },
-            { grade: 'الرابع', section: 'أ', color: '#512e5f' },
-            { grade: 'الرابع', section: 'ب', color: '#512e5f' },
-            { grade: 'الرابع', section: 'ج', color: '#512e5f' },
-            { grade: 'الخامس', section: 'أ', color: '#b9770e' },
-            { grade: 'الخامس', section: 'ب', color: '#b9770e' },
-            { grade: 'الخامس', section: 'ج', color: '#b9770e' },
-            { grade: 'السادس', section: 'أ', color: '#283747' },
-            { grade: 'السادس', section: 'ب', color: '#283747' },
-            { grade: 'السادس', section: 'ج', color: '#283747' }
-        ];
+        const teachersDbKey = 'teachersData';
 
         function getData(key) {
             try {
                 const item = localStorage.getItem(key);
                 return item ? JSON.parse(item) : null;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
         function saveData(key, data) {
             try {
                 localStorage.setItem(key, JSON.stringify(data));
-            } catch (e) {
-                console.error("Storage error:", e);
-            }
+            } catch (e) { console.error("Storage error:", e); }
         }
 
         window.onload = function() {
             buildGradesUI();
-            renderTeachersCards();
-            renderSchedule();
-            refreshBackupTeachers();
-            renderAllStaffTable();
+            refreshAllSystemViews();
         };
 
         function switchTab(tabId) {
@@ -331,273 +289,197 @@ if (!localStorage.getItem('teachersData') && localStorage.getItem('teachers_data
             document.getElementById(tabId).classList.remove('hidden');
             document.getElementById(`btn-${tabId}`).classList.add('active');
 
-            if(tabId === 'backupView') {
-                refreshBackupTeachers();
-            } else if (tabId === 'allStaffView') {
-                renderAllStaffTable();
-            }
+            if(tabId === 'backupView') refreshBackupTeachers();
+            else if (tabId === 'allStaffView') renderAllStaffTable();
+            else if (tabId === 'teachersView') renderTeachersCards();
         }
 
-      // 1. بناء واجهة المراحل والشعب الفرعية المتفرعة ديناميكياً
-function buildGradesUI() {
-  const container = document.getElementById('gradesContainer');
-  if (!container) return;
+        function buildGradesUI() {
+            const container = document.getElementById('gradesContainer');
+            if (!container) return;
 
-  const grades = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
-  const sections = ['أ', 'ب', 'ج', 'د'];
-  let html = '';
+            const grades = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
+            const sections = ['أ', 'ب', 'ج', 'د'];
+            let html = '';
 
-  grades.forEach((gradeName, gIdx) => {
-    html += `
-      <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 mb-2">
-        <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer mb-2">
-          <input type="checkbox" id="grade_chk_${gIdx}" onchange="toggleGradeSecs(${gIdx})" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
-          <span>الصف ${gradeName}</span>
-        </label>
+            grades.forEach((gradeName, gIdx) => {
+                html += `
+                  <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 mb-2">
+                    <label class="flex items-center gap-2 font-bold text-slate-700 cursor-pointer mb-2">
+                      <input type="checkbox" id="grade_chk_${gIdx}" onchange="toggleGradeSecs(${gIdx})" class="rounded text-emerald-600 w-4 h-4">
+                      <span>الصف ${gradeName}</span>
+                    </label>
 
-        <div id="grade_secs_${gIdx}" class="hidden flex flex-col gap-2.5 mr-5 pt-2 border-r-2 border-emerald-300 pr-3">
-          ${sections.map((secName, sIdx) => `
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
-              <label class="flex items-center gap-2 font-semibold text-xs text-slate-800 cursor-pointer">
-                <input type="checkbox" id="sec_${gIdx}_${sIdx}" onchange="toggleSubjInputs(${gIdx}, ${sIdx})" class="rounded text-emerald-600 w-3.5 h-3.5">
-                <span>شعبة ${secName}</span>
-              </label>
+                    <div id="grade_secs_${gIdx}" class="hidden flex flex-col gap-2.5 mr-5 pt-2 border-r-2 border-emerald-300 pr-3">
+                      ${sections.map((secName, sIdx) => `
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                          <label class="flex items-center gap-2 font-semibold text-xs text-slate-800 cursor-pointer">
+                            <input type="checkbox" id="sec_${gIdx}_${sIdx}" onchange="toggleSubjInputs(${gIdx}, ${sIdx})" class="rounded text-emerald-600 w-3.5 h-3.5">
+                            <span>شعبة ${secName}</span>
+                          </label>
 
-              <div id="subj_box_${gIdx}_${sIdx}" class="hidden grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100">
-                <div>
-                  <label class="block text-[10px] text-slate-500 font-bold mb-1">المادة المخصصة:</label>
-                  <input type="text" id="sub_${gIdx}_${sIdx}" placeholder="مثال: رياضيات" class="w-full text-xs p-1.5 border rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none">
+                          <div id="subj_box_${gIdx}_${sIdx}" class="hidden grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100">
+                            <div>
+                              <label class="block text-[10px] text-slate-500 font-bold mb-1">المادة المخصصة:</label>
+                              <input type="text" id="sub_${gIdx}_${sIdx}" placeholder="مثال: رياضيات" class="w-full text-xs p-1.5 border rounded-lg outline-none">
+                            </div>
+                            <div>
+                              <label class="block text-[10px] text-slate-500 font-bold mb-1">ملاحظة/حصص:</label>
+                              <input type="text" id="note_${gIdx}_${sIdx}" placeholder="مثال: 4 حصص" class="w-full text-xs p-1.5 border rounded-lg outline-none">
+                            </div>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function toggleGradeSecs(idx) {
+            const el = document.getElementById(`grade_secs_${idx}`);
+            const chk = document.getElementById(`grade_chk_${idx}`);
+            if (el && chk) el.classList.toggle('hidden', !chk.checked);
+        }
+
+        function toggleSubjInputs(gIdx, sIdx) {
+            const chk = document.getElementById(`sec_${gIdx}_${sIdx}`);
+            const box = document.getElementById(`subj_box_${gIdx}_${sIdx}`);
+            if (chk && box) box.classList.toggle('hidden', !chk.checked);
+        }
+
+        function addTeacher() {
+            const name = document.getElementById('tName').value.trim();
+            const phone = document.getElementById('tPhone').value.trim();
+            const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
+            const editingId = document.getElementById('editingTeacherId').value;
+
+            if (!name) { alert('يرجى إدخال اسم المعلم'); return; }
+
+            const selectedAssignments = [];
+            document.querySelectorAll('input[id^="sec_"]:checked').forEach(chk => {
+                const parts = chk.id.split('_');
+                const gIdx = parseInt(parts[1]);
+                const sIdx = parseInt(parts[2]);
+                const subjInput = document.getElementById(`sub_${gIdx}_${sIdx}`);
+                const noteInput = document.getElementById(`note_${gIdx}_${sIdx}`);
+                
+                selectedAssignments.push({
+                    gradeIndex: gIdx,
+                    sectionIndex: sIdx,
+                    subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام',
+                    note: (noteInput && noteInput.value.trim()) ? noteInput.value.trim() : ''
+                });
+            });
+
+            let teachers = getData('teachersData') || getData('teachers_data') || [];
+
+            if (editingId) {
+                const index = teachers.findIndex(t => t.id == editingId);
+                if (index !== -1) {
+                    teachers[index] = { ...teachers[index], name, phone, maxQuota, assignments: selectedAssignments };
+                }
+            } else {
+                teachers.push({
+                    id: Date.now(),
+                    name, phone, maxQuota,
+                    status: 'present',
+                    isPresent: true,
+                    assignments: selectedAssignments
+                });
+            }
+
+            saveData('teachersData', teachers);
+            saveData('teachers_data', teachers);
+            resetForm();
+            refreshAllSystemViews();
+            alert('تم حفظ المعلم وربط الشعب وتحديث جميع الجداول بنجاح!');
+        }
+
+        function renderTeachersCards() {
+            const container = document.getElementById('teachersCardsList');
+            if (!container) return;
+            let teachers = getData('teachersData') || getData('teachers_data') || [];
+            let filterVal = document.getElementById('attendanceFilter')?.value || 'all';
+
+            let presentCount = teachers.filter(t => t.status === 'present' || t.isPresent).length;
+            let absentCount = teachers.filter(t => t.status === 'absent' || !t.isPresent).length;
+
+            document.getElementById('statAll').innerText = `الكل: ${teachers.length}`;
+            document.getElementById('statPresent').innerText = `الحاضرون: ${presentCount}`;
+            document.getElementById('statAbsent').innerText = `الغائبون: ${absentCount}`;
+
+            let filtered = teachers.filter(t => {
+                if (filterVal === 'present') return t.status === 'present' || t.isPresent;
+                if (filterVal === 'absent') return t.status === 'absent' || !t.isPresent;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-bold text-xs bg-slate-50 rounded-xl">لا يوجد معلمون لعرضهم حالياً</div>`;
+                return;
+            }
+
+            const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
+            const secNames = ['أ', 'ب', 'ج', 'د'];
+
+          body.innerHTML = teachers.map((t, idx) => {
+                const assignedText = t.assignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex] || a.gradeIndex + 1} (${secNames[a.sectionIndex] || a.sectionIndex + 1}): ${a.subject}`).join('<br>') : 'عام';
+                const isPres = t.status === 'present' || t.isPresent;
+
+                return `
+                    <tr>
+                        <td class="p-3">${idx + 1}</td>
+                        <td class="p-3 font-bold">${t.name}</td>
+                        <td class="p-3">${t.phone || '-'}</td>
+                        <td class="p-3">${assignedText}</td>
+                        <td class="p-3 text-center">${t.maxQuota || 24}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-1 rounded-lg text-[10px] font-bold ${isPres ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${isPres ? 'حاضر' : 'غائب'}</span></td>
+                        <td class="p-3 text-center">${t.phone ? `<a href="https://wa.me/${t.phone}" target="_blank" class="text-emerald-600 hover:text-emerald-700"><i class="fab fa-whatsapp text-base"></i></a>` : '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function refreshBackupTeachers() {
+            const container = document.getElementById('backupTeachersList');
+            if (!container) return;
+
+            let teachers = getData('teachersData') || getData('teachers_data') || [];
+            let present = teachers.filter(t => t.status === 'present' || t.isPresent);
+
+            if (present.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-700 font-bold text-xs">لا يوجد معلمون حاضرون حالياً لسد الشواغر</div>`;
+                return;
+            }
+
+            container.innerHTML = present.map(t => `
+                <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex justify-between items-center">
+                    <div>
+                        <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
+                        <span class="text-[10px] text-amber-700 font-semibold block">جاهز للاحتياط</span>
+                    </div>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 </div>
-                <div>
-                  <label class="block text-[10px] text-slate-500 font-bold mb-1">عدد الحصص / ملاحظة:</label>
-                  <input type="text" id="note_${gIdx}_${sIdx}" placeholder="مثال: 4 حصص" class="w-full text-xs p-1.5 border rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none">
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  });
+            `).join('');
+        }
 
-  container.innerHTML = html;
-}
+        function refreshAllSystemViews() {
+            renderTeachersCards();
+            renderAllStaffTable();
+            refreshBackupTeachers();
+        }
 
-// دالة إظهار وإخفاء الحقول المتفرعة للشعبة عند تحديدها
-function toggleSubjInputs(gIdx, sIdx) {
-  const chk = document.getElementById(`sec_${gIdx}_${sIdx}`);
-  const box = document.getElementById(`subj_box_${gIdx}_${sIdx}`);
-  if (chk && box) {
-    if (chk.checked) {
-      box.classList.remove('hidden');
-    } else {
-      box.classList.add('hidden');
-    }
-  }
-}
+        function resetForm() {
+            document.getElementById('editingTeacherId').value = '';
+            document.getElementById('tName').value = '';
+            document.getElementById('tPhone').value = '';
+            document.getElementById('tMaxQuota').value = 24;
+            buildGradesUI();
+        }
 
-// 2. دالة إضافة معلم جديد مع معالجة الحقول المتفرعة وتحديث الجداول تلقائياً
-function addTeacher() {
-  const name = document.getElementById('tName').value.trim();
-  const phone = document.getElementById('tPhone').value.trim();
-  const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
-  const editingId = document.getElementById('editingTeacherId').value;
-  const photoInput = document.getElementById('tPhoto');
-
-  if (!name) {
-    alert('يرجى إدخال اسم المعلم');
-    return;
-  }
-
-  const selectedAssignments = [];
-  
-  // قراءة كل شعبة محددة مع الحقلين المتفرعين الخاصين بها
-  document.querySelectorAll('input[id^="sec_"]:checked').forEach(chk => {
-    const parts = chk.id.split('_');
-    const gradeIdx = parseInt(parts[1]);
-    const secIdx = parseInt(parts[2]);
-    
-    const subjInput = document.getElementById(`sub_${gradeIdx}_${secIdx}`);
-    const noteInput = document.getElementById(`note_${gradeIdx}_${secIdx}`);
-    
-    selectedAssignments.push({
-      gradeIndex: gradeIdx,
-      sectionIndex: secIdx,
-      subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام',
-      note: (noteInput && noteInput.value.trim()) ? noteInput.value.trim() : ''
-    });
-  });
-
-  // إذا لم يُحدد شعبة، تعيين شعبة عامة لتفادي أخطاء الحفظ
-  if (selectedAssignments.length === 0) {
-    selectedAssignments.push({ gradeIndex: 0, sectionIndex: 0, subject: 'مادة عامة', note: '' });
-  }
-
-  const proceedWithSave = (photoBase64) => {
-    let teachers = getData(teachersDbKey) || [];
-
-    if (editingId) {
-      const index = teachers.findIndex(t => t.id == editingId);
-      if (index !== -1) {
-        teachers[index] = {
-          ...teachers[index],
-          name: name,
-          phone: phone,
-          maxQuota: maxQuota,
-          assignments: selectedAssignments,
-          photo: photoBase64 || teachers[index].photo || ''
-        };
-      }
-    } else {
-      const newTeacher = {
-        id: Date.now(),
-        name: name,
-        phone: phone,
-        maxQuota: maxQuota,
-        status: 'present',
-        isPresent: true,
-        assignments: selectedAssignments,
-        photo: photoBase64 || ''
-      };
-      teachers.push(newTeacher);
-    }
-saveData('teachersData', teachers);
-saveData('teachers_data', teachers);
-   
-    // تحديث وتوليد جميع الجداول والجداول الموحدة فوراً
-    refreshAllSystemViews();
-    
-    alert('تم حفظ المعلم وربط الشعب وتحديث جميع الجداول بنجاح!');
-  };
-
-  if (photoInput && photoInput.files && photoInput.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) { proceedWithSave(e.target.result); };
-    reader.readAsDataURL(photoInput.files[0]);
-  } else {
-    proceedWithSave('');
-  }
-}
-
-// دالة تحديث حالة المعلم وتفعيل التوليد الفوري
-function setTeacherStatus(teacherId, status) {
-  let teachers = getData('teachers') || getData(teachersDbKey) || [];
-  const index = teachers.findIndex(t => t.id == teacherId);
-  if (index !== -1) {
-    teachers[index].status = status;
-    teachers[index].isPresent = (status === 'present');
-    saveData(teachersDbKey, teachers);
-    refreshAllSystemViews();
-  }
-}
-
-// دالة لتوليد وتحديث كافة شاشات وجداول النظام بدون استثناء
-function refreshAllSystemViews() {
-  if (typeof renderTeachers === 'function') renderTeachers();if (typeof renderTeachersCards === 'function') renderTeachersCards();
-  if (typeof refreshBackupTeachers === 'function') refreshBackupTeachers();
-  if (typeof renderSchedule === 'function') renderSchedule();
-}
-
-function resetForm() {
-  document.getElementById('editingTeacherId').value = '';
-  document.getElementById('tName').value = '';
-  document.getElementById('tPhone').value = '';
-  const photoInput = document.getElementById('tPhoto');
-  if (photoInput) photoInput.value = '';
-  document.getElementById('tMaxQuota').value = 24;
-  document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد';
-  document.getElementById('saveTeacherBtn').innerText = 'حفظ المعلم +';
-  document.getElementById('cancelEditBtn').classList.add('hidden');
-  buildGradesUI();
-}
-
-function renderTeachers() {
-  const container = document.getElementById('teachersContainer') || document.getElementById('teachersList');
-  if (!container) return;
-
-let teachers = getData('teachersData') || getData('teachers_data') || [];
-  let filterVal = document.getElementById('searchTeacherInput')?.value.toLowerCase().trim() || '';
-  let filteredTeachers = teachers.filter(t => t.name.toLowerCase().includes(filterVal));
-
-  if (filteredTeachers.length === 0) {
-    container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 font-bold text-xs bg-slate-50 rounded-xl">لا يوجد معلمون مضافون حالياً</div>`;
-    return;
-  }
-
-  const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
-  const secNames = ['أ', 'ب', 'ج', 'د'];
-
-  container.innerHTML = '';
-  filteredTeachers.forEach(t => {
-    const assignedText = t.assignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex] || a.gradeIndex + 1} (${secNames[a.sectionIndex] || a.sectionIndex + 1}): ${a.subject}`).join(' | ') : '';
-    const whatsappUrl = t.phone ? `https://wa.me/${t.phone}` : '#';
-    
-    const status = t.status || (t.isPresent ? 'present' : 'absent');
-    let statusBg = 'bg-emerald-500';
-    let cardBorder = 'border-emerald-300 bg-emerald-50/20';
-    
-    if (status === 'absent') {
-      statusBg = 'bg-red-500';
-      cardBorder = 'border-red-200 bg-red-50/20';
-    } else if (status === 'leave') {
-      statusBg = 'bg-amber-500';
-      cardBorder = 'border-amber-200 bg-amber-50/20';
-    }
-
-    container.innerHTML += `
-      <div class="bg-white p-4 rounded-2xl border flex flex-col justify-between ${cardBorder} shadow-sm transition-all mb-3">
-        <div class="mb-3">
-          <div class="flex justify-between items-start mb-1">
-            <h4 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full ${statusBg} inline-block"></span>
-              ${t.name}
-            </h4>
-            <button onclick="deleteTeacher(${t.id})" class="text-slate-400 hover:text-red-600 text-xs p-1"><i class="fas fa-trash"></i></button>
-          </div>
-          <span class="text-xs text-blue-600 block truncate max-w-[260px] font-medium" title="${assignedText}">${assignedText || 'لم تحدد مواد'}</span>
-          <span class="text-xs text-slate-600 font-bold block mt-1">النصاب الأقصى: ${t.maxQuota || 24} حصة</span>
-          ${t.phone ? `<span class="text-[11px] text-slate-500 block mt-0.5"><i class="fas fa-phone text-slate-400"></i> ${t.phone}</span>` : ''}
-        </div>
-
-        <div class="pt-2 border-t border-slate-200 flex flex-col gap-2">
-          <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold text-center">
-            <button onclick="setTeacherStatus(${t.id}, 'present')" class="py-1 rounded-lg transition ${status === 'present' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
-              <i class="fas fa-check-circle"></i> حاضر
-            </button>
-            <button onclick="setTeacherStatus(${t.id}, 'absent')" class="py-1 rounded-lg transition ${status === 'absent' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}">
-              <i class="fas fa-user-clock"></i> مجاز
-            </button>
-          </div>
-
-          ${t.phone ? `<a href="${whatsappUrl}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 rounded-xl flex items-center justify-center gap-1 mt-1"><i class="fab fa-whatsapp text-sm"></i> مراسلة عبر الواتساب</a>` : ''}
-        </div>
-      </div>
-    `;
-  });
-}
-function toggleGradeSecs(idx) {
-  const el = document.getElementById(`grade_secs_${idx}`);
-  const chk = document.getElementById(`grade_chk_${idx}`);
-  if (el && chk) {
-    chk.checked ? el.classList.remove('hidden') : el.classList.add('hidden');
-  }
-}
-
-// تشغيل الدالة تلقائياً
-renderGrades();
-   // تسجيل Service Worker لتحويل الموقع لتطبيق PWA كامل
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => {
-      console.log('SW registration skipped: ', err);
-    });
-  });
-}
-   // إجبار النظام على جلب وتحديث جداول المعلمين فور تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-  if (typeof refreshAllSystemViews === 'function') refreshAllSystemViews();
-  if (typeof renderTeachers === 'function') renderTeachers();
-});
+        document.addEventListener('DOMContentLoaded', refreshAllSystemViews);
     </script>
 </body>
 </html>
