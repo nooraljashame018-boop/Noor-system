@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v7.0
+                نظام إدارة الجداول الذكي v7.1
             </div>
         </div>
     </aside>
@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حددي الصف والشعبة والمادة المخصصة للمعلم:</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حددي الصف والشعبة والمادة المخصصة للمعلم (يمكن تحديد مادتين لنفس الشعبة):</span>
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
@@ -242,10 +242,16 @@
                           <label class="text-xs font-semibold">
                             <input type="checkbox" id="sec_${gIdx}_${sIdx}" class="rounded text-emerald-600"> شعبة ${sName}
                           </label>
-                          <select id="sub_${gIdx}_${sIdx}" class="text-[11px] p-1.5 border rounded bg-slate-50 font-medium">
-                              <option value="">اختر المادة الرئيسية</option>
-                              ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
-                          </select>
+                          <div class="grid grid-cols-2 gap-1 mt-1">
+                            <select id="sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                                <option value="">المادة الأولى</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            <select id="sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                                <option value="">المادة الثانية (اختياري)</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                          </div>
                         </div>
                       `).join('')}
                     </div>
@@ -268,13 +274,13 @@
                 const parts = chk.id.split('_');
                 const gIdx = parseInt(parts[1]);
                 const sIdx = parseInt(parts[2]);
-                const subj = document.getElementById(`sub_${gIdx}_${sIdx}`).value || 'عام';
+                
+                const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
+                const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
 
-                assignments.push({
-                    gradeIndex: gIdx,
-                    sectionIndex: sIdx,
-                    subject: subj
-                });
+                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
             });
 
             if(assignments.length === 0) {
@@ -296,7 +302,6 @@
                 list.push(newTeacher);
                 saveTeachers(list);
 
-                // توزيع تلقائي لهذا المعلم في الجدول فوراً
                 autoDistributeTeacherSlots(newTeacher);
 
                 document.getElementById('tName').value = '';
@@ -304,7 +309,7 @@
                 document.getElementById('tPhoto').value = '';
                 buildGradesForm();
                 refreshAllViews();
-                alert('تم حفظ المعلم وتوليد الحصص في الجدول تلقائياً!');
+                alert('تم حفظ المعلم وتوليد حصصه تلقائياً!');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -316,13 +321,12 @@
             }
         }
 
-        // خوارزمية التوزيع التلقائي الذكي للحصص بدون تضارب
         function autoDistributeTeacherSlots(teacher) {
             let grid = getScheduleData();
             let countAssigned = 0;
 
             teacher.assignments.forEach(asgn => {
-                let slotsNeeded = Math.ceil(teacher.maxQuota / teacher.assignments.length);
+                let slotsNeeded = Math.max(1, Math.floor(teacher.maxQuota / teacher.assignments.length));
                 
                 for(let d = 0; d < days.length; d++) {
                     for(let l = 0; l < lessons.length; l++) {
@@ -330,9 +334,7 @@
 
                         let key = `${d}_${l}_${asgn.gradeIndex}_${asgn.sectionIndex}`;
                         
-                        // التاكد من خلو الشعبة في هذه الحصة
                         if (!grid[key]) {
-                            // التاكد من عدم وجود نفس المعلم في صف آخر في نفس الحصة
                             let teacherBusy = false;
                             gradeNames.forEach((_, g) => {
                                 secNames.forEach((_, s) => {
@@ -387,7 +389,6 @@
             let list = getTeachers().filter(t => t.id != id);
             saveTeachers(list);
 
-            // إزالة حصص المعلم من الجدول
             let grid = getScheduleData();
             Object.keys(grid).forEach(k => {
                 if (grid[k] && grid[k].tId == id) delete grid[k];
