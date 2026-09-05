@@ -589,6 +589,11 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+   // إجبار النظام على جلب وتحديث جداول المعلمين فور تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof refreshAllSystemViews === 'function') refreshAllSystemViews();
+  if (typeof renderTeachers === 'function') renderTeachers();
+});
     </script>
 </body>
 </html>
