@@ -362,13 +362,13 @@ window.getTeachers = function() {
             if (chk && box) box.classList.toggle('hidden', !chk.checked);
         }
 
-      function addTeacher() {
+function addTeacher() {
     const name = document.getElementById('tName').value.trim();
     const phone = document.getElementById('tPhone').value.trim();
     const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
 
     if (!name) { 
-        alert('يرجى إدخال اسم المعلم أولاً!'); 
+        alert('يرجى كتابة اسم المعلم أولاً!'); 
         return; 
     }
 
@@ -386,9 +386,15 @@ window.getTeachers = function() {
         });
     });
 
-    let teachers = getTeachers();
-    
-    teachers.push({
+    // جلب القائمة القديمة إن وجدت
+    let teachers = [];
+    try {
+        const raw = localStorage.getItem('teachersData') || localStorage.getItem('teachers_data');
+        if (raw) teachers = JSON.parse(raw);
+    } catch(e) { teachers = []; }
+
+    // إضافة المعلم الجديد بحالة حاضر مؤكدة
+    const newTeacher = {
         id: Date.now(),
         name: name,
         phone: phone,
@@ -396,13 +402,25 @@ window.getTeachers = function() {
         status: 'present',
         isPresent: true,
         assignments: selectedAssignments
-    });
+    };
 
-    saveTeachers(teachers);
-    refreshAllSystemViews();
-    renderSchedule();
+    teachers.push(newTeacher);
 
-    alert('تم حفظ المعلم وظهر في كافة الجداول والقوائم بنجاح!');
+    // الحفظ في كل مفاتيح التخزين المحتملة بداخل المتصفح لتفادي أي تعارض
+    const jsonStr = JSON.stringify(teachers);
+    localStorage.setItem('teachersData', jsonStr);
+    localStorage.setItem('teachers_data', jsonStr);
+    if (typeof teachersDbKey !== 'undefined') {
+        localStorage.setItem(teachersDbKey, jsonStr);
+    }
+
+    // استدعاء وتحديث جميع الشاشات
+    if (typeof refreshAllSystemViews === 'function') refreshAllSystemViews();
+    if (typeof renderTeachersCards === 'function') renderTeachersCards();
+    if (typeof renderAllStaffTable === 'function') renderAllStaffTable();
+    if (typeof renderSchedule === 'function') renderSchedule();
+
+    alert('تم الحفظ بنجاح وظهر المعلم بجميع الشاشات والجدول العام!');
     resetForm();
 }
 
