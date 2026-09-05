@@ -1,11 +1,14 @@
-                                <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام الجدول المدرسي الشامل - مدرسة الضياء</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tajawal Font -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; }
@@ -20,6 +23,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden">
 
+    <!-- القائمة الجانبية -->
     <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shadow-xl shrink-0 no-print">
         <div>
             <div class="text-center py-4 border-b border-slate-800 mb-6">
@@ -46,12 +50,14 @@
             </nav>
         </div>
         <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-            نظام إدارة الجداول v6.0
+            نظام إدارة الجداول v6.2
         </div>
     </aside>
 
+    <!-- المحتوى الرئيسي -->
     <main class="flex-1 flex flex-col overflow-y-auto p-6 relative">
 
+        <!-- 1. الجدول الأسبوعي العام -->
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
@@ -76,16 +82,21 @@
             </div>
         </section>
 
+        <!-- 2. إدخال وإدارة المعلمين والغياب -->
         <section id="teachersView" class="tab-content hidden space-y-6">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                 <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                     <i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد وتخصيص المواد
                 </h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">اسم المعلم:</label>
                         <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">صورة المعلم:</label>
+                        <input type="file" id="tPhoto" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-200 p-1 rounded-xl">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
@@ -98,7 +109,7 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حدد الصف والمادة المخصصة للمعلم:</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حدد الصف والشعبة والمادة/الأساس المخصص للمعلم:</span>
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
@@ -107,6 +118,7 @@
                 </button>
             </div>
 
+            <!-- سجل الحضور والغياب -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -132,6 +144,7 @@
             </div>
         </section>
 
+        <!-- 3. جميع الكادر المدرسي -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -141,7 +154,7 @@
                     <table class="w-full text-right border-collapse text-xs">
                         <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                             <tr>
-                                <th class="p-3">#</th>
+                                <th class="p-3">الصورة</th>
                                 <th class="p-3">اسم المعلم</th>
                                 <th class="p-3">رقم الهاتف</th>
                                 <th class="p-3">الصفوف والشعب والأسس</th>
@@ -156,6 +169,7 @@
             </div>
         </section>
 
+        <!-- 4. بدلاء الشواغر -->
         <section id="backupView" class="tab-content hidden space-y-4">
             <div class="bg-amber-50 rounded-2xl border border-amber-200 p-5">
                 <h3 class="text-sm font-bold text-amber-900 flex items-center gap-2 mb-4 border-b border-amber-200 pb-3">
@@ -172,6 +186,7 @@
         const secNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5', 'الحصة 6'];
+        const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
 
         function getTeachers() {
             try {
@@ -208,11 +223,24 @@
                     </label>
                     <div id="g_box_${gIdx}" class="hidden flex flex-col gap-2 mr-4 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
-                        <div class="flex items-center gap-2">
-                          <label class="text-xs font-semibold whitespace-nowrap">
+                        <div class="flex flex-col gap-1 border-b border-slate-100 pb-2">
+                          <label class="text-xs font-semibold">
                             <input type="checkbox" id="sec_${gIdx}_${sIdx}" class="rounded text-emerald-600"> شعبة ${sName}
                           </label>
-                          <input type="text" id="sub_${gIdx}_${sIdx}" placeholder="المادة (مثال: عربي)" class="text-xs p-1 border rounded w-full outline-none">
+                          <div class="grid grid-cols-3 gap-1">
+                            <select id="sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                                <option value="">المادة 1</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            <select id="sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                                <option value="">المادة 2</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            <select id="sub_${gIdx}_${sIdx}_3" class="text-[11px] p-1 border rounded bg-slate-50 font-medium">
+                                <option value="">المادة 3</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                          </div>
                         </div>
                       `).join('')}
                     </div>
@@ -226,6 +254,7 @@
             const name = document.getElementById('tName').value.trim();
             const phone = document.getElementById('tPhone').value.trim();
             const maxQuota = parseInt(document.getElementById('tMaxQuota').value) || 24;
+            const photoInput = document.getElementById('tPhoto');
 
             if (!name) { alert('يرجى كتابة اسم المعلم اولاً'); return; }
 
@@ -234,30 +263,48 @@
                 const parts = chk.id.split('_');
                 const gIdx = parseInt(parts[1]);
                 const sIdx = parseInt(parts[2]);
-                const subjInput = document.getElementById(`sub_${gIdx}_${sIdx}`);
+                
+                const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
+                const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
+                const s3 = document.getElementById(`sub_${gIdx}_${sIdx}_3`).value;
+
+                let selectedSubjs = [s1, s2, s3].filter(s => s !== '').join(' + ');
+
                 assignments.push({
                     gradeIndex: gIdx,
                     sectionIndex: sIdx,
-                    subject: (subjInput && subjInput.value.trim()) ? subjInput.value.trim() : 'عام'
+                    subject: selectedSubjs || 'عام'
                 });
             });
 
-            let list = getTeachers();
-            list.push({
-                id: Date.now(),
-                name: name,
-                phone: phone,
-                maxQuota: maxQuota,
-                isPresent: true,
-                assignments: assignments
-            });
+            const processSave = (photoBase64) => {
+                let list = getTeachers();
+                list.push({
+                    id: Date.now(),
+                    name: name,
+                    phone: phone,
+                    photo: photoBase64 || '',
+                    maxQuota: maxQuota,
+                    isPresent: true,
+                    assignments: assignments
+                });
 
-            saveTeachers(list);
-            document.getElementById('tName').value = '';
-            document.getElementById('tPhone').value = '';
-            buildGradesForm();
-            refreshAllViews();
-            alert('تم حفظ المعلم وربطه بجميع الجداول بنجاح!');
+                saveTeachers(list);
+                document.getElementById('tName').value = '';
+                document.getElementById('tPhone').value = '';
+                document.getElementById('tPhoto').value = '';
+                buildGradesForm();
+                refreshAllViews();
+                alert('تم حفظ المعلم والمواد بنجاح!');
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { processSave(e.target.result); };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                processSave('');
+            }
         }
 
         function toggleStatus(id) {
@@ -310,14 +357,17 @@
             container.innerHTML = filtered.map(t => `
                 <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-300' : 'border-red-200'} shadow-sm flex flex-col justify-between">
                     <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
+                        <div class="flex items-center gap-3 mb-2">
+                            ${t.photo ? `<img src="${t.photo}" class="w-10 h-10 rounded-full object-cover border border-slate-300">` : `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm"><i class="fas fa-user"></i></div>`}
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
+                                <div class="text-[11px] text-slate-500 font-bold">النصاب: ${t.maxQuota} حصة</div>
+                            </div>
                             <button onclick="deleteTeacher(${t.id})" class="text-slate-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
                         </div>
                         <div class="text-xs text-blue-600 font-medium mb-1">
                             ${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join('<br>') || 'عام'}
                         </div>
-                        <div class="text-[11px] text-slate-500 font-bold">النصاب: ${t.maxQuota} حصة</div>
                     </div>
                     <button onclick="toggleStatus(${t.id})" class="mt-3 w-full py-2 rounded-xl font-bold text-xs ${t.isPresent ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}">
                         ${t.isPresent ? '🟢 حاضر (اضغط للتغيير)' : '🔴 غائب (اضغط للتغيير)'}
@@ -334,9 +384,11 @@
                 return;
             }
 
-            body.innerHTML = list.map((t, idx) => `
+            body.innerHTML = list.map((t) => `
                 <tr>
-                    <td class="p-3">${idx + 1}</td>
+                    <td class="p-3">
+                        ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-user text-xs"></i></div>`}
+                    </td>
                     <td class="p-3 font-bold">${t.name}</td>
                     <td class="p-3">${t.phone || '-'}</td>
                     <td class="p-3">${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join(', ') || 'عام'}</td>
@@ -357,9 +409,12 @@
 
             container.innerHTML = list.map(t => `
                 <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex justify-between items-center">
-                    <div>
-                        <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
-                        <span class="text-[10px] text-amber-700">مستعد للاحتياط</span>
+                    <div class="flex items-center gap-2">
+                        ${t.photo ? `<img src="${t.photo}" class="w-7 h-7 rounded-full object-cover">` : `<div class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold"><i class="fas fa-user"></i></div>`}
+                        <div>
+                            <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
+                            <span class="text-[10px] text-amber-700">مستعد للاحتياط</span>
+                        </div>
                     </div>
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 </div>
@@ -420,4 +475,3 @@
     </script>
 </body>
 </html>
-
