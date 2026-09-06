@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"> 
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v7.5
+                نظام إدارة الجداول الذكي v8.0
             </div>
         </div>
     </aside>
@@ -67,12 +67,12 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (تلقائي)</h2>
-                    <p class="text-xs text-slate-500">يتم تحديث حالة الحصص والشواغر بناءً على تسجيل حضور المعلمين اليومي</p>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (توزيع عشوائي متوازن)</h2>
+                    <p class="text-xs text-slate-500">يتم خلط المواد والحصص عشوائياً بين الشعب مع منع تضارب المعلمين</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
-                        <i class="fas fa-wand-magic-sparkles"></i> إعادة توليد الجدول
+                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول
                     </button>
                     <button onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
                         <i class="fas fa-trash-alt"></i> تفريغ الجدول
@@ -123,12 +123,12 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حددي الصف والشعبة والمادة المخصصة للمعلم (يمكن تحديد مادتين لنفس الشعبة):</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حددي الصف والشعبة والمادة المخصصة للمعلم:</span>
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
                 <button type="button" onclick="saveNewTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
-                    + حفظ المعلم وتوليد حصصه تلقائياً
+                    + حفظ المعلم وتوليد الجدول
                 </button>
             </div>
 
@@ -139,7 +139,7 @@
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور اليومي بالوقت
                         </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">يمكن للمعلم الضغط على الزر فور دخوله الدوام لإثبات الحضور وتسجيل الوقت تلقائياً</p>
+                        <p class="text-xs text-slate-500 mt-0.5">تسجيل حضور الكادر وتحديث حالة الشواغر فورياً</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
@@ -416,14 +416,13 @@
                 list.push(newTeacher);
                 saveTeachers(list);
 
-                autoDistributeTeacherSlots(newTeacher);
+                autoGenerateFullSchedule();
 
                 document.getElementById('tName').value = '';
                 document.getElementById('tPhone').value = '';
                 document.getElementById('tPhoto').value = '';
                 buildGradesForm('gradesContainer', '');
                 refreshAllViews();
-                alert('تم حفظ المعلم وتوليد حصصه تلقائياً!');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -435,7 +434,6 @@
             }
         }
 
-        // فتح نافذة تعديل بيانات المعلم
         function openEditModal(teacherId) {
             let teachers = getTeachers();
             let teacher = teachers.find(t => t.id == teacherId);
@@ -448,7 +446,6 @@
 
             buildGradesForm('editGradesContainer', 'edit_');
 
-            // تعبئة الاختيارات السابقة للمعلم
             teacher.assignments.forEach(asgn => {
                 let gIdx = asgn.gradeIndex;
                 let sIdx = asgn.sectionIndex;
@@ -513,18 +510,11 @@
                 if (photoBase64) teachers[idx].photo = photoBase64;
 
                 saveTeachers(teachers);
-
-                // إزالة حصص المعلم القديمة وإعادة توليد الحصص
-                let grid = getScheduleData();
-                Object.keys(grid).forEach(k => {
-                    if (grid[k] && grid[k].tId == id) delete grid[k];
-                });
-                saveScheduleData(grid);
-                autoDistributeTeacherSlots(teachers[idx]);
+                autoGenerateFullSchedule();
 
                 closeEditModal();
                 refreshAllViews();
-                alert('تم تحديث بيانات المعلم وجدول الحصص بنجاح!');
+                alert('تم تحديث بيانات المعلم وإعادة توزيع الجدول بشكل متوازن!');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -536,38 +526,92 @@
             }
         }
 
-        function autoDistributeTeacherSlots(teacher) {
-            let grid = getScheduleData();
-            let countAssigned = 0;
+        // دالة التوزيع العشوائي الذكي لمنع التضارب والنمطية
+        function autoGenerateFullSchedule() {
+            let teachers = getTeachers();
+            if (teachers.length === 0) {
+                alert('يرجى إضافة معلمين أولاً لتتمكن من توليد الجدول تلقائياً');
+                return;
+            }
 
-            teacher.assignments.forEach(asgn => {
-                let slotsNeeded = Math.max(1, Math.floor(teacher.maxQuota / teacher.assignments.length));
-                
-                for(let d = 0; d < days.length; d++) {
-                    for(let l = 0; l < lessons.length; l++) {
-                        if (countAssigned >= teacher.maxQuota || slotsNeeded <= 0) break;
+            let grid = {};
+            
+            // تجميع كافة الحصص المطلوب توزيعها
+            let pool = [];
+            teachers.forEach(t => {
+                let assignedQuota = 0;
+                let quotaPerAsgn = Math.max(1, Math.floor(t.maxQuota / t.assignments.length));
 
-                        let key = `${d}_${l}_${asgn.gradeIndex}_${asgn.sectionIndex}`;
-                        
-                        if (!grid[key]) {
-                            let teacherBusy = false;
-                            gradeNames.forEach((_, g) => {
-                                secNames.forEach((_, s) => {
-                                    let checkKey = `${d}_${l}_${g}_${s}`;
-                                    if (grid[checkKey] && grid[checkKey].tId == teacher.id) {
-                                        teacherBusy = true;
-                                    }
-                                });
+                t.assignments.forEach(asgn => {
+                    for(let i = 0; i < quotaPerAsgn; i++) {
+                        if (assignedQuota < t.maxQuota) {
+                            pool.push({
+                                tId: t.id,
+                                name: t.name,
+                                gradeIndex: asgn.gradeIndex,
+                                sectionIndex: asgn.sectionIndex,
+                                subject: asgn.subject
                             });
+                            assignedQuota++;
+                        }
+                    }
+                });
+            });
 
-                            if (!teacherBusy) {
-                                grid[key] = {
-                                    tId: teacher.id,
-                                    name: teacher.name,
-                                    subject: asgn.subject
+            // خلط الحصص عشوائياً (Fisher-Yates Shuffle)
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            // إنشاء قائمة بجميع الأماكن المتاحة بالجدول
+            let availableSlots = [];
+            for (let d = 0; d < days.length; d++) {
+                for (let l = 0; l < lessons.length; l++) {
+                    for (let g = 0; g < gradeNames.length; g++) {
+                        for (let s = 0; s < secNames.length; s++) {
+                            availableSlots.push({ d, l, g, s });
+                        }
+                    }
+                }
+            }
+
+            // خلط الأماكن عشوائياً لتجنب النمط المتتابع
+            availableSlots.sort(() => Math.random() - 0.5);
+
+            // تسكين الحصص مع التأكد من عدم التضارب
+            pool.forEach(item => {
+                let placed = false;
+                for (let slotIdx = 0; slotIdx < availableSlots.length; slotIdx++) {
+                    let slot = availableSlots[slotIdx];
+
+                    // التأكد من أن المكان مناسب للشعبة
+                    if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
+                        let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
+
+                        if (!grid[cellKey]) {
+                            // فحص هل المعلم مشغول بنفس اليوم والحصة في شعبة أخرى
+                            let isTeacherBusy = false;
+                            for (let checkG = 0; checkG < gradeNames.length; checkG++) {
+                                for (let checkS = 0; checkS < secNames.length; checkS++) {
+                                    let checkKey = `${slot.d}_${slot.l}_${checkG}_${checkS}`;
+                                    if (grid[checkKey] && grid[checkKey].tId === item.tId) {
+                                        isTeacherBusy = true;
+                                        break;
+                                    }
+                                }
+                                if (isTeacherBusy) break;
+                            }
+
+                            if (!isTeacherBusy) {
+                                grid[cellKey] = {
+                                    tId: item.tId,
+                                    name: item.name,
+                                    subject: item.subject
                                 };
-                                countAssigned++;
-                                slotsNeeded--;
+                                availableSlots.splice(slotIdx, 1);
+                                placed = true;
+                                break;
                             }
                         }
                     }
@@ -575,18 +619,7 @@
             });
 
             saveScheduleData(grid);
-        }
-
-        function autoGenerateFullSchedule() {
-            let list = getTeachers();
-            if (list.length === 0) {
-                alert('يرجى إضافة معلمين أولاً لتتمكن من توليد الجدول تلقائياً');
-                return;
-            }
-            localStorage.removeItem('app_schedule_grid_v7');
-            list.forEach(t => autoDistributeTeacherSlots(t));
             renderSchedule();
-            alert('تم إعادة توليد الجدول الأسبوعي كاملاً بنجاح!');
         }
 
         function recordAttendance(id) {
@@ -612,12 +645,7 @@
             let list = getTeachers().filter(t => t.id != id);
             saveTeachers(list);
 
-            let grid = getScheduleData();
-            Object.keys(grid).forEach(k => {
-                if (grid[k] && grid[k].tId == id) delete grid[k];
-            });
-            saveScheduleData(grid);
-
+            autoGenerateFullSchedule();
             refreshAllViews();
         }
 
