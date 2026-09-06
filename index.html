@@ -60,7 +60,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v8.6
+                نظام إدارة الجداول الذكي v8.7
             </div>
         </div>
     </aside>
@@ -72,8 +72,8 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (توزيع عشوائي متوازن)</h2>
-                    <p class="text-xs text-slate-500">يتم خلط المواد والحصص عشوائياً بين الشعب مع منع تضارب المعلمين والتعليم بخط أحمر فاصل بين الأيام</p>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (5 حصص يومياً)</h2>
+                    <p class="text-xs text-slate-500">تم تعديل الجدول ليتكون من 5 حصص فقط يومياً مع خط أحمر فاصل بين الأيام</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -123,7 +123,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">عدد الحصص الأسبوعية المطلوبة:</label>
-                        <input type="number" id="tMaxQuota" value="12" min="1" max="30" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                        <input type="number" id="tMaxQuota" value="12" min="1" max="25" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
                     </div>
                 </div>
 
@@ -232,7 +232,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">عدد الحصص الأسبوعية:</label>
-                        <input type="number" id="editTMaxQuota" min="1" max="30" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                        <input type="number" id="editTMaxQuota" min="1" max="25" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
                     </div>
                 </div>
 
@@ -258,7 +258,8 @@
         const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
         const secNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-        const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5', 'الحصة 6'];
+        // تم التعديل إلى 5 حصص يومياً فقط
+        const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
 
         function formatWhatsappPhone(phone) {
@@ -846,7 +847,7 @@
             }).join('');
         }
 
-        // دالة بناء الجدول الأسبوعي مع الخط الأحمر الفاصل
+        // دالة بناء الجدول الأسبوعي
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
@@ -871,7 +872,7 @@
             let tbodyHtml = '';
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
-                    // إذا كانت هذه الحصة هي الحصة الأخيرة في اليوم (الحصة 6)، نضيف كلاس الخط الأحمر الفاصل
+                    // إذا كانت الحصة هي الحصة 5 (الأخيرة)، نضع الخط الأحمر الفاصل
                     let isLastLessonOfDay = (lIdx === lessons.length - 1);
                     let rowClass = isLastLessonOfDay ? 'day-separator-red hover:bg-slate-50' : 'hover:bg-slate-50 border-b border-slate-200';
 
