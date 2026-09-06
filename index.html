@@ -13,9 +13,8 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
-        /* كلاس الخط الأحمر الفاصل بين الأيام */
         .day-separator-red {
-            border-bottom: 4px solid #ef4444 !important; /* خط أحمر عريض وواضح */
+            border-bottom: 4px solid #ef4444 !important;
         }
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
@@ -250,7 +249,6 @@
         const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
         const secNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-        // تم التعديل إلى 5 حصص يومياً فقط
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
 
@@ -355,7 +353,6 @@
             refreshAllViews();
         }
 
-        // بناء استمارة الصفوف وتضمين "عدد الحصص" داخل المرحلة وضبط مربع الشعبة
         function buildGradesForm(containerId, prefix = '') {
             const container = document.getElementById(containerId);
             let html = '';
@@ -367,7 +364,6 @@
                           <input type="checkbox" id="${prefix}g_chk_${gIdx}" onchange="document.getElementById('${prefix}g_box_${gIdx}').classList.toggle('hidden', !this.checked)" class="rounded text-emerald-600">
                           <span>الصف ${gName}</span>
                         </label>
-                        <!-- عدد الحصص الخاص بالصف -->
                         <div class="flex items-center gap-1 text-[11px] text-slate-600">
                           <label for="${prefix}quota_${gIdx}" class="font-semibold">عدد الحصص:</label>
                           <input type="number" id="${prefix}quota_${gIdx}" value="12" min="1" max="25" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 focus:bg-white font-bold">
@@ -376,7 +372,6 @@
 
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
-                        <!-- مربع الشعبة المتكامل مع زر الحذف داخله -->
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
                           <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition">
                             <i class="fas fa-xmark"></i>
@@ -389,11 +384,11 @@
                           <div class="grid grid-cols-2 gap-1 mt-1">
                             <select id="${prefix}sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-white font-medium">
                                 <option value="">المادة الأولى</option>
-                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                                ${subjectOptions.map(s => `<option value="${s}">${s}">${s}</option>`).join('')}
                             </select>
                             <select id="${prefix}sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-white font-medium">
                                 <option value="">المادة الثانية (اختياري)</option>
-                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                                ${subjectOptions.map(s => `<option value="${s}">${s}">${s}</option>`).join('')}
                             </select>
                           </div>
                         </div>
@@ -405,7 +400,6 @@
             container.innerHTML = html;
         }
 
-        // دالة لإلغاء تحديد الشعبة ومسح مدخلاتها
         function clearSectionSelection(prefix, gIdx, sIdx) {
             const chk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
             const sub1 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_1`);
@@ -708,6 +702,7 @@
             renderSchedule();
         }
 
+        // تم تعديل التنسيق هنا لنقل أزرار التعديل والحذف فوق الاسم مباشرة
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
             let list = getTeachers();
@@ -729,9 +724,20 @@
                 return `
                 <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200'} shadow-sm flex flex-col justify-between">
                     <div>
-                        <div class="flex items-center gap-3 mb-2">
-                            ${t.photo ? `<img src="${t.photo}" class="w-11 h-11 rounded-full object-cover border border-slate-300">` : `<div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm"><i class="fas fa-user"></i></div>`}
+                        <div class="flex items-start gap-3 mb-2">
+                            ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-300 shrink-0">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm shrink-0"><i class="fas fa-user"></i></div>`}
+                            
                             <div class="flex-1">
+                                <!-- أزرار التعديل والحذف في أعلى الاسم تماماً -->
+                                <div class="flex items-center gap-2 mb-1">
+                                    <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition text-xs p-0.5">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
                                 <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
                                 <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-0.5">
                                     <span>الحصص: ${t.maxQuota}</span>
@@ -742,11 +748,8 @@
                                     ` : ''}
                                 </div>
                             </div>
-                            <div class="flex items-center gap-1.5">
-                                <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition p-1"><i class="fas fa-pen-to-square"></i></button>
-                                <button onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition p-1"><i class="fas fa-trash"></i></button>
-                            </div>
                         </div>
+
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
                             ${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>')}
                         </div>
@@ -880,7 +883,6 @@
             }).join('');
         }
 
-        // دالة بناء الجدول الأسبوعي
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
@@ -905,7 +907,6 @@
             let tbodyHtml = '';
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
-                    // إذا كانت الحصة هي الحصة 5 (الأخيرة)، نضع الخط الأحمر الفاصل
                     let isLastLessonOfDay = (lIdx === lessons.length - 1);
                     let rowClass = isLastLessonOfDay ? 'day-separator-red hover:bg-slate-50' : 'hover:bg-slate-50 border-b border-slate-200';
 
