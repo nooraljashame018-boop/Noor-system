@@ -45,7 +45,7 @@
                 </button>
 
                 <button onclick="switchTab('backupView')" id="btn-backupView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
-                    <i class="fas fa-shield-alt text-amber-400 text-base"></i> بدلاء الشواغر
+                    <i class="fas fa-shield-alt text-amber-400 text-base"></i> بدلاء الشواغر والمراقبة
                 </button>
             </nav>
         </div>
@@ -55,7 +55,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v8.0
+                نظام إدارة الجداول الذكي v8.5
             </div>
         </div>
     </aside>
@@ -178,11 +178,29 @@
             </div>
         </section>
 
-        <!-- 4. بدلاء الشواغر -->
+        <!-- 4. بدلاء الشواغر والمراقبة اليومية -->
         <section id="backupView" class="tab-content hidden space-y-4">
-            <div class="bg-amber-50 rounded-2xl border border-amber-200 p-5">
-                <h3 class="text-sm font-bold text-amber-900 border-b border-amber-200 pb-3 mb-4"><i class="fas fa-shield-alt text-amber-600"></i> معلمو الاحتياط الحاضرون المتاحون لسد الشواغر اليومية</h3>
-                <div id="backupTeachersList" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+            <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-5 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
+                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية الذكية
+                        </h3>
+                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>أقل 5 معلمين</b> حصصاً في اليوم المحدد تلقائياً من الكادر الحاضر لتكليفهم بالمراقبة والشواغر</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
+                        <select id="backupDaySelect" onchange="refreshBackupTeachers()" class="border border-amber-300 rounded-xl px-3 py-1.5 bg-white text-xs font-bold text-amber-900 outline-none">
+                            <option value="0">الأحد</option>
+                            <option value="1">الإثنين</option>
+                            <option value="2">الثلاثاء</option>
+                            <option value="3">الأربعاء</option>
+                            <option value="4">الخميس</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="backupTeachersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </section>
 
@@ -764,30 +782,75 @@
             }).join('');
         }
 
+        // دالة تصفية واختيار أقل 5 معلمون حصصاً في اليوم المختار
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
             let list = getTeachers().filter(t => t.isPresent);
+            let selectedDay = parseInt(document.getElementById('backupDaySelect').value) || 0;
+            let grid = getScheduleData();
+
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-4 text-amber-700 font-bold">لا يوجد معلمون حاضرون مسجلون حالياً</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمون حاضرون مسجلون حالياً في المدرسة</div>`;
                 return;
             }
 
-            container.innerHTML = list.map(t => {
+            // احتساب عدد الحصص اليومية لكل معلم حاضر في اليوم المختار
+            let teacherStats = list.map(t => {
+                let dailyLessonsCount = 0;
+                
+                lessons.forEach((_, lIdx) => {
+                    gradeNames.forEach((_, gIdx) => {
+                        secNames.forEach((_, sIdx) => {
+                            let cellKey = `${selectedDay}_${lIdx}_${gIdx}_${sIdx}`;
+                            if (grid[cellKey] && grid[cellKey].tId == t.id) {
+                                dailyLessonsCount++;
+                            }
+                        });
+                    });
+                });
+
+                return {
+                    teacher: t,
+                    dailyLessonsCount: dailyLessonsCount
+                };
+            });
+
+            // ترتيب المعلمين تصاعدياً حسب الحصص اليومية (الأقل حصصاً أولاً)
+            teacherStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
+
+            // تحديد أول 5 معلمون ممن لديهم أقل حصص
+            let top5Candidates = teacherStats.slice(0, 5);
+
+            container.innerHTML = teacherStats.map((item, index) => {
+                let t = item.teacher;
                 let waPhone = formatWhatsappPhone(t.phone);
+                let isTop5 = index < 5;
+
                 return `
-                <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold"><i class="fas fa-user"></i></div>`}
-                        <div>
-                            <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
-                            <span class="text-[10px] text-emerald-600 font-bold">حاضر منذ: ${t.checkInTime}</span>
+                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشح رئيسي للمراقبة #${index+1}</div>` : ''}
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            ${t.photo ? `<img src="${t.photo}" class="w-10 h-10 rounded-full object-cover border">` : `<div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs"><i class="fas fa-user"></i></div>`}
+                            <div>
+                                <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
+                                <span class="text-[10px] text-emerald-600 font-bold block">🟢 حاضر منذ: ${t.checkInTime}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 mb-3 flex justify-between items-center text-xs">
+                            <span class="text-slate-600 font-bold">حصص اليوم (${days[selectedDay]}):</span>
+                            <span class="px-2 py-0.5 rounded-lg ${item.dailyLessonsCount <= 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-black text-xs">
+                                ${item.dailyLessonsCount} حصة/حصص
+                            </span>
                         </div>
                     </div>
+
                     ${t.phone ? `
-                        <a href="https://wa.me/${waPhone}" target="_blank" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded-lg text-sm">
-                            <i class="fab fa-whatsapp"></i>
+                        <a href="https://wa.me/${waPhone}" target="_blank" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> تكليف عبر الواتساب
                         </a>
-                    ` : '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>'}
+                    ` : '<div class="text-[10px] text-slate-400 text-center font-bold">لا يوجد رقم هاتف مضاف</div>'}
                 </div>
             `;
             }).join('');
