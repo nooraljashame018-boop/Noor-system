@@ -13,11 +13,16 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
+        /* كلاس الخط الأحمر الفاصل بين الأيام */
+        .day-separator-red {
+            border-bottom: 4px solid #ef4444 !important; /* خط أحمر عريض وواضح */
+        }
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
             table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
             th, td { border: 1px solid #333 !important; padding: 4px !important; text-align: center !important; }
+            .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
         }
     </style>
 </head>
@@ -55,7 +60,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v8.5
+                نظام إدارة الجداول الذكي v8.6
             </div>
         </div>
     </aside>
@@ -68,7 +73,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (توزيع عشوائي متوازن)</h2>
-                    <p class="text-xs text-slate-500">يتم خلط المواد والحصص عشوائياً بين الشعب مع منع تضارب المعلمين</p>
+                    <p class="text-xs text-slate-500">يتم خلط المواد والحصص عشوائياً بين الشعب مع منع تضارب المعلمين والتعليم بخط أحمر فاصل بين الأيام</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -544,7 +549,6 @@
             }
         }
 
-        // دالة التوزيع العشوائي الذكي لمنع التضارب والنمطية
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             if (teachers.length === 0) {
@@ -553,8 +557,6 @@
             }
 
             let grid = {};
-            
-            // تجميع كافة الحصص المطلوب توزيعها
             let pool = [];
             teachers.forEach(t => {
                 let assignedQuota = 0;
@@ -576,13 +578,11 @@
                 });
             });
 
-            // خلط الحصص عشوائياً (Fisher-Yates Shuffle)
             for (let i = pool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [pool[i], pool[j]] = [pool[j], pool[i]];
             }
 
-            // إنشاء قائمة بجميع الأماكن المتاحة بالجدول
             let availableSlots = [];
             for (let d = 0; d < days.length; d++) {
                 for (let l = 0; l < lessons.length; l++) {
@@ -594,21 +594,17 @@
                 }
             }
 
-            // خلط الأماكن عشوائياً لتجنب النمط المتتابع
             availableSlots.sort(() => Math.random() - 0.5);
 
-            // تسكين الحصص مع التأكد من عدم التضارب
             pool.forEach(item => {
                 let placed = false;
                 for (let slotIdx = 0; slotIdx < availableSlots.length; slotIdx++) {
                     let slot = availableSlots[slotIdx];
 
-                    // التأكد من أن المكان مناسب للشعبة
                     if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
                         let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
 
                         if (!grid[cellKey]) {
-                            // فحص هل المعلم مشغول بنفس اليوم والحصة في شعبة أخرى
                             let isTeacherBusy = false;
                             for (let checkG = 0; checkG < gradeNames.length; checkG++) {
                                 for (let checkS = 0; checkS < secNames.length; checkS++) {
@@ -782,7 +778,6 @@
             }).join('');
         }
 
-        // دالة تصفية واختيار أقل 5 معلمون حصصاً في اليوم المختار
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
             let list = getTeachers().filter(t => t.isPresent);
@@ -794,7 +789,6 @@
                 return;
             }
 
-            // احتساب عدد الحصص اليومية لكل معلم حاضر في اليوم المختار
             let teacherStats = list.map(t => {
                 let dailyLessonsCount = 0;
                 
@@ -815,11 +809,7 @@
                 };
             });
 
-            // ترتيب المعلمين تصاعدياً حسب الحصص اليومية (الأقل حصصاً أولاً)
             teacherStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
-
-            // تحديد أول 5 معلمون ممن لديهم أقل حصص
-            let top5Candidates = teacherStats.slice(0, 5);
 
             container.innerHTML = teacherStats.map((item, index) => {
                 let t = item.teacher;
@@ -856,6 +846,7 @@
             }).join('');
         }
 
+        // دالة بناء الجدول الأسبوعي مع الخط الأحمر الفاصل
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
@@ -880,7 +871,11 @@
             let tbodyHtml = '';
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
-                    tbodyHtml += `<tr class="hover:bg-slate-50 border-b border-slate-200">`;
+                    // إذا كانت هذه الحصة هي الحصة الأخيرة في اليوم (الحصة 6)، نضيف كلاس الخط الأحمر الفاصل
+                    let isLastLessonOfDay = (lIdx === lessons.length - 1);
+                    let rowClass = isLastLessonOfDay ? 'day-separator-red hover:bg-slate-50' : 'hover:bg-slate-50 border-b border-slate-200';
+
+                    tbodyHtml += `<tr class="${rowClass}">`;
                     if (lIdx === 0) {
                         tbodyHtml += `<td class="p-2 border border-slate-300 font-bold bg-slate-100 text-slate-800" rowspan="${lessons.length}">${day}</td>`;
                     }
