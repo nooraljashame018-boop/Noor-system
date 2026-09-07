@@ -55,7 +55,7 @@
     .menu-item {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
       padding: 12px 15px;
       color: #e5e7eb;
       text-decoration: none;
@@ -65,9 +65,59 @@
       cursor: pointer;
     }
 
+    .menu-item-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .menu-item:hover, .menu-item.active {
       background-color: #1e293b;
       color: #38bdf8;
+    }
+
+    /* القائمة المنسدلة */
+    .dropdown-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dropdown-btn .arrow-icon {
+      transition: transform 0.3s ease;
+      font-size: 12px;
+    }
+
+    .dropdown-container.open .arrow-icon {
+      transform: rotate(180deg);
+    }
+
+    .submenu {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 25px;
+      margin-top: 4px;
+    }
+
+    .dropdown-container.open .submenu {
+      display: flex;
+    }
+
+    .submenu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      color: #94a3b8;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .submenu-item:hover, .submenu-item.active {
+      background-color: #1e293b;
+      color: #10b981;
     }
 
     .btn-refresh {
@@ -92,7 +142,7 @@
     }
 
     .page-section {
-      display: none; /* يتم التحكم بظهوره عبر JavaScript */
+      display: none;
     }
 
     .page-section.active {
@@ -223,24 +273,42 @@
 
       <nav class="menu">
         <a class="menu-item" onclick="switchTab('schedule-section', this)">
-          <i class="fa-solid fa-table-cells"></i> الجدول الأسبوعي العام
+          <div class="menu-item-content">
+            <i class="fa-solid fa-table-cells"></i>الجدول الأسبوعي العام
+          </div>
         </a>
         
-        <!-- زر إدخال عضو جديد منفصل في القائمة -->
-        <a class="menu-item" onclick="switchTab('add-member-section', this)">
-          <i class="fa-solid fa-user-plus"></i> إدخال عضو جديد
-        </a>
+        <!-- القائمة المنسدلة الخاصة بإدارة الكادر والإدخال -->
+        <div class="dropdown-container" id="staff-dropdown">
+          <div class="menu-item dropdown-btn" onclick="toggleDropdown()">
+            <div class="menu-item-content">
+              <i class="fa-solid fa-users-gear"></i> إدارة الكادر
+            </div>
+            <i class="fa-solid fa-chevron-down arrow-icon"></i>
+          </div>
+          <div class="submenu">
+            <a class="submenu-item" onclick="switchTab('add-member-section', this)">
+              <i class="fa-solid fa-user-plus"></i> إدخال عضو جديد
+            </a>
+          </div>
+        </div>
 
         <a class="menu-item active" onclick="switchTab('attendance-section', this)">
-          <i class="fa-solid fa-user-check"></i> إثبات الحضور والتوزيع
+          <div class="menu-item-content">
+            <i class="fa-solid fa-user-check"></i> إثبات الحضور والتوزيع
+          </div>
         </a>
 
         <a class="menu-item" onclick="switchTab('staff-list-section', this)">
-          <i class="fa-solid fa-users"></i> جميع الكادر وسجل الحضور
+          <div class="menu-item-content">
+            <i class="fa-solid fa-users"></i> جميع الكادر وسجل الحضور
+          </div>
         </a>
 
         <a class="menu-item" onclick="switchTab('reports-section', this)">
-          <i class="fa-solid fa-file-invoice"></i> تقرير الحضور الأسبوعي
+          <div class="menu-item-content">
+            <i class="fa-solid fa-file-invoice"></i> تقرير الحضور الأسبوعي
+          </div>
         </a>
       </nav>
     </div>
@@ -360,7 +428,7 @@
       </div>
     </section>
 
-    <!-- باقي الأقسام يمكن إضافة محتواها بنفس الطريقة -->
+    <!-- باقي الأقسام -->
     <section id="schedule-section" class="page-section">
       <div class="card"><h3>الجدول الأسبوعي العام</h3></div>
     </section>
@@ -373,18 +441,25 @@
 
   </main>
 
-  <!-- سكربت التنقل بين الأقسام -->
+  <!-- السكربتات -->
   <script>
+    // التبديل بين فتح وإغلاق القائمة المنسدلة
+    function toggleDropdown() {
+      const container = document.getElementById('staff-dropdown');
+      container.classList.toggle('open');
+    }
+
+    // التنقل بين الشاشات
     function switchTab(sectionId, element) {
-      // إخفاء كافة الأقسام
+      // إخفاء جميع الأقسام
       const sections = document.querySelectorAll('.page-section');
       sections.forEach(section => section.classList.remove('active'));
 
-      // إزالة التحديد النشط من جميع عناصر القائمة
-      const menuItems = document.querySelectorAll('.menu-item');
+      // إزالة التحديد النشط من القوائم
+      const menuItems = document.querySelectorAll('.menu-item, .submenu-item');
       menuItems.forEach(item => item.classList.remove('active'));
 
-      // إظهار القسم المطلوب وتفعيل الزر
+      // إظهار القسم المترابط وتفعيل الزر
       document.getElementById(sectionId).classList.add('active');
       element.classList.add('active');
     }
