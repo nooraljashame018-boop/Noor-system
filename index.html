@@ -764,7 +764,7 @@
                                 <i class="fas fa-circle-check text-emerald-600"></i> تم تسجيل الحضور: ${t.checkInTime}
                             </div>
                             <button onclick="recordAttendance(${t.id})" class="w-full py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
-                                إلغاء تسجيل الحضور
+                                تسجيل الخروج
                             </button>
                         ` : `
                             <button onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
@@ -882,7 +882,6 @@
             }).join('');
         }
 
-        // تم التعديل هنا: الجدول الأساسي يبقى ثابتاً، وإذا لم يسجل المعلم حضوره تظهر حصته باللون الأحمر كـ شاغر
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
@@ -929,11 +928,9 @@
 
                                 if (tObj) {
                                     if (!tObj.isPresent) {
-                                        // إذا لم يسجل المعلم حضور (غائب)، تصبح الحصة باللون الأحمر كـ شاغر مع الاحتفاظ باسم المعلم والمادة في الجدول الثابت
                                         bgClass = 'bg-red-100 text-red-800 font-bold';
                                         displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-red-600 font-semibold">شاغر (${tObj.name})</div>`;
                                     } else {
-                                        // المعلم حاضر، يظهر الجدول بشكل طبيعي وثابت
                                         bgClass = 'bg-white text-slate-800';
                                         displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-slate-500 font-normal">${tObj.name}</div>`;
                                     }
