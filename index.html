@@ -52,7 +52,6 @@
                     <i class="fas fa-shield-alt text-amber-400 text-base w-5"></i> بدلاء الشواغر والمراقبة
                 </button>
 
-                <!-- زر التقرير الأسبوعي الجديد -->
                 <button onclick="switchTab('reportsView')" id="btn-reportsView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
                     <i class="fas fa-calendar-days text-purple-400 text-base w-5"></i> تقرير الحضور الأسبوعي
                 </button>
@@ -109,16 +108,16 @@
         <section id="teachersView" class="tab-content hidden space-y-6">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                 <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-                    <i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم جديد
+                    <i class="fas fa-user-plus text-emerald-600"></i> إدخال معلم / إداري جديد
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">اسم المعلم:</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
                         <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">صورة المعلم:</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الصورة:</label>
                         <input type="file" id="tPhoto" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-200 p-1 rounded-xl">
                     </div>
                     <div>
@@ -128,12 +127,12 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حددي الصف والشعبة والمادة المخصصة للمعلم:</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">حددي الصف والشعبة والمادة المخصصة (اختياري للإداريين):</span>
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
                 <button type="button" onclick="saveNewTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
-                    + حفظ المعلم وتوليد الجدول
+                    + حفظ في النظام
                 </button>
             </div>
 
@@ -148,7 +147,7 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
-                            <option value="all">جميع المعلمين</option>
+                            <option value="all">جميع الكادر</option>
                             <option value="present">🟢 الحاضرون اليوم</option>
                             <option value="absent">🔴 الغائبون / لم يسجلوا</option>
                         </select>
@@ -168,7 +167,7 @@
                         <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                             <tr>
                                 <th class="p-3">الصورة</th>
-                                <th class="p-3">اسم المعلم</th>
+                                <th class="p-3">اسم المعلم / الإداري</th>
                                 <th class="p-3">رقم الهاتف (واتساب)</th>
                                 <th class="p-3">الصفوف والشعب</th>
                                 <th class="p-3 text-center">الحصص</th>
@@ -209,24 +208,24 @@
             </div>
         </section>
 
-        <!-- 5. تقرير الحضور الأسبوعي (الجديد) -->
+        <!-- 5. تقرير الحضور الأسبوعي -->
         <section id="reportsView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
                     <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
                 </h3>
-                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات حضور المعلم السابقة.</p>
+                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات حضور المعلم أو الإداري السابقة.</p>
                 <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </section>
 
     </main>
 
-    <!-- نافذة تعديل بيانات المعلم (Modal) -->
+    <!-- نافذة تعديل البيانات (Modal) -->
     <div id="editTeacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-pen text-blue-400"></i> تعديل بيانات المعلم</h3>
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-pen text-blue-400"></i> تعديل بيانات الكادر</h3>
                 <button onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
             </div>
             
@@ -234,7 +233,7 @@
                 <input type="hidden" id="editTeacherId">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">اسم المعلم:</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
                         <input type="text" id="editTName" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
                     </div>
                     <div>
@@ -249,7 +248,7 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 space-y-2">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-1">الصفوف والشعب والمواد:</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-1">الصفوف والشعب والمواد (اختياري):</span>
                     <div id="editGradesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
                 </div>
             </div>
@@ -261,7 +260,7 @@
         </div>
     </div>
 
-    <!-- نافذة سجل الحضور الزمني (Modal) الجديدة -->
+    <!-- نافذة سجل الحضور الزمني (Modal) -->
     <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
             <div class="bg-purple-900 text-white p-4 flex justify-between items-center">
@@ -307,7 +306,12 @@
             if (!teacher) return;
 
             if (!teacher.phone) {
-                alert('يرجى إضافة رقم هاتف للمعلم أولاً لإرسال الجدول له عبر الواتساب');
+                alert('يرجى إضافة رقم هاتف أولاً للإرسال عبر الواتساب');
+                return;
+            }
+
+            if (!teacher.assignments || teacher.assignments.length === 0) {
+                alert('هذا العضو مسجل كإداري / بدون حصص في الجدول.');
                 return;
             }
 
@@ -334,7 +338,7 @@
             });
 
             if (teacherSchedule.length === 0) {
-                alert('لا توجد حصص مخصصة لهذا المعلم في الجدول الحالي');
+                alert('لا توجد حصص مخصصة في الجدول الحالي');
                 return;
             }
 
@@ -455,7 +459,7 @@
             const phone = document.getElementById('tPhone').value.trim();
             const photoInput = document.getElementById('tPhoto');
 
-            if (!name) { alert('يرجى كتابة اسم المعلم أولاً'); return; }
+            if (!name) { alert('يرجى كتابة الاسم أولاً'); return; }
 
             const assignments = [];
             let totalQuota = 0;
@@ -480,11 +484,6 @@
                 }
             });
 
-            if(assignments.length === 0) {
-                alert('يرجى اختيار شعبة ومادة واحدة على الأقل للمعلم');
-                return;
-            }
-
             const processSave = (photoBase64) => {
                 let list = getTeachers();
                 const newTeacher = {
@@ -492,10 +491,10 @@
                     name: name,
                     phone: phone,
                     photo: photoBase64 || '',
-                    maxQuota: totalQuota || 12,
+                    maxQuota: totalQuota || 0,
                     isPresent: false,
                     checkInTime: null,
-                    attendanceHistory: [], // سجل الحضور
+                    attendanceHistory: [],
                     assignments: assignments
                 };
                 list.push(newTeacher);
@@ -508,6 +507,7 @@
                 document.getElementById('tPhoto').value = '';
                 buildGradesForm('gradesContainer', '');
                 refreshAllViews();
+                alert('تم حفظ البيانات بنجاح!');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -530,27 +530,29 @@
 
             buildGradesForm('editGradesContainer', 'edit_');
 
-            teacher.assignments.forEach(asgn => {
-                let gIdx = asgn.gradeIndex;
-                let sIdx = asgn.sectionIndex;
+            if (teacher.assignments && teacher.assignments.length > 0) {
+                teacher.assignments.forEach(asgn => {
+                    let gIdx = asgn.gradeIndex;
+                    let sIdx = asgn.sectionIndex;
 
-                let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
-                let gBox = document.getElementById(`edit_g_box_${gIdx}`);
-                let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+                    let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                    let gBox = document.getElementById(`edit_g_box_${gIdx}`);
+                    let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
 
-                if (gChk) gChk.checked = true;
-                if (gBox) gBox.classList.remove('hidden');
-                if (sChk) sChk.checked = true;
+                    if (gChk) gChk.checked = true;
+                    if (gBox) gBox.classList.remove('hidden');
+                    if (sChk) sChk.checked = true;
 
-                let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
-                let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
+                    let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
+                    let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
 
-                if (sub1 && !sub1.value) {
-                    sub1.value = asgn.subject;
-                } else if (sub2) {
-                    sub2.value = asgn.subject;
-                }
-            });
+                    if (sub1 && !sub1.value) {
+                        sub1.value = asgn.subject;
+                    } else if (sub2) {
+                        sub2.value = asgn.subject;
+                    }
+                });
+            }
 
             document.getElementById('editTeacherModal').classList.remove('hidden');
         }
@@ -569,7 +571,7 @@
             let phone = document.getElementById('editTPhone').value.trim();
             let photoInput = document.getElementById('editTPhoto');
 
-            if (!name) { alert('اسم المعلم مطلوب'); return; }
+            if (!name) { alert('الاسم مطلوب'); return; }
 
             const assignments = [];
             let totalQuota = 0;
@@ -597,7 +599,7 @@
             const processUpdate = (photoBase64) => {
                 teachers[idx].name = name;
                 teachers[idx].phone = phone;
-                teachers[idx].maxQuota = totalQuota || 12;
+                teachers[idx].maxQuota = totalQuota || 0;
                 teachers[idx].assignments = assignments;
                 if (photoBase64) teachers[idx].photo = photoBase64;
 
@@ -606,7 +608,7 @@
 
                 closeEditModal();
                 refreshAllViews();
-                alert('تم تحديث بيانات المعلم وإعادة توزيع الجدول بشكل متوازن!');
+                alert('تم التحديث بنجاح!');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -620,16 +622,21 @@
 
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
-            if (teachers.length === 0) {
-                alert('يرجى إضافة معلمين أولاً لتتمكن من توليد الجدول تلقائياً');
+            
+            // الفلترة لتطبيق التوليد فقط على من لديه حصص ومواد
+            let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
+
+            if (teachingStaff.length === 0) {
+                localStorage.removeItem('app_schedule_grid_v7');
+                renderSchedule();
                 return;
             }
 
             let grid = {};
             let pool = [];
-            teachers.forEach(t => {
+            teachingStaff.forEach(t => {
                 let assignedQuota = 0;
-                let quotaPerAsgn = Math.max(1, Math.floor(t.maxQuota / t.assignments.length));
+                let quotaPerAsgn = Math.max(1, Math.floor((t.maxQuota || 12) / t.assignments.length));
 
                 t.assignments.forEach(asgn => {
                     for(let i = 0; i < quotaPerAsgn; i++) {
@@ -666,7 +673,6 @@
             availableSlots.sort(() => Math.random() - 0.5);
 
             pool.forEach(item => {
-                let placed = false;
                 for (let slotIdx = 0; slotIdx < availableSlots.length; slotIdx++) {
                     let slot = availableSlots[slotIdx];
 
@@ -693,7 +699,6 @@
                                     subject: item.subject
                                 };
                                 availableSlots.splice(slotIdx, 1);
-                                placed = true;
                                 break;
                             }
                         }
@@ -709,7 +714,6 @@
             let list = getTeachers();
             let idx = list.findIndex(t => t.id == id);
             if (idx !== -1) {
-                // التأكد من وجود مصفوفة السجل (للتوافق مع البيانات القديمة)
                 if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
 
                 if (!list[idx].isPresent) {
@@ -720,7 +724,6 @@
                     list[idx].isPresent = true;
                     list[idx].checkInTime = timeStr;
                     
-                    // تسجيل الحضور في السجل الزمني إذا لم يكن مسجلاً في نفس اليوم
                     let existingEntry = list[idx].attendanceHistory.find(h => h.date === dateStr);
                     if (!existingEntry) {
                         list[idx].attendanceHistory.push({ date: dateStr, time: timeStr });
@@ -745,7 +748,6 @@
             if (!teacher.attendanceHistory || teacher.attendanceHistory.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-slate-500 font-bold text-center">لا توجد سجلات حضور سابقة</td></tr>`;
             } else {
-                // عكس المصفوفة لعرض الأحدث في الأعلى
                 let sortedHistory = [...teacher.attendanceHistory].reverse();
                 tbody.innerHTML = sortedHistory.map(h => `
                     <tr class="hover:bg-slate-50 transition">
@@ -767,11 +769,16 @@
         }
 
         function deleteTeacher(id) {
-            if(!confirm('هل أنت متأكد من حذف المعلم؟ سيتم إزالته من الجدول أيضاً')) return;
+            if(!confirm('هل أنت متأكد من الحذف؟')) return;
             let list = getTeachers().filter(t => t.id != id);
             saveTeachers(list);
 
-            autoGenerateFullSchedule();
+            if (list.length === 0) {
+                localStorage.removeItem('app_schedule_grid_v7');
+            } else {
+                autoGenerateFullSchedule();
+            }
+
             refreshAllViews();
         }
 
@@ -783,17 +790,16 @@
             renderTeachersCards();
             renderAllStaffTable();
             refreshBackupTeachers();
-            renderReportsList(); // عرض قائمة التقارير
+            renderReportsList();
             renderSchedule();
         }
 
-        // عرض قائمة المعلمين في قسم التقارير
         function renderReportsList() {
             const container = document.getElementById('reportsList');
             let list = getTeachers();
             
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد معلمون مسجلون</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
                 return;
             }
 
@@ -828,12 +834,13 @@
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد معلمون مسجلون</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
                 return;
             }
 
             container.innerHTML = filtered.map(t => {
                 let waPhone = formatWhatsappPhone(t.phone);
+                let hasAssignments = t.assignments && t.assignments.length > 0;
                 return `
                 <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200'} shadow-sm flex flex-col justify-between">
                     <div>
@@ -852,7 +859,7 @@
 
                                 <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
                                 <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-0.5">
-                                    <span>الحصص: ${t.maxQuota}</span>
+                                    <span>الحصص: ${t.maxQuota || 0}</span>
                                     ${t.phone ? `
                                         <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
                                             <i class="fab fa-whatsapp text-emerald-500 text-xs"></i> ${t.phone}
@@ -863,14 +870,16 @@
                         </div>
 
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                            ${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>')}
+                            ${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>') : '<span class="text-slate-400 font-bold">إداري / بدون حصص في الجدول</span>'}
                         </div>
                     </div>
 
                     <div class="space-y-2">
+                        ${hasAssignments ? `
                         <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="w-full py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> إرسال الجدول للمعلم
+                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> إرسال الجدول
                         </button>
+                        ` : ''}
 
                         ${t.isPresent ? `
                             <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5">
@@ -894,12 +903,13 @@
             const body = document.getElementById('allStaffTableBody');
             let list = getTeachers();
             if (list.length === 0) {
-                body.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">لا يوجد معلمون</td></tr>`;
+                body.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">لا يوجد كادر</td></tr>`;
                 return;
             }
 
             body.innerHTML = list.map((t) => {
                 let waPhone = formatWhatsappPhone(t.phone);
+                let hasAssignments = t.assignments && t.assignments.length > 0;
                 return `
                 <tr>
                     <td class="p-3">
@@ -913,14 +923,16 @@
                             </a>
                         ` : '-'}
                     </td>
-                    <td class="p-3">${t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join(', ')}</td>
-                    <td class="p-3 text-center font-bold">${t.maxQuota}</td>
+                    <td class="p-3">${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join(', ') : '<span class="text-slate-400">إداري / بدون حصص</span>'}</td>
+                    <td class="p-3 text-center font-bold">${t.maxQuota || 0}</td>
                     <td class="p-3 text-center font-bold text-blue-600">${t.checkInTime ? t.checkInTime : '-'}</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
                     <td class="p-3 text-center">
+                        ${hasAssignments ? `
                         <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1">
                             <i class="fab fa-whatsapp text-sm"></i> إرسال
                         </button>
+                        ` : '-'}
                     </td>
                 </tr>
             `;
@@ -934,7 +946,7 @@
             let grid = getScheduleData();
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمون حاضرون مسجلون حالياً في المدرسة</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد كادر حاضر مسجل حالياً في المدرسة</div>`;
                 return;
             }
 
