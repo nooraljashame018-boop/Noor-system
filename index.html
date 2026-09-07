@@ -37,29 +37,34 @@
             
             <nav class="space-y-2">
                 <button onclick="switchTab('scheduleView')" id="btn-scheduleView" class="nav-btn active w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
-                    <i class="fas fa-table-cells text-blue-400 text-base"></i> الجدول الأسبوعي العام
+                    <i class="fas fa-table-cells text-blue-400 text-base w-5"></i> الجدول الأسبوعي العام
                 </button>
                 
                 <button onclick="switchTab('teachersView')" id="btn-teachersView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
-                    <i class="fas fa-user-check text-emerald-400 text-base"></i> إثبات الحضور والتوزيع
+                    <i class="fas fa-user-check text-emerald-400 text-base w-5"></i> إثبات الحضور والتوزيع
                 </button>
 
                 <button onclick="switchTab('allStaffView')" id="btn-allStaffView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
-                    <i class="fas fa-users-gear text-indigo-400 text-base"></i> جميع الكادر وسجل الحضور
+                    <i class="fas fa-users-gear text-indigo-400 text-base w-5"></i> جميع الكادر وسجل الحضور
                 </button>
 
                 <button onclick="switchTab('backupView')" id="btn-backupView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
-                    <i class="fas fa-shield-alt text-amber-400 text-base"></i> بدلاء الشواغر والمراقبة
+                    <i class="fas fa-shield-alt text-amber-400 text-base w-5"></i> بدلاء الشواغر والمراقبة
+                </button>
+
+                <!-- زر التقرير الأسبوعي الجديد -->
+                <button onclick="switchTab('reportsView')" id="btn-reportsView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-calendar-days text-purple-400 text-base w-5"></i> تقرير الحضور الأسبوعي
                 </button>
             </nav>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-3 mt-4">
             <button onclick="manualRefreshAll()" class="w-full bg-blue-600/30 hover:bg-blue-600 border border-blue-500/50 text-blue-200 hover:text-white py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v8.7
+                نظام إدارة الجداول الذكي v8.8
             </div>
         </div>
     </aside>
@@ -204,6 +209,17 @@
             </div>
         </section>
 
+        <!-- 5. تقرير الحضور الأسبوعي (الجديد) -->
+        <section id="reportsView" class="tab-content hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
+                </h3>
+                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات حضور المعلم السابقة.</p>
+                <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </section>
+
     </main>
 
     <!-- نافذة تعديل بيانات المعلم (Modal) -->
@@ -241,6 +257,30 @@
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end gap-2">
                 <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إلغاء</button>
                 <button onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md">حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة سجل الحضور الزمني (Modal) الجديدة -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
+            <div class="bg-purple-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left text-purple-300"></i> سجل حضور: <span id="historyTeacherName" class="text-purple-100"></span></h3>
+                <button onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-0 overflow-y-auto max-h-[60vh]">
+                <table class="w-full text-center border-collapse text-xs">
+                    <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0">
+                        <tr>
+                            <th class="p-3">التاريخ</th>
+                            <th class="p-3">وقت الحضور</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
+            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
             </div>
         </div>
     </div>
@@ -455,6 +495,7 @@
                     maxQuota: totalQuota || 12,
                     isPresent: false,
                     checkInTime: null,
+                    attendanceHistory: [], // سجل الحضور
                     assignments: assignments
                 };
                 list.push(newTeacher);
@@ -668,11 +709,22 @@
             let list = getTeachers();
             let idx = list.findIndex(t => t.id == id);
             if (idx !== -1) {
+                // التأكد من وجود مصفوفة السجل (للتوافق مع البيانات القديمة)
+                if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
+
                 if (!list[idx].isPresent) {
                     const now = new Date();
                     const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    const dateStr = now.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    
                     list[idx].isPresent = true;
                     list[idx].checkInTime = timeStr;
+                    
+                    // تسجيل الحضور في السجل الزمني إذا لم يكن مسجلاً في نفس اليوم
+                    let existingEntry = list[idx].attendanceHistory.find(h => h.date === dateStr);
+                    if (!existingEntry) {
+                        list[idx].attendanceHistory.push({ date: dateStr, time: timeStr });
+                    }
                 } else {
                     list[idx].isPresent = false;
                     list[idx].checkInTime = null;
@@ -680,6 +732,38 @@
                 saveTeachers(list);
                 refreshAllViews();
             }
+        }
+
+        function openHistoryModal(id) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == id);
+            if (!teacher) return;
+            
+            document.getElementById('historyTeacherName').innerText = teacher.name;
+            const tbody = document.getElementById('historyTableBody');
+            
+            if (!teacher.attendanceHistory || teacher.attendanceHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-slate-500 font-bold text-center">لا توجد سجلات حضور سابقة</td></tr>`;
+            } else {
+                // عكس المصفوفة لعرض الأحدث في الأعلى
+                let sortedHistory = [...teacher.attendanceHistory].reverse();
+                tbody.innerHTML = sortedHistory.map(h => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-700">${h.date}</td>
+                        <td class="p-3 font-bold text-emerald-600">${h.time}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            let modal = document.getElementById('historyModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeHistoryModal() {
+            let modal = document.getElementById('historyModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function deleteTeacher(id) {
@@ -699,7 +783,37 @@
             renderTeachersCards();
             renderAllStaffTable();
             refreshBackupTeachers();
+            renderReportsList(); // عرض قائمة التقارير
             renderSchedule();
+        }
+
+        // عرض قائمة المعلمين في قسم التقارير
+        function renderReportsList() {
+            const container = document.getElementById('reportsList');
+            let list = getTeachers();
+            
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد معلمون مسجلون</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(t => {
+                let historyCount = t.attendanceHistory ? t.attendanceHistory.length : 0;
+                return `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-200">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>`}
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
+                            <span class="text-[11px] text-slate-500 font-bold mt-1 block">أيام الحضور المسجلة: <span class="text-purple-600">${historyCount}</span> يوم</span>
+                        </div>
+                    </div>
+                    <button onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                        <i class="fas fa-list-check"></i> عرض السجل
+                    </button>
+                </div>
+                `;
+            }).join('');
         }
 
         function renderTeachersCards() {
@@ -727,7 +841,6 @@
                             ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-300 shrink-0">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm shrink-0"><i class="fas fa-user"></i></div>`}
                             
                             <div class="flex-1">
-                                <!-- أزرار التعديل والحذف فوق الاسم مباشرة -->
                                 <div class="flex items-center gap-2 mb-1">
                                     <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
                                         <i class="fas fa-pen-to-square"></i>
