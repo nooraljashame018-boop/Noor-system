@@ -72,7 +72,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (5 حصص يومياً)</h2>
-                    <p class="text-xs text-slate-500">تم تعديل الجدول ليتكون من 5 حصص فقط يومياً مع خط أحمر فاصل بين الأيام</p>
+                    <p class="text-xs text-slate-500">الجدول ثابت لكل المعلمين، والحصص التي يغيب معلموها تظهر باللون الأحمر كـ "شاغر"</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -366,7 +366,7 @@
                         </label>
                         <div class="flex items-center gap-1 text-[11px] text-slate-600">
                           <label for="${prefix}quota_${gIdx}" class="font-semibold">عدد الحصص:</label>
-                          <input type="number" id="${prefix}quota_${gIdx}" value="12" min="1" max="25" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 focus:bg-white font-bold">
+                          <input type="number" id="${prefix}quota_${gIdx}" value="12" min="1" max="25" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 font-bold">
                         </div>
                     </div>
 
@@ -384,11 +384,11 @@
                           <div class="grid grid-cols-2 gap-1 mt-1">
                             <select id="${prefix}sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-white font-medium">
                                 <option value="">المادة الأولى</option>
-                                ${subjectOptions.map(s => `<option value="${s}">${s}">${s}</option>`).join('')}
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
                             <select id="${prefix}sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-white font-medium">
                                 <option value="">المادة الثانية (اختياري)</option>
-                                ${subjectOptions.map(s => `<option value="${s}">${s}">${s}</option>`).join('')}
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
                           </div>
                         </div>
@@ -702,7 +702,6 @@
             renderSchedule();
         }
 
-        // تم تعديل التنسيق هنا لنقل أزرار التعديل والحذف فوق الاسم مباشرة
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
             let list = getTeachers();
@@ -728,7 +727,7 @@
                             ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-300 shrink-0">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm shrink-0"><i class="fas fa-user"></i></div>`}
                             
                             <div class="flex-1">
-                                <!-- أزرار التعديل والحذف في أعلى الاسم تماماً -->
+                                <!-- أزرار التعديل والحذف فوق الاسم مباشرة -->
                                 <div class="flex items-center gap-2 mb-1">
                                     <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
                                         <i class="fas fa-pen-to-square"></i>
@@ -883,6 +882,7 @@
             }).join('');
         }
 
+        // تم التعديل هنا: الجدول الأساسي يبقى ثابتاً، وإذا لم يسجل المعلم حضوره تظهر حصته باللون الأحمر كـ شاغر
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
@@ -929,10 +929,12 @@
 
                                 if (tObj) {
                                     if (!tObj.isPresent) {
+                                        // إذا لم يسجل المعلم حضور (غائب)، تصبح الحصة باللون الأحمر كـ شاغر مع الاحتفاظ باسم المعلم والمادة في الجدول الثابت
                                         bgClass = 'bg-red-100 text-red-800 font-bold';
-                                        displayCell = `🔴 شاغر (${cellData.subject})`;
+                                        displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-red-600 font-semibold">شاغر (${tObj.name})</div>`;
                                     } else {
-                                        bgClass = 'bg-emerald-50 text-emerald-900 font-bold';
+                                        // المعلم حاضر، يظهر الجدول بشكل طبيعي وثابت
+                                        bgClass = 'bg-white text-slate-800';
                                         displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-slate-500 font-normal">${tObj.name}</div>`;
                                     }
                                 } else {
