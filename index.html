@@ -1271,17 +1271,9 @@ document.addEventListener("click", function(e) {
     }
 });
 
-// دالة إضافة صفة "مرشد تربوي" للقائمة المنسدلة
+// إضافة مرشد تربوي وحفظه تلقائياً بطريقة آمنة
 document.addEventListener("DOMContentLoaded", function() {
-    const roleSelect = document.getElementById('tRole');
-    if (roleSelect && !roleSelect.querySelector('option[value="مرشد تربوي"]')) {
-        const opt = document.createElement('option');
-        opt.value = 'مرشد تربوي';
-        opt.textContent = 'مرشد تربوي';
-        roleSelect.appendChild(opt);
-    }>// إصلاح حفظ وعرض الصفة الوظيفية (مرشد تربوي) بشكل آمن
-// إضافة صفة مرشد تربوي وإصلاح الحفظ بأمان تام
-document.addEventListener("DOMContentLoaded", function() {
+    // 1. إضافة الخيار للقائمة
     const roleSelect = document.getElementById('tRole');
     if (roleSelect && !roleSelect.querySelector('option[value="مرشد تربوي"]')) {
         const opt = document.createElement('option');
@@ -1289,35 +1281,25 @@ document.addEventListener("DOMContentLoaded", function() {
         opt.textContent = 'مرشد تربوي';
         roleSelect.appendChild(opt);
     }
-});
 
-// تصحيح حفظ الصفة في الذاكرة دون التعارض مع خوارزمية الجدول
-const originalSave = window.saveNewTeacher;
-if (typeof originalSave === 'function') {
-    window.saveNewTeacher = function() {
-        const roleSelect = document.getElementById('tRole');
-        const selectedRole = roleSelect ? roleSelect.value : '';
-        
-        try {
-            originalSave.apply(this, arguments);
-        } catch (e) {
-            console.log("تجاوز تعارض الجدول");
-        }
-        
-        if (selectedRole === 'مرشد تربوي') {
-            try {
-                let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
-                if (list.length > 0) {
-                    list[list.length - 1].role = 'مرشد تربوي';
-                    localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+    // 2. تحديث الذاكرة فور الضغط على زر الحفظ بدون لمس الدوال الأصلية
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        if (btn && btn.textContent.includes('حفظ')) {
+            setTimeout(function() {
+                const select = document.getElementById('tRole');
+                if (select && select.value === 'مرشد تربوي') {
+                    let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+                    if (list.length > 0 && list[list.length - 1].role !== 'مرشد تربوي') {
+                        list[list.length - 1].role = 'مرشد تربوي';
+                        localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+                        if (typeof renderTeachersCards === 'function') renderTeachersCards();
+                    }
                 }
-            } catch (e) {}
+            }, 200);
         }
-        
-        if (typeof renderTeachersCards === 'function') renderTeachersCards();
-        if (typeof refreshAllViews === 'function') refreshAllViews();
-    };
-}
+    });
+});
 
     </script>
 </body>
