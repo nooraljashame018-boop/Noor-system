@@ -1239,6 +1239,14 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+   // دالة إرجاع عدد الحضور الفعلي كـ رقم
+function getPresentCount() {
+    const list = typeof getTeachers === 'function' ? getTeachers() : JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+    return list.filter(t => t.isPresent).length;
+}
+
+</script>
+
     </script>
 </body>
 </html>
