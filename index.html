@@ -1245,6 +1245,23 @@ function getPresentCount() {
     return list.filter(t => t.isPresent).length;
 }
 
+        // دالة الحساب والتحديث المباشر للواجهة
+function updatePresentCountDisplay() {
+    const list = typeof getTeachers === 'function' ? getTeachers() : JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+    const count = list.filter(t => t.isPresent).length;
+    
+    // البحث عن العنصر وتحديثه بالرقم
+    const elem = document.getElementById('activePresentNum');
+    if (elem) {
+        elem.innerText = count;
+    }
+}
+
+// تشغيل التحديث عند فتح الصفحة
+document.addEventListener("DOMContentLoaded", function() {
+    updatePresentCountDisplay();
+});
+
 </script>
 
     </script>
