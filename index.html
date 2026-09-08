@@ -1248,19 +1248,11 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
 });
-
-   // دالة إرجاع عدد الحضور الفعلي كـ رقم
-function getPresentCount() {
-    const list = typeof getTeachers === 'function' ? getTeachers() : JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
-    return list.filter(t => t.isPresent).length;
-}
-
-        // دالة الحساب والتحديث المباشر للواجهة
+// دالة الحساب والتحديث المباشر للواجهة
 function updatePresentCountDisplay() {
     const list = typeof getTeachers === 'function' ? getTeachers() : JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
     const count = list.filter(t => t.isPresent).length;
     
-    // البحث عن العنصر وتحديثه بالرقم
     const elem = document.getElementById('activePresentNum');
     if (elem) {
         elem.innerText = count;
@@ -1271,6 +1263,14 @@ function updatePresentCountDisplay() {
 document.addEventListener("DOMContentLoaded", function() {
     updatePresentCountDisplay();
 });
+
+// التحديث الفوري واللحظي عند الضغط على أزرار الدخول/الخروج
+document.addEventListener("click", function(e) {
+    if (e.target && (e.target.closest("button") || e.target.tagName === "BUTTON")) {
+        setTimeout(updatePresentCountDisplay, 150);
+    }
+});
+
 
 </script>
 
