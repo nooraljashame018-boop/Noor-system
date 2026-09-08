@@ -1271,6 +1271,16 @@ document.addEventListener("click", function(e) {
     }
 });
 
+// دالة إضافة صفة "مرشد تربوي" للقائمة المنسدلة
+document.addEventListener("DOMContentLoaded", function() {
+    const roleSelect = document.getElementById('tRole');
+    if (roleSelect && !roleSelect.querySelector('option[value="مرشد تربوي"]')) {
+        const opt = document.createElement('option');
+        opt.value = 'مرشد تربوي';
+        opt.textContent = 'مرشد تربوي';
+        roleSelect.appendChild(opt);
+    }
+});
 
 </script>
 
