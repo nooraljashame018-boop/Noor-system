@@ -1124,6 +1124,121 @@
 
             tbody.innerHTML = tbodyHtml;
         }
+  // كود إجبار وتأمين زر الحفظ
+document.addEventListener("DOMContentLoaded", function() {
+    const saveBtn = document.querySelector("button[onclick*='saveNewTeacher']");
+    if (saveBtn) {
+        saveBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            // 1. قراءة البيانات الأساسية
+            const name = document.getElementById('tName')?.value.trim();
+            const role = document.getElementById('tRole')?.value || 'معلم';
+            const phone = document.getElementById('tPhone')?.value.trim() || '';
+            const photoInput = document.getElementById('tPhoto');
+
+            if (!name) { 
+                alert('يرجى كتابة الاسم أولاً'); 
+                return; 
+            }
+
+            // 2. تجميع الصفوف والمواد
+            const assignments = [];
+            let totalQuota = 0;
+
+            if (typeof gradeNames !== 'undefined') {
+                gradeNames.forEach((_, gIdx) => {
+                    const gChk = document.getElementById(`g_chk_${gIdx}`);
+                    if (gChk && gChk.checked) {
+                        const quotaElem = document.getElementById(`quota_${gIdx}`);
+                        totalQuota += (quotaElem ? (parseInt(quotaElem.value) || 12) : 12);
+
+                        if (typeof secNames !== 'undefined') {
+                            secNames.forEach((_, sIdx) => {
+                                const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
+                                if (sChk && sChk.checked) {
+                                    const s1Elem = document.getElementById(`sub_${gIdx}_${sIdx}_1`);
+                                    const s2Elem = document.getElementById(`sub_${gIdx}_${sIdx}_2`);
+                                    const s1 = s1Elem ? s1Elem.value : '';
+                                    const s2 = s2Elem ? s2Elem.value : '';
+
+                                    if (s1 && !s1.includes('اختياري')) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                                    if (s2 && !s2.includes('اختياري')) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                                    if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+
+            // 3. تنفيذ التخزين المباشر للتطبيق
+            const executeSave = (photoData) => {
+                try {
+                    let list = [];
+                    try { list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]'); } catch(err) { list = []; }
+
+                    const newTeacher = {
+                        id: Date.now(),
+                        name: name,
+                        role: role,
+                        phone: phone,
+                        photo: photoData || '',
+                        maxQuota: totalQuota || 0,
+                        isPresent: false,
+                        checkInTime: null,
+                        attendanceHistory: [],
+                        assignments: assignments
+                    };
+
+                    list.push(newTeacher);
+                    localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+
+                    // حاول تحديث الجدول بدون إيقاف الحفظ عند وجود تعارض
+                    try {
+                        if (typeof autoGenerateFullSchedule === 'function') autoGenerateFullSchedule();
+                    } catch(schedErr) {
+                        console.warn("تنبيه: تم الحفظ وتخطي تعارض الجدول.");
+                    }
+
+                    // تفريغ الحقول وإعادة تنشيط الواجهة
+                    document.getElementById('tName').value = '';
+                    if (document.getElementById('tPhone')) document.getElementById('tPhone').value = '';
+                    if (document.getElementById('tPhoto')) document.getElementById('tPhoto').value = '';
+                    
+                    if (typeof buildGradesForm === 'function') buildGradesForm('gradesContainer', '');
+                    if (typeof refreshAllViews === 'function') refreshAllViews();
+
+                    alert('تم الحفظ بنجاح!');
+                } catch (err) {
+                    alert('حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.');
+                }
+            };
+
+            // 4. معالجة الصورة وإتمام الحفظ
+            if (photoInput && photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const scale = 300 / img.width;
+                        canvas.width = 300;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        executeSave(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                executeSave('');
+            }
+        };
+    }
+});
+
     </script>
 </body>
 </html>
