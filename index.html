@@ -1279,42 +1279,36 @@ document.addEventListener("DOMContentLoaded", function() {
         opt.value = 'مرشد تربوي';
         opt.textContent = 'مرشد تربوي';
         roleSelect.appendChild(opt);
-    }>
-// إصلاح حفظ وعرض الصفة الوظيفية (مرشد تربوي)
+    }>// إصلاح حفظ وعرض الصفة الوظيفية (مرشد تربوي) بشكل آمن
 (function() {
-    // 1. معالجة حفظ القيمة فور اختيارها
-    document.addEventListener('change', function(e) {
-        if (e.target && e.target.id === 'tRole') {
-            e.target.setAttribute('data-selected-role', e.target.value);
-        }
-    });
-
-    // 2. اعتراض دالة الحفظ لضمان عدم استبدال "مرشد تربوي" بـ "معلم"
     const originalSave = window.saveNewTeacher;
     if (typeof originalSave === 'function') {
         window.saveNewTeacher = function() {
             const roleSelect = document.getElementById('tRole');
             const selectedRole = roleSelect ? roleSelect.value : '';
             
-            // استدعاء دالة الحفظ الأصلية
+            // تنفيذ دالة الحفظ الأصلية أولاً
             originalSave.apply(this, arguments);
             
-            // تصحيح القيمة في الذاكرة بشكل مباشر إذا كانت مرشد تربوي
-            if (selectedRole === 'مرشد تربوي') {
-                let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
-                if (list.length > 0) {
-                    // التعديل على آخر عنصر تم حفظه
-                    list[list.length - 1].role = 'مرشد تربوي';
-                    localStorage.setItem('app_teachers_v7', JSON.stringify(list));
-                    
-                    // إعادة تحديث الواجهة فوراً
-                    if (typeof renderTeachersCards === 'function') renderTeachersCards();
-                    if (typeof refreshAllViews === 'function') refreshAllViews();
+            // تصحيح القيمة بأمان داخل try..catch لمنع أي تجمد للنظام
+            try {
+                if (selectedRole === 'مرشد تربوي') {
+                    let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+                    if (list.length > 0) {
+                        list[list.length - 1].role = 'مرشد تربوي';
+                        localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+                        
+                        if (typeof renderTeachersCards === 'function') renderTeachersCards();
+                        if (typeof refreshAllViews === 'function') refreshAllViews();
+                    }
                 }
+            } catch (err) {
+                console.log('خطأ بسيط تم تجاوزه:', err);
             }
         };
     }
 })();
+
 
     </script>
 </body>
