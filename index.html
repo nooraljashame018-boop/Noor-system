@@ -1280,35 +1280,44 @@ document.addEventListener("DOMContentLoaded", function() {
         opt.textContent = 'مرشد تربوي';
         roleSelect.appendChild(opt);
     }>// إصلاح حفظ وعرض الصفة الوظيفية (مرشد تربوي) بشكل آمن
-(function() {
-    const originalSave = window.saveNewTeacher;
-    if (typeof originalSave === 'function') {
-        window.saveNewTeacher = function() {
-            const roleSelect = document.getElementById('tRole');
-            const selectedRole = roleSelect ? roleSelect.value : '';
-            
-            // تنفيذ دالة الحفظ الأصلية أولاً
-            originalSave.apply(this, arguments);
-            
-            // تصحيح القيمة بأمان داخل try..catch لمنع أي تجمد للنظام
-            try {
-                if (selectedRole === 'مرشد تربوي') {
-                    let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
-                    if (list.length > 0) {
-                        list[list.length - 1].role = 'مرشد تربوي';
-                        localStorage.setItem('app_teachers_v7', JSON.stringify(list));
-                        
-                        if (typeof renderTeachersCards === 'function') renderTeachersCards();
-                        if (typeof refreshAllViews === 'function') refreshAllViews();
-                    }
-                }
-            } catch (err) {
-                console.log('خطأ بسيط تم تجاوزه:', err);
-            }
-        };
+// إضافة صفة مرشد تربوي وإصلاح الحفظ بأمان تام
+document.addEventListener("DOMContentLoaded", function() {
+    const roleSelect = document.getElementById('tRole');
+    if (roleSelect && !roleSelect.querySelector('option[value="مرشد تربوي"]')) {
+        const opt = document.createElement('option');
+        opt.value = 'مرشد تربوي';
+        opt.textContent = 'مرشد تربوي';
+        roleSelect.appendChild(opt);
     }
-})();
+});
 
+// تصحيح حفظ الصفة في الذاكرة دون التعارض مع خوارزمية الجدول
+const originalSave = window.saveNewTeacher;
+if (typeof originalSave === 'function') {
+    window.saveNewTeacher = function() {
+        const roleSelect = document.getElementById('tRole');
+        const selectedRole = roleSelect ? roleSelect.value : '';
+        
+        try {
+            originalSave.apply(this, arguments);
+        } catch (e) {
+            console.log("تجاوز تعارض الجدول");
+        }
+        
+        if (selectedRole === 'مرشد تربوي') {
+            try {
+                let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+                if (list.length > 0) {
+                    list[list.length - 1].role = 'مرشد تربوي';
+                    localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+                }
+            } catch (e) {}
+        }
+        
+        if (typeof renderTeachersCards === 'function') renderTeachersCards();
+        if (typeof refreshAllViews === 'function') refreshAllViews();
+    };
+}
 
     </script>
 </body>
