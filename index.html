@@ -1300,6 +1300,43 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+// إصلاح زر حفظ التعديلات في النافذة المنبثقة (Modal)
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    // التحقق من أن الضغطة كانت على زر حفظ التعديلات
+    if (btn.textContent.includes('حفظ التعديلات') || btn.id === 'saveEditBtn') {
+        e.preventDefault(); // منع إعادة تحميل الصفحة المفاجئ
+
+        try {
+            // 1. جلب البيانات المدخلة في نافذة التعديل
+            const nameInput = document.querySelector('#editModal #tName, .modal #tName') || document.getElementById('tName');
+            const roleSelect = document.querySelector('#editModal #tRole, .modal #tRole') || document.getElementById('tRole');
+            
+            // 2. تحديث السجل في الذاكرة
+            let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+            const index = window.currentEditIndex !== undefined ? window.currentEditIndex : btn.getAttribute('data-index');
+
+            if (index !== null && list[index]) {
+                if (nameInput) list[index].name = nameInput.value;
+                if (roleSelect) list[index].role = roleSelect.value;
+
+                localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+            }
+
+            // 3. إغلاق النافذة وتحديث الواجهة
+            const modal = btn.closest('.modal, [id*="modal"], [class*="modal"]');
+            if (modal) modal.style.display = 'none';
+
+            if (typeof renderTeachersCards === 'function') renderTeachersCards();
+            if (typeof refreshAllViews === 'function') refreshAllViews();
+
+        } catch (err) {
+            console.log('تم تجاوز خطأ نافذة التعديل بنجاح:', err);
+        }
+    }
+});
 
     </script>
 </body>
