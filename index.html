@@ -63,7 +63,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v9.0
+                نظام إدارة الجداول الذكي v9.1
             </div>
         </div>
     </aside>
@@ -241,7 +241,7 @@
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-pen text-blue-400"></i> تعديل بيانات الكادر</h3>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="p-5 overflow-y-auto space-y-4">
@@ -279,8 +279,8 @@
             </div>
 
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end gap-2">
-                <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إلغاء</button>
-                <button onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md">حفظ التعديلات</button>
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إلغاء</button>
+                <button type="button" onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md">حفظ التعديلات</button>
             </div>
         </div>
     </div>
@@ -290,7 +290,7 @@
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
             <div class="bg-purple-900 text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left text-purple-300"></i> سجل حضور: <span id="historyTeacherName" class="text-purple-100"></span></h3>
-                <button onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-0 overflow-y-auto max-h-[60vh]">
                 <table class="w-full text-center border-collapse text-xs">
@@ -304,7 +304,7 @@
                 </table>
             </div>
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end">
-                <button onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
+                <button type="button" onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
             </div>
         </div>
     </div>
@@ -610,14 +610,20 @@
             let id = document.getElementById('editTeacherId').value;
             let teachers = getTeachers();
             let idx = teachers.findIndex(t => t.id == id);
-            if (idx === -1) return;
+            if (idx === -1) {
+                alert('خطأ: تعذر العثور على المعلم المحدد');
+                return;
+            }
 
             let name = document.getElementById('editTName').value.trim();
             let role = document.getElementById('editTRole').value;
             let phone = document.getElementById('editTPhone').value.trim();
             let photoInput = document.getElementById('editTPhoto');
 
-            if (!name) { alert('الاسم مطلوب'); return; }
+            if (!name) { 
+                alert('يرجى إدخال اسم المعلم'); 
+                return; 
+            }
 
             const assignments = [];
             let totalQuota = 0;
@@ -642,28 +648,31 @@
                 }
             });
 
-            const processUpdate = (photoBase64) => {
+            const applyChanges = (photoBase64) => {
                 teachers[idx].name = name;
                 teachers[idx].role = role;
                 teachers[idx].phone = phone;
                 teachers[idx].maxQuota = totalQuota || 0;
                 teachers[idx].assignments = assignments;
-                if (photoBase64) teachers[idx].photo = photoBase64;
+                if (photoBase64) {
+                    teachers[idx].photo = photoBase64;
+                }
 
                 saveTeachers(teachers);
                 autoGenerateFullSchedule();
-
                 closeEditModal();
                 refreshAllViews();
-                alert('تم التحديث بنجاح!');
+                alert('تم حفظ التعديلات بنجاح!');
             };
 
-            if (photoInput.files && photoInput.files[0]) {
+            if (photoInput && photoInput.files && photoInput.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) { processUpdate(e.target.result); };
+                reader.onload = function(e) { 
+                    applyChanges(e.target.result); 
+                };
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
-                processUpdate(null);
+                applyChanges(null);
             }
         }
 
@@ -872,7 +881,7 @@
                             <span class="text-[11px] text-slate-500 font-bold mt-1 block">أيام الحضور المسجلة: <span class="text-purple-600">${historyCount}</span> يوم</span>
                         </div>
                     </div>
-                    <button onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                    <button type="button" onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
                         <i class="fas fa-list-check"></i> عرض السجل
                     </button>
                 </div>
@@ -907,10 +916,10 @@
                             
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
+                                    <button type="button" onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
-                                    <button onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition text-xs p-0.5">
+                                    <button type="button" onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition text-xs p-0.5">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -938,7 +947,7 @@
 
                     <div class="space-y-2">
                         ${hasAssignments ? `
-                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="w-full py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                        <button type="button" onclick="sendTeacherScheduleWhatsApp(${t.id})" class="w-full py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
                             <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> إرسال الجدول
                         </button>
                         ` : ''}
@@ -947,11 +956,11 @@
                             <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5">
                                 <i class="fas fa-circle-check text-emerald-600"></i> تم تسجيل الحضور: ${t.checkInTime}
                             </div>
-                            <button onclick="recordAttendance(${t.id})" class="w-full py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                            <button type="button" onclick="recordAttendance(${t.id})" class="w-full py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
                                 تسجيل الخروج
                             </button>
                         ` : `
-                            <button onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
+                            <button type="button" onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
                                 <i class="fas fa-fingerprint text-base"></i> تسجيل حضور اليوم للدوام
                             </button>
                         `}
@@ -992,7 +1001,7 @@
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
                     <td class="p-3 text-center">
                         ${hasAssignments ? `
-                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1">
+                        <button type="button" onclick="sendTeacherScheduleWhatsApp(${t.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1">
                             <i class="fab fa-whatsapp text-sm"></i> إرسال
                         </button>
                         ` : '-'}
