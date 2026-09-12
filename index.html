@@ -638,8 +638,9 @@
                     secNames.forEach((_, sIdx) => {
                         const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
                         if (sChk && sChk.checked) {
-                            const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
-                            const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+                            const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`)?.value || '';
+const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`)?.value || '';
+
 
                             if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
                             if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
