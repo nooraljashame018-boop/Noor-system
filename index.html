@@ -13,9 +13,7 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
-        .day-separator-red {
-            border-bottom: 4px solid #ef4444 !important;
-        }
+        .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
@@ -858,7 +856,7 @@
 
         function renderReportsList() {
             const container = document.getElementById('reportsList');
-            let list = getTeachers(); // تم تصحيح الخطأ هنا عبر جلب قائمة الكادر
+            let list = getTeachers();
 
             if (list.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل لعرض التقرير</div>`;
