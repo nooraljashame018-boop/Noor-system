@@ -1,1 +1,1307 @@
-https://github.com/nooraljashame018-boop/Noor-system/commit/05a535d7ca42f1d1b80efa58f0722315bab40a46
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الجدول المدرسي التلقائي - مدرسة الضياء</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tajawal Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
+        .day-separator-red {
+            border-bottom: 4px solid #ef4444 !important;
+        }
+        @media print {
+            aside, .no-print, button, input, select { display: none !important; }
+            body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
+            table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
+            th, td { border: 1px solid #333 !important; padding: 4px !important; text-align: center !important; }
+            .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden">
+
+    <!-- القائمة الجانبية -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shadow-xl shrink-0 no-print">
+        <div>
+            <div class="text-center py-4 border-b border-slate-800 mb-6">
+                <h1 class="text-xl font-black text-blue-400">مدرسة الضياء</h1>
+                <p class="text-xs text-slate-400 mt-1">النظام التلقائي الذكي</p>
+            </div>
+            
+            <nav class="space-y-2">
+                <button onclick="switchTab('scheduleView')" id="btn-scheduleView" class="nav-btn active w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-table-cells text-blue-400 text-base w-5"></i> الجدول الأسبوعي العام
+                </button>
+                
+                <button onclick="switchTab('teachersView')" id="btn-teachersView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-user-check text-emerald-400 text-base w-5"></i> إثبات الحضور والتوزيع
+                </button>
+
+                <button onclick="switchTab('allStaffView')" id="btn-allStaffView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-users-gear text-indigo-400 text-base w-5"></i> جميع الكادر وسجل الحضور
+                </button>
+
+                <button onclick="switchTab('backupView')" id="btn-backupView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-shield-alt text-amber-400 text-base w-5"></i> بدلاء الشواغر والمراقبة
+                </button>
+
+                <button onclick="switchTab('reportsView')" id="btn-reportsView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-calendar-days text-purple-400 text-base w-5"></i> تقرير الحضور الأسبوعي
+                </button>
+            </nav>
+        </div>
+
+        <div class="space-y-3 mt-4">
+            <button onclick="manualRefreshAll()" class="w-full bg-blue-600/30 hover:bg-blue-600 border border-blue-500/50 text-blue-200 hover:text-white py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                <i class="fas fa-rotate text-sm"></i> تحديث العرض
+            </button>
+            <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
+                نظام إدارة الجداول الذكي v9.0
+            </div>
+        </div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 flex flex-col overflow-y-auto p-6 relative">
+
+        <!-- 1. الجدول الأسبوعي العام -->
+        <section id="scheduleView" class="tab-content space-y-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (5 حصص يومياً)</h2>
+                    <p class="text-xs text-slate-500">الجدول ثابت لكل المعلمين، والحصص التي يغيب معلموها تظهر باللون الأحمر كـ "شاغر"</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
+                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول
+                    </button>
+                    <button onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
+                        <i class="fas fa-trash-alt"></i> تفريغ الجدول
+                    </button>
+                    <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-2">
+                        <i class="fas fa-print"></i> طباعة (PDF)
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
+                <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[75vh]">
+                    <table class="w-full text-center border-collapse text-xs whitespace-nowrap">
+                        <thead class="bg-slate-800 text-white">
+                            <tr id="tableHeaderGrades"></tr>
+                            <tr id="tableHeaderSubColumns" class="bg-slate-200 text-slate-700 font-bold border-b border-slate-400"></tr>
+                        </thead>
+                        <tbody id="scheduleTableBody" class="divide-y divide-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. إدخال المعلم وتوزيع المواد + إثبات الحضور -->
+        <section id="teachersView" class="tab-content hidden space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="fas fa-user-plus text-emerald-600"></i> إدخال عضو كادر جديد
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
+                        <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الصفة الوظيفية:</label>
+                        <select id="tRole" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 font-bold text-blue-900 focus:border-blue-500">
+                            <option value="معلم">معلم</option>
+                            <option value="مدير">مدير</option>
+                            <option value="معاون">معاون</option>
+                            <option value="إداري">إداري</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الصورة:</label>
+                        <input type="file" id="tPhoto" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-200 p-1 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
+                        <input type="tel" id="tPhone" placeholder="07700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">الصف والشعبة والمادة (تخصيص الحصص اختياري للمدراء والإداريين والمعاونين):</span>
+                    <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
+                </div>
+
+                <button type="button" onclick="saveNewTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
+                    + حفظ في النظام
+                </button>
+            </div>
+
+            <!-- سجل إثبات الحضور بالوقت -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور اليومي بالوقت
+                        </h3>
+                       <h3>
+    كرت تسجيل الحضور اليومي بالوقت
+</h3>
+updatePresentCountDisplay();
+
+<!-- أضيفي السطر هنا -->
+<div style="margin-top: 5px;">
+    <span>عدد الحضور الفعلي: <strong id="activePresentNum" style="color: #2e7d32; font-size: 1.2em;">0</strong></span>
+</div>
+
+                        <p class="text-xs text-slate-500 mt-0.5">تسجيل حضور الكادر وتحديث حالة الشواغر فورياً</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
+                            <option value="all">جميع الكادر</option>
+                            <option value="present">🟢 الحاضرون اليوم</option>
+                            <option value="absent">🔴 الغائبون / لم يسجلوا</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="teachersCardsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </section>
+
+        <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
+        <section id="allStaffView" class="tab-content hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-base font-bold text-slate-800 border-b pb-3"><i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول</h3>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">الصورة</th>
+                                <th class="p-3">اسم العضو</th>
+                                <th class="p-3">الصفة</th>
+                                <th class="p-3">رقم الهاتف (واتساب)</th>
+                                <th class="p-3">الصفوف والشعب</th>
+                                <th class="p-3 text-center">الحصص</th>
+                                <th class="p-3 text-center">وقت الحضور اليوم</th>
+                                <th class="p-3 text-center">الحالة</th>
+                                <th class="p-3 text-center">إرسال الجدول</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allStaffTableBody" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. بدلاء الشواغر والمراقبة اليومية -->
+        <section id="backupView" class="tab-content hidden space-y-4">
+            <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-5 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
+                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية الذكية
+                        </h3>
+                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>أقل 5 معلمين</b> حصصاً في اليوم المحدد تلقائياً من الكادر الحاضر لتكليفهم بالمراقبة والشواغر</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
+                        <select id="backupDaySelect" onchange="refreshBackupTeachers()" class="border border-amber-300 rounded-xl px-3 py-1.5 bg-white text-xs font-bold text-amber-900 outline-none">
+                            <option value="0">الأحد</option>
+                            <option value="1">الإثنين</option>
+                            <option value="2">الثلاثاء</option>
+                            <option value="3">الأربعاء</option>
+                            <option value="4">الخميس</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="backupTeachersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </section>
+
+        <!-- 5. تقرير الحضور الأسبوعي -->
+        <section id="reportsView" class="tab-content hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
+                </h3>
+                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات حضور المعلم أو الإداري السابقة.</p>
+                <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- نافذة تعديل البيانات (Modal) -->
+    <div id="editTeacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-pen text-blue-400"></i> تعديل بيانات الكادر</h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto space-y-4">
+                <input type="hidden" id="editTeacherId">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
+                        <input type="text" id="editTName" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الصفة الوظيفية:</label>
+                        <select id="editTRole" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 font-bold text-blue-900 focus:border-blue-500">
+                            <option value="معلم">معلم</option>
+                            <option value="مدير">مدير</option>
+                            <option value="معاون">معاون</option>
+                            <option value="إداري">إداري</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
+                        <input type="tel" id="editTPhone" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">تغيير الصورة (اختياري):</label>
+                    <input type="file" id="editTPhoto" accept="image/*" class="w-full text-xs text-slate-500 border border-slate-200 p-1 rounded-xl">
+                </div>
+
+                <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 space-y-2">
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-1">الصفوف والشعب والمواد (اختياري):</span>
+                    <div id="editGradesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end gap-2">
+                <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إلغاء</button>
+                <button onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md">حفظ التعديلات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة سجل الحضور الزمني (Modal) -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
+            <div class="bg-purple-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left text-purple-300"></i> سجل حضور: <span id="historyTeacherName" class="text-purple-100"></span></h3>
+                <button onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-0 overflow-y-auto max-h-[60vh]">
+                <table class="w-full text-center border-collapse text-xs">
+                    <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0">
+                        <tr>
+                            <th class="p-3">التاريخ</th>
+                            <th class="p-3">وقت الحضور</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
+            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
+        const secNames = ['أ', 'ب', 'ج'];
+        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+        const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
+        const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
+
+        function getRoleBadge(role) {
+            switch (role) {
+                case 'مدير':
+                    return '<span class="bg-purple-100 text-purple-800 border border-purple-200 px-2 py-0.5 rounded-md font-bold text-[10px]">👑 مدير</span>';
+                case 'معاون':
+                    return '<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md font-bold text-[10px]">⭐ معاون</span>';
+                case 'إداري':
+                    return '<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-bold text-[10px]">💼 إداري</span>';
+                default:
+                    return '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md font-bold text-[10px]">📚 معلم</span>';
+            }
+        }
+
+        function formatWhatsappPhone(phone) {
+            if (!phone) return null;
+            let cleaned = phone.replace(/\D/g, '');
+            if (cleaned.startsWith('07')) {
+                cleaned = '964' + cleaned.substring(1);
+            }
+            return cleaned;
+        }
+
+        function sendTeacherScheduleWhatsApp(teacherId) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == teacherId);
+            if (!teacher) return;
+
+            if (!teacher.phone) {
+                alert('يرجى إضافة رقم هاتف أولاً للإرسال عبر الواتساب');
+                return;
+            }
+
+            if (!teacher.assignments || teacher.assignments.length === 0) {
+                alert('هذا العضو ليس لديه حصص مخصصة في الجدول.');
+                return;
+            }
+
+            let grid = getScheduleData();
+            let teacherSchedule = [];
+
+            days.forEach((day, dIdx) => {
+                lessons.forEach((lesson, lIdx) => {
+                    gradeNames.forEach((gName, gIdx) => {
+                        secNames.forEach((sName, sIdx) => {
+                            let key = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                            if (grid[key] && grid[key].tId == teacherId) {
+                                teacherSchedule.push({
+                                    day: day,
+                                    lesson: lesson,
+                                    grade: gName,
+                                    section: sName,
+                                    subject: grid[key].subject
+                                });
+                            }
+                        });
+                    });
+                });
+            });
+
+            if (teacherSchedule.length === 0) {
+                alert('لا توجد حصص مخصصة في الجدول الحالي');
+                return;
+            }
+
+            let msg = `السلام عليكم أستاذ/ة *${teacher.name}* 🌸\n`;
+            msg += `إليك جدول الحصص الأسبوعي الخاص بك في *مدرسة الضياء*:\n\n`;
+
+            let currentDay = '';
+            teacherSchedule.forEach(item => {
+                if (item.day !== currentDay) {
+                    currentDay = item.day;
+                    msg += `📌 *يوم ${currentDay}:*\n`;
+                }
+                msg += `  • ${item.lesson}: الصف ${item.grade} (${item.section}) - مادة ${item.subject}\n`;
+            });
+
+            msg += `\nنتمنى لك أسبوعاً دراسياً موفقاً وشكراً لجهودك! ✨`;
+
+            let phoneNum = formatWhatsappPhone(teacher.phone);
+            let encodedMsg = encodeURIComponent(msg);
+            window.open(`https://wa.me/${phoneNum}?text=${encodedMsg}`, '_blank');
+        }
+
+        function getTeachers() {
+            try { return JSON.parse(localStorage.getItem('app_teachers_v7') || '[]'); } catch(e) { return []; }
+        }
+
+        function saveTeachers(list) {
+            localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+        }
+
+        function getScheduleData() {
+            try { return JSON.parse(localStorage.getItem('app_schedule_grid_v7') || '{}'); } catch(e) { return {}; }
+        }
+
+        function saveScheduleData(grid) {
+            localStorage.setItem('app_schedule_grid_v7', JSON.stringify(grid));
+        }
+
+        function clearScheduleGrid() {
+            if(confirm('هل أنت متأكد من تفريغ الجدول بالكامل؟')) {
+                localStorage.removeItem('app_schedule_grid_v7');
+                renderSchedule();
+            }
+        }
+
+        window.onload = function() {
+            buildGradesForm('gradesContainer', '');
+            refreshAllViews();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            refreshAllViews();
+        }
+
+        function buildGradesForm(containerId, prefix = '') {
+            const container = document.getElementById(containerId);
+            let html = '';
+            gradeNames.forEach((gName, gIdx) => {
+                html += `
+                  <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
+                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                        <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+                          <input type="checkbox" id="${prefix}g_chk_${gIdx}" onchange="document.getElementById('${prefix}g_box_${gIdx}').classList.toggle('hidden', !this.checked)" class="rounded text-emerald-600">
+                          <span>الصف ${gName}</span>
+                        </label>
+                        <div class="flex items-center gap-1 text-[11px] text-slate-600">
+                          <label for="${prefix}quota_${gIdx}" class="font-semibold">عدد الحصص:</label>
+                          <input type="number" id="${prefix}quota_${gIdx}" value="12" min="1" max="25" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 font-bold">
+                        </div>
+                    </div>
+
+                    <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
+                      ${secNames.map((sName, sIdx) => `
+                        <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition">
+                            <i class="fas fa-xmark"></i>
+                          </button>
+
+                          <label class="text-xs font-bold text-slate-700 block mb-1">
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" class="rounded text-emerald-600"> شعبة ${sName}
+                          </label>
+
+                          <div class="grid grid-cols-2 gap-1 mt-1">
+                            <select id="${prefix}sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-white font-medium">
+                                <option value="">المادة الأولى</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            <select id="${prefix}sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-white font-medium">
+                                <option value="">المادة الثانية (اختياري)</option>
+                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function clearSectionSelection(prefix, gIdx, sIdx) {
+            const chk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
+            const sub1 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_1`);
+            const sub2 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_2`);
+            
+            if (chk) chk.checked = false;
+            if (sub1) sub1.value = '';
+            if (sub2) sub2.value = '';
+        }
+
+        function saveNewTeacher() {
+            const name = document.getElementById('tName').value.trim();
+            const role = document.getElementById('tRole').value;
+            const phone = document.getElementById('tPhone').value.trim();
+            const photoInput = document.getElementById('tPhoto');
+
+            if (!name) { alert('يرجى كتابة الاسم أولاً'); return; }
+
+            const assignments = [];
+            let totalQuota = 0;
+
+            gradeNames.forEach((_, gIdx) => {
+                const gChk = document.getElementById(`g_chk_${gIdx}`);
+                if (gChk && gChk.checked) {
+                    const gradeQuota = parseInt(document.getElementById(`quota_${gIdx}`).value) || 12;
+                    totalQuota += gradeQuota;
+
+                    secNames.forEach((_, sIdx) => {
+                        const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
+                        if (sChk && sChk.checked) {
+                            const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
+                            const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
+
+                            if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                            if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                            if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                        }
+                    });
+                }
+            });
+
+            const processSave = (photoBase64) => {
+                let list = getTeachers();
+                const newTeacher = {
+                    id: Date.now(),
+                    name: name,
+                    role: role || 'معلم',
+                    phone: phone,
+                    photo: photoBase64 || '',
+                    maxQuota: totalQuota || 0,
+                    isPresent: false,
+                    checkInTime: null,
+                    attendanceHistory: [],
+                    assignments: assignments
+                };
+                list.push(newTeacher);
+                saveTeachers(list);
+
+                autoGenerateFullSchedule();
+
+                document.getElementById('tName').value = '';
+                document.getElementById('tPhone').value = '';
+                document.getElementById('tPhoto').value = '';
+                document.getElementById('tRole').value = 'معلم';
+                buildGradesForm('gradesContainer', '');
+                refreshAllViews();
+                alert('تم حفظ البيانات بنجاح!');
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { processSave(e.target.result); };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                processSave('');
+            }
+        }
+
+        function openEditModal(teacherId) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == teacherId);
+            if (!teacher) return;
+
+            document.getElementById('editTeacherId').value = teacher.id;
+            document.getElementById('editTName').value = teacher.name;
+            document.getElementById('editTRole').value = teacher.role || 'معلم';
+            document.getElementById('editTPhone').value = teacher.phone || '';
+
+            buildGradesForm('editGradesContainer', 'edit_');
+
+            if (teacher.assignments && teacher.assignments.length > 0) {
+                teacher.assignments.forEach(asgn => {
+                    let gIdx = asgn.gradeIndex;
+                    let sIdx = asgn.sectionIndex;
+
+                    let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                    let gBox = document.getElementById(`edit_g_box_${gIdx}`);
+                    let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+
+                    if (gChk) gChk.checked = true;
+                    if (gBox) gBox.classList.remove('hidden');
+                    if (sChk) sChk.checked = true;
+
+                    let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
+                    let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
+
+                    if (sub1 && !sub1.value) {
+                        sub1.value = asgn.subject;
+                    } else if (sub2) {
+                        sub2.value = asgn.subject;
+                    }
+                });
+            }
+
+            document.getElementById('editTeacherModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editTeacherModal').classList.add('hidden');
+        }
+
+        function saveTeacherEdits() {
+            let id = document.getElementById('editTeacherId').value;
+            let teachers = getTeachers();
+            let idx = teachers.findIndex(t => t.id == id);
+            if (idx === -1) return;
+
+            let name = document.getElementById('editTName').value.trim();
+            let role = document.getElementById('editTRole').value;
+            let phone = document.getElementById('editTPhone').value.trim();
+            let photoInput = document.getElementById('editTPhoto');
+
+            if (!name) { alert('الاسم مطلوب'); return; }
+
+            const assignments = [];
+            let totalQuota = 0;
+
+            gradeNames.forEach((_, gIdx) => {
+                const gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                if (gChk && gChk.checked) {
+                    const gradeQuota = parseInt(document.getElementById(`edit_quota_${gIdx}`).value) || 12;
+                    totalQuota += gradeQuota;
+
+                    secNames.forEach((_, sIdx) => {
+                        const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+                        if (sChk && sChk.checked) {
+                            const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
+                            const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+
+                            if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                            if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                            if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                        }
+                    });
+                }
+            });
+
+            const processUpdate = (photoBase64) => {
+                teachers[idx].name = name;
+                teachers[idx].role = role;
+                teachers[idx].phone = phone;
+                teachers[idx].maxQuota = totalQuota || 0;
+                teachers[idx].assignments = assignments;
+                if (photoBase64) teachers[idx].photo = photoBase64;
+
+                saveTeachers(teachers);
+                autoGenerateFullSchedule();
+
+                closeEditModal();
+                refreshAllViews();
+                alert('تم التحديث بنجاح!');
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { processUpdate(e.target.result); };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                processUpdate(null);
+            }
+        }
+
+        function autoGenerateFullSchedule() {
+            let teachers = getTeachers();
+            
+            let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
+
+            if (teachingStaff.length === 0) {
+                localStorage.removeItem('app_schedule_grid_v7');
+                renderSchedule();
+                return;
+            }
+
+            let grid = {};
+            let pool = [];
+            teachingStaff.forEach(t => {
+                let assignedQuota = 0;
+                let quotaPerAsgn = Math.max(1, Math.floor((t.maxQuota || 12) / t.assignments.length));
+
+                t.assignments.forEach(asgn => {
+                    for(let i = 0; i < quotaPerAsgn; i++) {
+                        if (assignedQuota < t.maxQuota) {
+                            pool.push({
+                                tId: t.id,
+                                name: t.name,
+                                gradeIndex: asgn.gradeIndex,
+                                sectionIndex: asgn.sectionIndex,
+                                subject: asgn.subject
+                            });
+                            assignedQuota++;
+                        }
+                    }
+                });
+            });
+
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            let availableSlots = [];
+            for (let d = 0; d < days.length; d++) {
+                for (let l = 0; l < lessons.length; l++) {
+                    for (let g = 0; g < gradeNames.length; g++) {
+                        for (let s = 0; s < secNames.length; s++) {
+                            availableSlots.push({ d, l, g, s });
+                        }
+                    }
+                }
+            }
+
+            availableSlots.sort(() => Math.random() - 0.5);
+
+            pool.forEach(item => {
+                for (let slotIdx = 0; slotIdx < availableSlots.length; slotIdx++) {
+                    let slot = availableSlots[slotIdx];
+
+                    if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
+                        let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
+
+                        if (!grid[cellKey]) {
+                            let isTeacherBusy = false;
+                            for (let checkG = 0; checkG < gradeNames.length; checkG++) {
+                                for (let checkS = 0; checkS < secNames.length; checkS++) {
+                                    let checkKey = `${slot.d}_${slot.l}_${checkG}_${checkS}`;
+                                    if (grid[checkKey] && grid[checkKey].tId === item.tId) {
+                                        isTeacherBusy = true;
+                                        break;
+                                    }
+                                }
+                                if (isTeacherBusy) break;
+                            }
+
+                            if (!isTeacherBusy) {
+                                grid[cellKey] = {
+                                    tId: item.tId,
+                                    name: item.name,
+                                    subject: item.subject
+                                };
+                                availableSlots.splice(slotIdx, 1);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            saveScheduleData(grid);
+            renderSchedule();
+        }
+
+        function recordAttendance(id) {
+            let list = getTeachers();
+            let idx = list.findIndex(t => t.id == id);
+            if (idx !== -1) {
+                if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
+
+                if (!list[idx].isPresent) {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    const dateStr = now.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                    
+                    list[idx].isPresent = true;
+                    list[idx].checkInTime = timeStr;
+                    
+                    let existingEntry = list[idx].attendanceHistory.find(h => h.date === dateStr);
+                    if (!existingEntry) {
+                        list[idx].attendanceHistory.push({ date: dateStr, time: timeStr });
+                    }
+                } else {
+                    list[idx].isPresent = false;
+                    list[idx].checkInTime = null;
+                }
+                saveTeachers(list);
+                refreshAllViews();
+            }
+        }
+
+        function openHistoryModal(id) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == id);
+            if (!teacher) return;
+            
+            document.getElementById('historyTeacherName').innerText = teacher.name;
+            const tbody = document.getElementById('historyTableBody');
+            
+            if (!teacher.attendanceHistory || teacher.attendanceHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-slate-500 font-bold text-center">لا توجد سجلات حضور سابقة</td></tr>`;
+            } else {
+                let sortedHistory = [...teacher.attendanceHistory].reverse();
+                tbody.innerHTML = sortedHistory.map(h => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-700">${h.date}</td>
+                        <td class="p-3 font-bold text-emerald-600">${h.time}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            let modal = document.getElementById('historyModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeHistoryModal() {
+            let modal = document.getElementById('historyModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function deleteTeacher(id) {
+            if(!confirm('هل أنت متأكد من الحذف؟')) return;
+            let list = getTeachers().filter(t => t.id != id);
+            saveTeachers(list);
+
+            if (list.length === 0) {
+                localStorage.removeItem('app_schedule_grid_v7');
+            } else {
+                autoGenerateFullSchedule();
+            }
+
+            refreshAllViews();
+        }
+
+        function manualRefreshAll() {
+            refreshAllViews();
+        }
+
+        function refreshAllViews() {
+            renderTeachersCards();
+            renderAllStaffTable();
+            refreshBackupTeachers();
+            renderReportsList();
+            renderSchedule();
+        }
+
+        function renderReportsList() {
+            const container = document.getElementById('reportsList');
+            let list = getTeachers();
+            
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(t => {
+                let historyCount = t.attendanceHistory ? t.attendanceHistory.length : 0;
+                return `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-200">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>`}
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
+                                ${getRoleBadge(t.role)}
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-bold mt-1 block">أيام الحضور المسجلة: <span class="text-purple-600">${historyCount}</span> يوم</span>
+                        </div>
+                    </div>
+                    <button onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                        <i class="fas fa-list-check"></i> عرض السجل
+                    </button>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function renderTeachersCards() {
+            const container = document.getElementById('teachersCardsList');
+            let list = getTeachers();
+            let filter = document.getElementById('attendanceFilter').value;
+
+            let filtered = list.filter(t => {
+                if (filter === 'present') return t.isPresent;
+                if (filter === 'absent') return !t.isPresent;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(t => {
+                let waPhone = formatWhatsappPhone(t.phone);
+                let hasAssignments = t.assignments && t.assignments.length > 0;
+                return `
+                <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200'} shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start gap-3 mb-2">
+                            ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-300 shrink-0">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm shrink-0"><i class="fas fa-user"></i></div>`}
+                            
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition text-xs p-0.5">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
+                                    ${getRoleBadge(t.role)}
+                                </div>
+
+                                <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-1">
+                                    <span>الحصص: ${t.maxQuota || 0}</span>
+                                    ${t.phone ? `
+                                        <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
+                                            <i class="fab fa-whatsapp text-emerald-500 text-xs"></i> ${t.phone}
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            ${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة في الجدول</span>'}
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        ${hasAssignments ? `
+                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="w-full py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> إرسال الجدول
+                        </button>
+                        ` : ''}
+
+                        ${t.isPresent ? `
+                            <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5">
+                                <i class="fas fa-circle-check text-emerald-600"></i> تم تسجيل الحضور: ${t.checkInTime}
+                            </div>
+                            <button onclick="recordAttendance(${t.id})" class="w-full py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                                تسجيل الخروج
+                            </button>
+                        ` : `
+                            <button onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
+                                <i class="fas fa-fingerprint text-base"></i> تسجيل حضور اليوم للدوام
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function renderAllStaffTable() {
+            const body = document.getElementById('allStaffTableBody');
+            let list = getTeachers();
+            if (list.length === 0) {
+                body.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400">لا يوجد كادر</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = list.map((t) => {
+                let waPhone = formatWhatsappPhone(t.phone);
+                let hasAssignments = t.assignments && t.assignments.length > 0;
+                return `
+                <tr>
+                    <td class="p-3">
+                        ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-user text-xs"></i></div>`}
+                    </td>
+                    <td class="p-3 font-bold">${t.name}</td>
+                    <td class="p-3">${getRoleBadge(t.role)}</td>
+                    <td class="p-3">
+                        ${t.phone ? `
+                            <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition">
+                                <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> ${t.phone}
+                            </a>
+                        ` : '-'}
+                    </td>
+                    <td class="p-3">${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>'}</td>
+                    <td class="p-3 text-center font-bold">${t.maxQuota || 0}</td>
+                    <td class="p-3 text-center font-bold text-blue-600">${t.checkInTime ? t.checkInTime : '-'}</td>
+                    <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
+                    <td class="p-3 text-center">
+                        ${hasAssignments ? `
+                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1">
+                            <i class="fab fa-whatsapp text-sm"></i> إرسال
+                        </button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        function refreshBackupTeachers() {
+            const container = document.getElementById('backupTeachersList');
+            let list = getTeachers().filter(t => t.isPresent);
+            let selectedDay = parseInt(document.getElementById('backupDaySelect').value) || 0;
+            let grid = getScheduleData();
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد كادر حاضر مسجل حالياً في المدرسة</div>`;
+                return;
+            }
+
+            let teacherStats = list.map(t => {
+                let dailyLessonsCount = 0;
+                
+                lessons.forEach((_, lIdx) => {
+                    gradeNames.forEach((_, gIdx) => {
+                        secNames.forEach((_, sIdx) => {
+                            let cellKey = `${selectedDay}_${lIdx}_${gIdx}_${sIdx}`;
+                            if (grid[cellKey] && grid[cellKey].tId == t.id) {
+                                dailyLessonsCount++;
+                            }
+                        });
+                    });
+                });
+
+                return {
+                    teacher: t,
+                    dailyLessonsCount: dailyLessonsCount
+                };
+            });
+
+            teacherStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
+
+            container.innerHTML = teacherStats.map((item, index) => {
+                let t = item.teacher;
+                let waPhone = formatWhatsappPhone(t.phone);
+                let isTop5 = index < 5;
+
+                return `
+                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشح رئيسي للمراقبة #${index+1}</div>` : ''}
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            ${t.photo ? `<img src="${t.photo}" class="w-10 h-10 rounded-full object-cover border">` : `<div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs"><i class="fas fa-user"></i></div>`}
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
+                                    ${getRoleBadge(t.role)}
+                                </div>
+                                <span class="text-[10px] text-emerald-600 font-bold block mt-0.5">🟢 حاضر منذ: ${t.checkInTime}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 mb-3 flex justify-between items-center text-xs">
+                            <span class="text-slate-600 font-bold">حصص اليوم (${days[selectedDay]}):</span>
+                            <span class="px-2 py-0.5 rounded-lg ${item.dailyLessonsCount <= 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-black text-xs">
+                                ${item.dailyLessonsCount} حصة/حصص
+                            </span>
+                        </div>
+                    </div>
+
+                    ${t.phone ? `
+                        <a href="https://wa.me/${waPhone}" target="_blank" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> تكليف عبر الواتساب
+                        </a>
+                    ` : '<div class="text-[10px] text-slate-400 text-center font-bold">لا يوجد رقم هاتف مضاف</div>'}
+                </div>
+            `;
+            }).join('');
+        }
+
+        function renderSchedule() {
+            const hGrades = document.getElementById('tableHeaderGrades');
+            const hSub = document.getElementById('tableHeaderSubColumns');
+            const tbody = document.getElementById('scheduleTableBody');
+
+            let teachersList = getTeachers();
+            let savedGrid = getScheduleData();
+
+            let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">الحصة</th>`;
+            let hSubHtml = '';
+
+            gradeNames.forEach(gName => {
+                hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white" colspan="3">الصف ${gName}</th>`;
+                secNames.forEach(sName => {
+                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-800 text-[11px]">شعبة ${sName}</th>`;
+                });
+            });
+
+            hGrades.innerHTML = hGradesHtml;
+            hSub.innerHTML = hSubHtml;
+
+            let tbodyHtml = '';
+            days.forEach((day, dIdx) => {
+                lessons.forEach((lesson, lIdx) => {
+                    let isLastLessonOfDay = (lIdx === lessons.length - 1);
+                    let rowClass = isLastLessonOfDay ? 'day-separator-red hover:bg-slate-50' : 'hover:bg-slate-50 border-b border-slate-200';
+
+                    tbodyHtml += `<tr class="${rowClass}">`;
+                    if (lIdx === 0) {
+                        tbodyHtml += `<td class="p-2 border border-slate-300 font-bold bg-slate-100 text-slate-800" rowspan="${lessons.length}">${day}</td>`;
+                    }
+                    tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-amber-50 text-amber-900 text-[11px]">${lesson}</td>`;
+
+                    gradeNames.forEach((_, gIdx) => {
+                        secNames.forEach((_, sIdx) => {
+                            let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                            let cellData = savedGrid[cellKey];
+
+                            let displayCell = '<span class="text-slate-300">-</span>';
+                            let bgClass = 'bg-white';
+
+                            if (cellData) {
+                                let tObj = teachersList.find(t => t.id == cellData.tId);
+
+                                if (tObj) {
+                                    if (!tObj.isPresent) {
+                                        bgClass = 'bg-red-100 text-red-800 font-bold';
+                                        displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-red-600 font-semibold">شاغر (${tObj.name})</div>`;
+                                    } else {
+                                        bgClass = 'bg-white text-slate-800';
+                                        displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-slate-500 font-normal">${tObj.name}</div>`;
+                                    }
+                                } else {
+                                    displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-slate-500 font-normal">${cellData.name}</div>`;
+                                }
+                            }
+
+                            tbodyHtml += `<td class="p-2 border border-slate-300 ${bgClass} text-[10px] min-w-[85px] h-10 align-middle">
+                                ${displayCell}
+                            </td>`;
+                        });
+                    });
+
+                    tbodyHtml += `</tr>`;
+                });
+            });
+
+            tbody.innerHTML = tbodyHtml;
+        }
+  // كود إجبار وتأمين زر الحفظ
+document.addEventListener("DOMContentLoaded", function() {
+    const saveBtn = document.querySelector("button[onclick*='saveNewTeacher']");
+    if (saveBtn) {
+        saveBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            // 1. قراءة البيانات الأساسية
+            const name = document.getElementById('tName')?.value.trim();
+            const role = document.getElementById('tRole')?.value || 'معلم';
+            const phone = document.getElementById('tPhone')?.value.trim() || '';
+            const photoInput = document.getElementById('tPhoto');
+
+            if (!name) { 
+                alert('يرجى كتابة الاسم أولاً'); 
+                return; 
+            }
+
+            // 2. تجميع الصفوف والمواد
+            const assignments = [];
+            let totalQuota = 0;
+
+            if (typeof gradeNames !== 'undefined') {
+                gradeNames.forEach((_, gIdx) => {
+                    const gChk = document.getElementById(`g_chk_${gIdx}`);
+                    if (gChk && gChk.checked) {
+                        const quotaElem = document.getElementById(`quota_${gIdx}`);
+                        totalQuota += (quotaElem ? (parseInt(quotaElem.value) || 12) : 12);
+
+                        if (typeof secNames !== 'undefined') {
+                            secNames.forEach((_, sIdx) => {
+                                const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
+                                if (sChk && sChk.checked) {
+                                    const s1Elem = document.getElementById(`sub_${gIdx}_${sIdx}_1`);
+                                    const s2Elem = document.getElementById(`sub_${gIdx}_${sIdx}_2`);
+                                    const s1 = s1Elem ? s1Elem.value : '';
+                                    const s2 = s2Elem ? s2Elem.value : '';
+
+                                    if (s1 && !s1.includes('اختياري')) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                                    if (s2 && !s2.includes('اختياري')) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                                    if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+
+            // 3. تنفيذ التخزين المباشر للتطبيق
+            const executeSave = (photoData) => {
+                try {
+                    let list = [];
+                    try { list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]'); } catch(err) { list = []; }
+
+                    const newTeacher = {
+                        id: Date.now(),
+                        name: name,
+                        role: role,
+                        phone: phone,
+                        photo: photoData || '',
+                        maxQuota: totalQuota || 0,
+                        isPresent: false,
+                        checkInTime: null,
+                        attendanceHistory: [],
+                        assignments: assignments
+                    };
+
+                    list.push(newTeacher);
+                    localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+
+                    // حاول تحديث الجدول بدون إيقاف الحفظ عند وجود تعارض
+                    try {
+                        if (typeof autoGenerateFullSchedule === 'function') autoGenerateFullSchedule();
+                    } catch(schedErr) {
+                        console.warn("تنبيه: تم الحفظ وتخطي تعارض الجدول.");
+                    }
+
+                    // تفريغ الحقول وإعادة تنشيط الواجهة
+                    document.getElementById('tName').value = '';
+                    if (document.getElementById('tPhone')) document.getElementById('tPhone').value = '';
+                    if (document.getElementById('tPhoto')) document.getElementById('tPhoto').value = '';
+                    
+                    if (typeof buildGradesForm === 'function') buildGradesForm('gradesContainer', '');
+                    if (typeof refreshAllViews === 'function') refreshAllViews();
+
+                    alert('تم الحفظ بنجاح!');
+                } catch (err) {
+                    alert('حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.');
+                }
+            };
+
+            // 4. معالجة الصورة وإتمام الحفظ
+            if (photoInput && photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const scale = 300 / img.width;
+                        canvas.width = 300;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        executeSave(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                executeSave('');
+            }
+        };
+    }
+});
+// دالة الحساب والتحديث المباشر للواجهة
+function updatePresentCountDisplay() {
+    const list = typeof getTeachers === 'function' ? getTeachers() : JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+    const count = list.filter(t => t.isPresent).length;
+    
+    const elem = document.getElementById('activePresentNum');
+    if (elem) {
+        elem.innerText = count;
+    }
+}
+
+// تشغيل التحديث عند فتح الصفحة
+document.addEventListener("DOMContentLoaded", function() {
+    updatePresentCountDisplay();
+});
+
+// التحديث الفوري واللحظي عند الضغط على أزرار الدخول/الخروج
+document.addEventListener("click", function(e) {
+    if (e.target && (e.target.closest("button") || e.target.tagName === "BUTTON")) {
+        setTimeout(updatePresentCountDisplay, 150);
+    }
+});
+
+// إضافة مرشد تربوي وحفظه تلقائياً بطريقة آمنة
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. إضافة الخيار للقائمة
+    const roleSelect = document.getElementById('tRole');
+    if (roleSelect && !roleSelect.querySelector('option[value="مرشد تربوي"]')) {
+        const opt = document.createElement('option');
+        opt.value = 'مرشد تربوي';
+        opt.textContent = 'مرشد تربوي';
+        roleSelect.appendChild(opt);
+    }
+
+    // 2. تحديث الذاكرة فور الضغط على زر الحفظ بدون لمس الدوال الأصلية
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        if (btn && btn.textContent.includes('حفظ')) {
+            setTimeout(function() {
+                const select = document.getElementById('tRole');
+                if (select && select.value === 'مرشد تربوي') {
+                    let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
+                    if (list.length > 0 && list[list.length - 1].role !== 'مرشد تربوي') {
+                        list[list.length - 1].role = 'مرشد تربوي';
+                        localStorage.setItem('app_teachers_v7', JSON.stringify(list));
+                        if (typeof renderTeachersCards === 'function') renderTeachersCards();
+                    }
+                }
+            }, 200);
+        }
+    });
+});
+
+    </script>
+</body>
+</html>
