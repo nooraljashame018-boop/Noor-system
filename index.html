@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام الجدول المدرسي التلقائي - مدرسة الضياء</title>
@@ -544,8 +543,6 @@
                 list.push(newTeacher);
                 saveTeachers(list);
 
-                
-
                 document.getElementById('tName').value = '';
                 document.getElementById('tPhone').value = '';
                 document.getElementById('tPhoto').value = '';
@@ -639,8 +636,7 @@
                         const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
                         if (sChk && sChk.checked) {
                             const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`)?.value || '';
-const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`)?.value || '';
-
+                            const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`)?.value || '';
 
                             if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
                             if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
@@ -862,10 +858,10 @@ const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`)?.value || '';
 
         function renderReportsList() {
             const container = document.getElementById('reportsList');
-            let list = getTeachers();
-            
+            let list = getTeachers(); // تم تصحيح الخطأ هنا عبر جلب قائمة الكادر
+
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل لعرض التقرير</div>`;
                 return;
             }
 
