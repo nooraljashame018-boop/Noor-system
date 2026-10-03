@@ -16,6 +16,11 @@
         .day-separator-red {
             border-bottom: 4px solid #ef4444 !important;
         }
+        .editable-cell:focus {
+            outline: 2px solid #2563eb;
+            background-color: #eff6ff !important;
+            border-radius: 6px;
+        }
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
@@ -63,7 +68,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v9.0
+                نظام إدارة الجداول الذكي v9.5
             </div>
         </div>
     </aside>
@@ -75,8 +80,8 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (5 حصص يومياً)</h2>
-                    <p class="text-xs text-slate-500">الجدول ثابت لكل المعلمين، والحصص التي يغيب معلموها تظهر باللون الأحمر كـ "شاغر"</p>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابلة للكتابة والتعديل المباشر)</h2>
+                    <p class="text-xs text-slate-500">يمكنك الضغط على أي خلية للكتابة والتعديل المباشر، وتُحفظ التغييرات تلقائياً.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -313,8 +318,8 @@
         const secNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
-        // إضافة مادة الأخلاقية ضمن المواد المتاحة
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
+        const coreSubjects = ['عربي', 'رياضيات', 'إنكليزي', 'علوم'];
 
         function getRoleBadge(role) {
             switch (role) {
@@ -673,7 +678,7 @@
             }
         }
 
-        // دالة التوليد التلقائي المعدلة لمنع اجتماع الفنية والرياضة لنفس الشعبة في نفس اليوم
+        // دالة التوليد الذكي التلقائي
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
@@ -706,10 +711,11 @@
                 });
             });
 
-            for (let i = pool.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [pool[i], pool[j]] = [pool[j], pool[i]];
-            }
+            pool.sort((a, b) => {
+                let aCore = coreSubjects.includes(a.subject) ? 1 : 0;
+                let bCore = coreSubjects.includes(b.subject) ? 1 : 0;
+                return bCore - aCore;
+            });
 
             let availableSlots = [];
             for (let d = 0; d < days.length; d++) {
@@ -722,8 +728,6 @@
                 }
             }
 
-            availableSlots.sort(() => Math.random() - 0.5);
-
             pool.forEach(item => {
                 for (let slotIdx = 0; slotIdx < availableSlots.length; slotIdx++) {
                     let slot = availableSlots[slotIdx];
@@ -732,7 +736,10 @@
                         let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
 
                         if (!grid[cellKey]) {
-                            // 1. التحقق من انشغال المعلم
+                            if (slot.l < 3 && !coreSubjects.includes(item.subject)) {
+                                continue;
+                            }
+
                             let isTeacherBusy = false;
                             for (let checkG = 0; checkG < gradeNames.length; checkG++) {
                                 for (let checkS = 0; checkS < secNames.length; checkS++) {
@@ -745,20 +752,26 @@
                                 if (isTeacherBusy) break;
                             }
 
-                            // 2. شرط جديد: منع اجتماع الفنية والرياضة في نفس اليوم لنفس الشعبة
-                            let hasActivityConflict = false;
-                            if (item.subject === 'فن' || item.subject === 'رياضة') {
-                                let otherSubject = item.subject === 'فن' ? 'رياضة' : 'فن';
-                                for (let checkL = 0; checkL < lessons.length; checkL++) {
-                                    let checkKey = `${slot.d}_${checkL}_${slot.g}_${slot.s}`;
-                                    if (grid[checkKey] && grid[checkKey].subject === otherSubject) {
-                                        hasActivityConflict = true;
+                            let hasSubjectConflict = false;
+                            for (let checkL = 0; checkL < lessons.length; checkL++) {
+                                let checkKey = `${slot.d}_${checkL}_${slot.g}_${slot.s}`;
+                                if (grid[checkKey]) {
+                                    let existingSub = grid[checkKey].subject;
+                                    
+                                    if (existingSub === item.subject) {
+                                        hasSubjectConflict = true;
+                                        break;
+                                    }
+                                    
+                                    if ((item.subject === 'فن' && existingSub === 'رياضة') || 
+                                        (item.subject === 'رياضة' && existingSub === 'فن')) {
+                                        hasSubjectConflict = true;
                                         break;
                                     }
                                 }
                             }
 
-                            if (!isTeacherBusy && !hasActivityConflict) {
+                            if (!isTeacherBusy && !hasSubjectConflict) {
                                 grid[cellKey] = {
                                     tId: item.tId,
                                     name: item.name,
@@ -774,6 +787,16 @@
 
             saveScheduleData(grid);
             renderSchedule();
+        }
+
+        // حفظ التعديلات اليدوية المباشرة للكتابة في الخلايا
+        function updateCellManual(cellKey, field, value) {
+            let savedGrid = getScheduleData();
+            if (!savedGrid[cellKey]) {
+                savedGrid[cellKey] = { tId: 0, name: '', subject: '' };
+            }
+            savedGrid[cellKey][field] = value.trim();
+            saveScheduleData(savedGrid);
         }
 
         function recordAttendance(id) {
@@ -1121,29 +1144,23 @@
                     gradeNames.forEach((_, gIdx) => {
                         secNames.forEach((_, sIdx) => {
                             let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
-                            let cellData = savedGrid[cellKey];
+                            let cellData = savedGrid[cellKey] || { subject: '', name: '' };
 
-                            let displayCell = '<span class="text-slate-300">-</span>';
                             let bgClass = 'bg-white';
+                            let teacherName = cellData.name || '';
+                            let subjectName = cellData.subject || '';
 
-                            if (cellData) {
+                            if (cellData.tId) {
                                 let tObj = teachersList.find(t => t.id == cellData.tId);
-
-                                if (tObj) {
-                                    if (!tObj.isPresent) {
-                                        bgClass = 'bg-red-100 text-red-800 font-bold';
-                                        displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-red-600 font-semibold">شاغر (${tObj.name})</div>`;
-                                    } else {
-                                        bgClass = 'bg-white text-slate-800';
-                                        displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-slate-500 font-normal">${tObj.name}</div>`;
-                                    }
-                                } else {
-                                    displayCell = `<div>${cellData.subject}</div><div class="text-[9px] text-slate-500 font-normal">${cellData.name}</div>`;
+                                if (tObj && !tObj.isPresent) {
+                                    bgClass = 'bg-red-100 text-red-800 font-bold';
+                                    teacherName = `شاغر (${tObj.name})`;
                                 }
                             }
 
-                            tbodyHtml += `<td class="p-2 border border-slate-300 ${bgClass} text-[10px] min-w-[85px] h-10 align-middle">
-                                ${displayCell}
+                            tbodyHtml += `<td class="p-1 border border-slate-300 ${bgClass} text-[10px] min-w-[85px] h-10 align-middle">
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-bold text-slate-800 outline-none">${subjectName}</div>
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-[9px] text-slate-500 font-normal outline-none">${teacherName}</div>
                             </td>`;
                         });
                     });
