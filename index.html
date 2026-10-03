@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -124,6 +123,7 @@
                             <option value="مدير">مدير</option>
                             <option value="معاون">معاون</option>
                             <option value="إداري">إداري</option>
+                            <option value="مرشد تربوي">مرشد تربوي</option>
                         </select>
                     </div>
                     <div>
@@ -153,16 +153,9 @@
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور اليومي بالوقت
                         </h3>
-                       <h3>
-    كرت تسجيل الحضور اليومي بالوقت
-</h3>
-updatePresentCountDisplay();
-
-<!-- أضيفي السطر هنا -->
-<div style="margin-top: 5px;">
-    <span>عدد الحضور الفعلي: <strong id="activePresentNum" style="color: #2e7d32; font-size: 1.2em;">0</strong></span>
-</div>
-
+                        <div class="mt-1">
+                            <span class="text-xs font-bold text-slate-600">عدد الحضور الفعلي: <strong id="activePresentNum" class="text-emerald-700 text-sm">0</strong></span>
+                        </div>
                         <p class="text-xs text-slate-500 mt-0.5">تسجيل حضور الكادر وتحديث حالة الشواغر فورياً</p>
                     </div>
                     <div class="flex items-center gap-3">
@@ -264,6 +257,7 @@ updatePresentCountDisplay();
                             <option value="مدير">مدير</option>
                             <option value="معاون">معاون</option>
                             <option value="إداري">إداري</option>
+                            <option value="مرشد تربوي">مرشد تربوي</option>
                         </select>
                     </div>
                     <div>
@@ -329,6 +323,8 @@ updatePresentCountDisplay();
                     return '<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-md font-bold text-[10px]">⭐ معاون</span>';
                 case 'إداري':
                     return '<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md font-bold text-[10px]">💼 إداري</span>';
+                case 'مرشد تربوي':
+                    return '<span class="bg-teal-100 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-md font-bold text-[10px]">🌱 مرشد تربوي</span>';
                 default:
                     return '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md font-bold text-[10px]">📚 معلم</span>';
             }
@@ -341,6 +337,13 @@ updatePresentCountDisplay();
                 cleaned = '964' + cleaned.substring(1);
             }
             return cleaned;
+        }
+
+        function updatePresentCountDisplay() {
+            const list = getTeachers();
+            const count = list.filter(t => t.isPresent).length;
+            const elem = document.getElementById('activePresentNum');
+            if (elem) elem.innerText = count;
         }
 
         function sendTeacherScheduleWhatsApp(teacherId) {
@@ -671,7 +674,6 @@ updatePresentCountDisplay();
 
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
-            
             let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
 
             if (teachingStaff.length === 0) {
@@ -835,6 +837,7 @@ updatePresentCountDisplay();
         }
 
         function refreshAllViews() {
+            updatePresentCountDisplay();
             renderTeachersCards();
             renderAllStaffTable();
             refreshBackupTeachers();
@@ -979,7 +982,7 @@ updatePresentCountDisplay();
                             </a>
                         ` : '-'}
                     </td>
-                    <td class="p-3">${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): ${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>'}</td>
+                    <td class="p-3">${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}):${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>'}</td>
                     <td class="p-3 text-center font-bold">${t.maxQuota || 0}</td>
                     <td class="p-3 text-center font-bold text-blue-600">${t.checkInTime ? t.checkInTime : '-'}</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
@@ -1135,173 +1138,6 @@ updatePresentCountDisplay();
 
             tbody.innerHTML = tbodyHtml;
         }
-  // كود إجبار وتأمين زر الحفظ
-document.addEventListener("DOMContentLoaded", function() {
-    const saveBtn = document.querySelector("button[onclick*='saveNewTeacher']");
-    if (saveBtn) {
-        saveBtn.onclick = function(e) {
-            e.preventDefault();
-            
-            // 1. قراءة البيانات الأساسية
-            const name = document.getElementById('tName')?.value.trim();
-            const role = document.getElementById('tRole')?.value || 'معلم';
-            const phone = document.getElementById('tPhone')?.value.trim() || '';
-            const photoInput = document.getElementById('tPhoto');
-
-            if (!name) { 
-                alert('يرجى كتابة الاسم أولاً'); 
-                return; 
-            }
-
-            // 2. تجميع الصفوف والمواد
-            const assignments = [];
-            let totalQuota = 0;
-
-            if (typeof gradeNames !== 'undefined') {
-                gradeNames.forEach((_, gIdx) => {
-                    const gChk = document.getElementById(`g_chk_${gIdx}`);
-                    if (gChk && gChk.checked) {
-                        const quotaElem = document.getElementById(`quota_${gIdx}`);
-                        totalQuota += (quotaElem ? (parseInt(quotaElem.value) || 12) : 12);
-
-                        if (typeof secNames !== 'undefined') {
-                            secNames.forEach((_, sIdx) => {
-                                const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
-                                if (sChk && sChk.checked) {
-                                    const s1Elem = document.getElementById(`sub_${gIdx}_${sIdx}_1`);
-                                    const s2Elem = document.getElementById(`sub_${gIdx}_${sIdx}_2`);
-                                    const s1 = s1Elem ? s1Elem.value : '';
-                                    const s2 = s2Elem ? s2Elem.value : '';
-
-                                    if (s1 && !s1.includes('اختياري')) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
-                                    if (s2 && !s2.includes('اختياري')) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
-                                    if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-
-            // 3. تنفيذ التخزين المباشر للتطبيق
-            const executeSave = (photoData) => {
-                try {
-                    let list = [];
-                    try { list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]'); } catch(err) { list = []; }
-
-                    const newTeacher = {
-                        id: Date.now(),
-                        name: name,
-                        role: role,
-                        phone: phone,
-                        photo: photoData || '',
-                        maxQuota: totalQuota || 0,
-                        isPresent: false,
-                        checkInTime: null,
-                        attendanceHistory: [],
-                        assignments: assignments
-                    };
-
-                    list.push(newTeacher);
-                    localStorage.setItem('app_teachers_v7', JSON.stringify(list));
-
-                    // حاول تحديث الجدول بدون إيقاف الحفظ عند وجود تعارض
-                    try {
-                        if (typeof autoGenerateFullSchedule === 'function') autoGenerateFullSchedule();
-                    } catch(schedErr) {
-                        console.warn("تنبيه: تم الحفظ وتخطي تعارض الجدول.");
-                    }
-
-                    // تفريغ الحقول وإعادة تنشيط الواجهة
-                    document.getElementById('tName').value = '';
-                    if (document.getElementById('tPhone')) document.getElementById('tPhone').value = '';
-                    if (document.getElementById('tPhoto')) document.getElementById('tPhoto').value = '';
-                    
-                    if (typeof buildGradesForm === 'function') buildGradesForm('gradesContainer', '');
-                    if (typeof refreshAllViews === 'function') refreshAllViews();
-
-                    alert('تم الحفظ بنجاح!');
-                } catch (err) {
-                    alert('حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.');
-                }
-            };
-
-            // 4. معالجة الصورة وإتمام الحفظ
-            if (photoInput && photoInput.files && photoInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const scale = 300 / img.width;
-                        canvas.width = 300;
-                        canvas.height = img.height * scale;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        executeSave(canvas.toDataURL('image/jpeg', 0.6));
-                    };
-                    img.src = evt.target.result;
-                };
-                reader.readAsDataURL(photoInput.files[0]);
-            } else {
-                executeSave('');
-            }
-        };
-    }
-});
-// دالة الحساب والتحديث المباشر للواجهة
-function updatePresentCountDisplay() {
-    const list = typeof getTeachers === 'function' ? getTeachers() : JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
-    const count = list.filter(t => t.isPresent).length;
-    
-    const elem = document.getElementById('activePresentNum');
-    if (elem) {
-        elem.innerText = count;
-    }
-}
-
-// تشغيل التحديث عند فتح الصفحة
-document.addEventListener("DOMContentLoaded", function() {
-    updatePresentCountDisplay();
-});
-
-// التحديث الفوري واللحظي عند الضغط على أزرار الدخول/الخروج
-document.addEventListener("click", function(e) {
-    if (e.target && (e.target.closest("button") || e.target.tagName === "BUTTON")) {
-        setTimeout(updatePresentCountDisplay, 150);
-    }
-});
-
-// إضافة مرشد تربوي وحفظه تلقائياً بطريقة آمنة
-document.addEventListener("DOMContentLoaded", function() {
-    // 1. إضافة الخيار للقائمة
-    const roleSelect = document.getElementById('tRole');
-    if (roleSelect && !roleSelect.querySelector('option[value="مرشد تربوي"]')) {
-        const opt = document.createElement('option');
-        opt.value = 'مرشد تربوي';
-        opt.textContent = 'مرشد تربوي';
-        roleSelect.appendChild(opt);
-    }
-
-    // 2. تحديث الذاكرة فور الضغط على زر الحفظ بدون لمس الدوال الأصلية
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('button');
-        if (btn && btn.textContent.includes('حفظ')) {
-            setTimeout(function() {
-                const select = document.getElementById('tRole');
-                if (select && select.value === 'مرشد تربوي') {
-                    let list = JSON.parse(localStorage.getItem('app_teachers_v7') || '[]');
-                    if (list.length > 0 && list[list.length - 1].role !== 'مرشد تربوي') {
-                        list[list.length - 1].role = 'مرشد تربوي';
-                        localStorage.setItem('app_teachers_v7', JSON.stringify(list));
-                        if (typeof renderTeachersCards === 'function') renderTeachersCards();
-                    }
-                }
-            }, 200);
-        }
-    });
-});
-
     </script>
 </body>
 </html>
