@@ -313,7 +313,8 @@
         const secNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
-        const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
+        // إضافة مادة الأخلاقية ضمن المواد المتاحة
+        const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
 
         function getRoleBadge(role) {
             switch (role) {
@@ -672,6 +673,7 @@
             }
         }
 
+        // دالة التوليد التلقائي المعدلة لمنع اجتماع الفنية والرياضة لنفس الشعبة في نفس اليوم
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
@@ -730,6 +732,7 @@
                         let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
 
                         if (!grid[cellKey]) {
+                            // 1. التحقق من انشغال المعلم
                             let isTeacherBusy = false;
                             for (let checkG = 0; checkG < gradeNames.length; checkG++) {
                                 for (let checkS = 0; checkS < secNames.length; checkS++) {
@@ -742,7 +745,20 @@
                                 if (isTeacherBusy) break;
                             }
 
-                            if (!isTeacherBusy) {
+                            // 2. شرط جديد: منع اجتماع الفنية والرياضة في نفس اليوم لنفس الشعبة
+                            let hasActivityConflict = false;
+                            if (item.subject === 'فن' || item.subject === 'رياضة') {
+                                let otherSubject = item.subject === 'فن' ? 'رياضة' : 'فن';
+                                for (let checkL = 0; checkL < lessons.length; checkL++) {
+                                    let checkKey = `${slot.d}_${checkL}_${slot.g}_${slot.s}`;
+                                    if (grid[checkKey] && grid[checkKey].subject === otherSubject) {
+                                        hasActivityConflict = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!isTeacherBusy && !hasActivityConflict) {
                                 grid[cellKey] = {
                                     tId: item.tId,
                                     name: item.name,
