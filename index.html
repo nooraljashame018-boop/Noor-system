@@ -13,14 +13,8 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
-        .day-separator-red {
-            border-bottom: 4px solid #ef4444 !important;
-        }
-        .editable-cell:focus {
-            outline: 2px solid #2563eb;
-            background-color: #eff6ff !important;
-            border-radius: 6px;
-        }
+        .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
+        .editable-cell:focus { outline: 2px solid #2563eb; background-color: #eff6ff !important; border-radius: 6px; }
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
@@ -68,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v9.5
+                نظام إدارة الجداول الذكي v10.0
             </div>
         </div>
     </aside>
@@ -80,7 +74,7 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابلة للكتابة والتعديل المباشر)</h2>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
                     <p class="text-xs text-slate-500">يمكنك الضغط على أي خلية للكتابة والتعديل المباشر، وتُحفظ التغييرات تلقائياً.</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -151,17 +145,17 @@
                 </button>
             </div>
 
-            <!-- سجل إثبات الحضور بالوقت -->
+            <!-- سجل إثبات الحضور بالوقت والقيود الزمني-->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور اليومي بالوقت
+                            <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور والانصراف بالوقت
                         </h3>
-                        <div class="mt-1">
-                            <span class="text-xs font-bold text-slate-600">عدد الحضور الفعلي: <strong id="activePresentNum" class="text-emerald-700 text-sm">0</strong></span>
+                        <div class="mt-1 flex items-center gap-3 text-xs font-bold">
+                            <span class="text-slate-600">الحضور اليوم: <strong id="activePresentNum" class="text-emerald-700 text-sm">0</strong></span>
+                            <span class="text-blue-800 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">🕒 الدخول: 10:00 - 11:30 | والانصراف: 01:30 - 02:15</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5">تسجيل حضور الكادر وتحديث حالة الشواغر فورياً</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
@@ -179,7 +173,7 @@
         <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h3 class="text-base font-bold text-slate-800 border-b pb-3"><i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول</h3>
+                <h3 class="text-base font-bold text-slate-800 border-b pb-3"><i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول والانصراف</h3>
                 <div class="overflow-x-auto border border-slate-200 rounded-xl">
                     <table class="w-full text-right border-collapse text-xs">
                         <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
@@ -187,10 +181,11 @@
                                 <th class="p-3">الصورة</th>
                                 <th class="p-3">اسم العضو</th>
                                 <th class="p-3">الصفة</th>
-                                <th class="p-3">رقم الهاتف (واتساب)</th>
+                                <th class="p-3">رقم الهاتف</th>
                                 <th class="p-3">الصفوف والشعب</th>
                                 <th class="p-3 text-center">الحصص</th>
-                                <th class="p-3 text-center">وقت الحضور اليوم</th>
+                                <th class="p-3 text-center">وقت الدخول اليوم</th>
+                                <th class="p-3 text-center">وقت الانصراف اليوم</th>
                                 <th class="p-3 text-center">الحالة</th>
                                 <th class="p-3 text-center">إرسال الجدول</th>
                             </tr>
@@ -233,7 +228,7 @@
                 <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
                     <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
                 </h3>
-                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات حضور المعلم أو الإداري السابقة.</p>
+                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات دخول وانصراف المعلم أو الإداري السابقة.</p>
                 <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </section>
@@ -293,7 +288,7 @@
     <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
             <div class="bg-purple-900 text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left text-purple-300"></i> سجل حضور: <span id="historyTeacherName" class="text-purple-100"></span></h3>
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left text-purple-300"></i> سجل أوقات: <span id="historyTeacherName" class="text-purple-100"></span></h3>
                 <button onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-0 overflow-y-auto max-h-[60vh]">
@@ -301,7 +296,8 @@
                     <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 sticky top-0">
                         <tr>
                             <th class="p-3">التاريخ</th>
-                            <th class="p-3">وقت الحضور</th>
+                            <th class="p-3">وقت الدخول</th>
+                            <th class="p-3">وقت الانصراف</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody" class="divide-y divide-slate-200"></tbody>
@@ -350,67 +346,6 @@
             const count = list.filter(t => t.isPresent).length;
             const elem = document.getElementById('activePresentNum');
             if (elem) elem.innerText = count;
-        }
-
-        function sendTeacherScheduleWhatsApp(teacherId) {
-            let teachers = getTeachers();
-            let teacher = teachers.find(t => t.id == teacherId);
-            if (!teacher) return;
-
-            if (!teacher.phone) {
-                alert('يرجى إضافة رقم هاتف أولاً للإرسال عبر الواتساب');
-                return;
-            }
-
-            if (!teacher.assignments || teacher.assignments.length === 0) {
-                alert('هذا العضو ليس لديه حصص مخصصة في الجدول.');
-                return;
-            }
-
-            let grid = getScheduleData();
-            let teacherSchedule = [];
-
-            days.forEach((day, dIdx) => {
-                lessons.forEach((lesson, lIdx) => {
-                    gradeNames.forEach((gName, gIdx) => {
-                        secNames.forEach((sName, sIdx) => {
-                            let key = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
-                            if (grid[key] && grid[key].tId == teacherId) {
-                                teacherSchedule.push({
-                                    day: day,
-                                    lesson: lesson,
-                                    grade: gName,
-                                    section: sName,
-                                    subject: grid[key].subject
-                                });
-                            }
-                        });
-                    });
-                });
-            });
-
-            if (teacherSchedule.length === 0) {
-                alert('لا توجد حصص مخصصة في الجدول الحالي');
-                return;
-            }
-
-            let msg = `السلام عليكم أستاذ/ة *${teacher.name}* 🌸\n`;
-            msg += `إليك جدول الحصص الأسبوعي الخاص بك في *مدرسة الضياء*:\n\n`;
-
-            let currentDay = '';
-            teacherSchedule.forEach(item => {
-                if (item.day !== currentDay) {
-                    currentDay = item.day;
-                    msg += `📌 *يوم ${currentDay}:*\n`;
-                }
-                msg += `  • ${item.lesson}: الصف ${item.grade} (${item.section}) - مادة ${item.subject}\n`;
-            });
-
-            msg += `\nنتمنى لك أسبوعاً دراسياً موفقاً وشكراً لجهودك! ✨`;
-
-            let phoneNum = formatWhatsappPhone(teacher.phone);
-            let encodedMsg = encodeURIComponent(msg);
-            window.open(`https://wa.me/${phoneNum}?text=${encodedMsg}`, '_blank');
         }
 
         function getTeachers() {
@@ -548,6 +483,7 @@
                     maxQuota: totalQuota || 0,
                     isPresent: false,
                     checkInTime: null,
+                    checkOutTime: null,
                     attendanceHistory: [],
                     assignments: assignments
                 };
@@ -574,111 +510,103 @@
             }
         }
 
-        function openEditModal(teacherId) {
-            let teachers = getTeachers();
-            let teacher = teachers.find(t => t.id == teacherId);
-            if (!teacher) return;
-
-            document.getElementById('editTeacherId').value = teacher.id;
-            document.getElementById('editTName').value = teacher.name;
-            document.getElementById('editTRole').value = teacher.role || 'معلم';
-            document.getElementById('editTPhone').value = teacher.phone || '';
-
-            buildGradesForm('editGradesContainer', 'edit_');
-
-            if (teacher.assignments && teacher.assignments.length > 0) {
-                teacher.assignments.forEach(asgn => {
-                    let gIdx = asgn.gradeIndex;
-                    let sIdx = asgn.sectionIndex;
-
-                    let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
-                    let gBox = document.getElementById(`edit_g_box_${gIdx}`);
-                    let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
-
-                    if (gChk) gChk.checked = true;
-                    if (gBox) gBox.classList.remove('hidden');
-                    if (sChk) sChk.checked = true;
-
-                    let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
-                    let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
-
-                    if (sub1 && !sub1.value) {
-                        sub1.value = asgn.subject;
-                    } else if (sub2) {
-                        sub2.value = asgn.subject;
-                    }
-                });
-            }
-
-            document.getElementById('editTeacherModal').classList.remove('hidden');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editTeacherModal').classList.add('hidden');
-        }
-
-        function saveTeacherEdits() {
-            let id = document.getElementById('editTeacherId').value;
-            let teachers = getTeachers();
-            let idx = teachers.findIndex(t => t.id == id);
+        // دالة تسجيل الدخول والانصراف بالمواصفات الزمنيّة والمواعيد المفصّلة
+        function recordAttendance(id) {
+            let list = getTeachers();
+            let idx = list.findIndex(t => t.id == id);
             if (idx === -1) return;
 
-            let name = document.getElementById('editTName').value.trim();
-            let role = document.getElementById('editTRole').value;
-            let phone = document.getElementById('editTPhone').value.trim();
-            let photoInput = document.getElementById('editTPhoto');
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-            if (!name) { alert('الاسم مطلوب'); return; }
+            // المواعيد المحددة بالدقائق من منتصف الليل:
+            // الدخول: 10:00 صباحاً (600 دقيقة) إلى 11:30 صباحاً (690 دقيقة)
+            const entryStart = 10 * 60; 
+            const entryEnd = 11 * 60 + 30; 
 
-            const assignments = [];
-            let totalQuota = 0;
+            // الانصراف: 01:30 ظهراً (13:30 = 810 دقيقة) إلى 02:15 ظهراً (14:15 = 855 دقيقة)
+            const exitStart = 13 * 60 + 30; 
+            const exitEnd = 14 * 60 + 15; 
 
-            gradeNames.forEach((_, gIdx) => {
-                const gChk = document.getElementById(`edit_g_chk_${gIdx}`);
-                if (gChk && gChk.checked) {
-                    const gradeQuota = parseInt(document.getElementById(`edit_quota_${gIdx}`).value) || 12;
-                    totalQuota += gradeQuota;
+            const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const dateStr = now.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
-                    secNames.forEach((_, sIdx) => {
-                        const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
-                        if (sChk && sChk.checked) {
-                            const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
-                            const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+            if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
 
-                            if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
-                            if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
-                            if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
-                        }
-                    });
+            // 1. تسجيل الدخول
+            if (!list[idx].isPresent) {
+                if (currentMinutes < entryStart || currentMinutes > entryEnd) {
+                    let confirmOverride = confirm(`تنبيه: وقت تسجيل الدخول الرسمي هو بين (10:00 صباحاً و 11:30 صباحاً).\nالوقت الحالي هو (${timeStr}).\n\nهل تريد التسجيل والاستثناء برغبتك؟`);
+                    if (!confirmOverride) return;
                 }
-            });
 
-            const processUpdate = (photoBase64) => {
-                teachers[idx].name = name;
-                teachers[idx].role = role;
-                teachers[idx].phone = phone;
-                teachers[idx].maxQuota = totalQuota || 0;
-                teachers[idx].assignments = assignments;
-                if (photoBase64) teachers[idx].photo = photoBase64;
+                list[idx].isPresent = true;
+                list[idx].checkInTime = timeStr;
+                list[idx].checkOutTime = null;
 
-                saveTeachers(teachers);
-                autoGenerateFullSchedule();
+                let historyItem = list[idx].attendanceHistory.find(h => h.date === dateStr);
+                if (historyItem) {
+                    historyItem.entryTime = timeStr;
+                } else {
+                    list[idx].attendanceHistory.push({ date: dateStr, entryTime: timeStr, exitTime: '-' });
+                }
+                alert(`تم تسجيل دخول أستاذ/ة (${list[idx].name}) في تمام الساعة ${timeStr}`);
+            } 
+            // 2. تسجيل الانصراف
+            else {
+                if (currentMinutes < exitStart || currentMinutes > exitEnd) {
+                    let confirmOverride = confirm(`تنبيه: وقت تسجيل الانصراف الرسمي هو بين (01:30 ظهراً و 02:15 ظهراً).\nالوقت الحالي هو (${timeStr}).\n\nهل تريد تسجيل الانصراف الآن؟`);
+                    if (!confirmOverride) return;
+                }
 
-                closeEditModal();
-                refreshAllViews();
-                alert('تم التحديث بنجاح!');
-            };
+                list[idx].isPresent = false;
+                list[idx].checkOutTime = timeStr;
 
-            if (photoInput.files && photoInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) { processUpdate(e.target.result); };
-                reader.readAsDataURL(photoInput.files[0]);
-            } else {
-                processUpdate(null);
+                let historyItem = list[idx].attendanceHistory.find(h => h.date === dateStr);
+                if (historyItem) {
+                    historyItem.exitTime = timeStr;
+                } else {
+                    list[idx].attendanceHistory.push({ date: dateStr, entryTime: list[idx].checkInTime || '-', exitTime: timeStr });
+                }
+                alert(`تم تسجيل انصراف أستاذ/ة (${list[idx].name}) في تمام الساعة ${timeStr}`);
             }
+
+            saveTeachers(list);
+            refreshAllViews();
         }
 
-        // دالة التوليد الذكي التلقائي
+        function openHistoryModal(id) {
+            let teachers = getTeachers();
+            let teacher = teachers.find(t => t.id == id);
+            if (!teacher) return;
+            
+            document.getElementById('historyTeacherName').innerText = teacher.name;
+            const tbody = document.getElementById('historyTableBody');
+            
+            if (!teacher.attendanceHistory || teacher.attendanceHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-slate-500 font-bold text-center">لا توجد سجلات حضور وانصراف سابقة</td></tr>`;
+            } else {
+                let sortedHistory = [...teacher.attendanceHistory].reverse();
+                tbody.innerHTML = sortedHistory.map(h => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-700">${h.date}</td>
+                        <td class="p-3 font-bold text-emerald-600">${h.entryTime || h.time || '-'}</td>
+                        <td class="p-3 font-bold text-amber-600">${h.exitTime || '-'}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            let modal = document.getElementById('historyModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeHistoryModal() {
+            let modal = document.getElementById('historyModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
@@ -789,7 +717,6 @@
             renderSchedule();
         }
 
-        // حفظ التعديلات اليدوية المباشرة للكتابة في الخلايا
         function updateCellManual(cellKey, field, value) {
             let savedGrid = getScheduleData();
             if (!savedGrid[cellKey]) {
@@ -797,64 +724,6 @@
             }
             savedGrid[cellKey][field] = value.trim();
             saveScheduleData(savedGrid);
-        }
-
-        function recordAttendance(id) {
-            let list = getTeachers();
-            let idx = list.findIndex(t => t.id == id);
-            if (idx !== -1) {
-                if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
-
-                if (!list[idx].isPresent) {
-                    const now = new Date();
-                    const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
-                    const dateStr = now.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                    
-                    list[idx].isPresent = true;
-                    list[idx].checkInTime = timeStr;
-                    
-                    let existingEntry = list[idx].attendanceHistory.find(h => h.date === dateStr);
-                    if (!existingEntry) {
-                        list[idx].attendanceHistory.push({ date: dateStr, time: timeStr });
-                    }
-                } else {
-                    list[idx].isPresent = false;
-                    list[idx].checkInTime = null;
-                }
-                saveTeachers(list);
-                refreshAllViews();
-            }
-        }
-
-        function openHistoryModal(id) {
-            let teachers = getTeachers();
-            let teacher = teachers.find(t => t.id == id);
-            if (!teacher) return;
-            
-            document.getElementById('historyTeacherName').innerText = teacher.name;
-            const tbody = document.getElementById('historyTableBody');
-            
-            if (!teacher.attendanceHistory || teacher.attendanceHistory.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="2" class="p-6 text-slate-500 font-bold text-center">لا توجد سجلات حضور سابقة</td></tr>`;
-            } else {
-                let sortedHistory = [...teacher.attendanceHistory].reverse();
-                tbody.innerHTML = sortedHistory.map(h => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold text-slate-700">${h.date}</td>
-                        <td class="p-3 font-bold text-emerald-600">${h.time}</td>
-                    </tr>
-                `).join('');
-            }
-            
-            let modal = document.getElementById('historyModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeHistoryModal() {
-            let modal = document.getElementById('historyModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
         }
 
         function deleteTeacher(id) {
@@ -972,22 +841,16 @@
                     </div>
 
                     <div class="space-y-2">
-                        ${hasAssignments ? `
-                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="w-full py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-                            <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> إرسال الجدول
-                        </button>
-                        ` : ''}
-
                         ${t.isPresent ? `
-                            <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5">
-                                <i class="fas fa-circle-check text-emerald-600"></i> تم تسجيل الحضور: ${t.checkInTime}
+                            <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs">
+                                <div>🟢 الدخول: ${t.checkInTime}</div>${t.checkOutTime ? `<div class="text-amber-800 text-[11px] mt-0.5">🔴 الانصراف: ${t.checkOutTime}</div>` : ''}
                             </div>
-                            <button onclick="recordAttendance(${t.id})" class="w-full py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
-                                تسجيل الخروج
+                            <button onclick="recordAttendance(${t.id})" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm">
+                                <i class="fas fa-right-from-bracket"></i> تسجيل الانصراف
                             </button>
                         ` : `
                             <button onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
-                                <i class="fas fa-fingerprint text-base"></i> تسجيل حضور اليوم للدوام
+                                <i class="fas fa-fingerprint text-base"></i> تسجيل الدخول للدوام
                             </button>
                         `}
                     </div>
@@ -1000,7 +863,7 @@
             const body = document.getElementById('allStaffTableBody');
             let list = getTeachers();
             if (list.length === 0) {
-                body.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400">لا يوجد كادر</td></tr>`;
+                body.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400">لا يوجد كادر</td></tr>`;
                 return;
             }
 
@@ -1023,7 +886,8 @@
                     </td>
                     <td class="p-3">${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}):${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>'}</td>
                     <td class="p-3 text-center font-bold">${t.maxQuota || 0}</td>
-                    <td class="p-3 text-center font-bold text-blue-600">${t.checkInTime ? t.checkInTime : '-'}</td>
+                    <td class="p-3 text-center font-bold text-emerald-600">${t.checkInTime ? t.checkInTime : '-'}</td>
+                    <td class="p-3 text-center font-bold text-amber-600">${t.checkOutTime ? t.checkOutTime : '-'}</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
                     <td class="p-3 text-center">
                         ${hasAssignments ? `
