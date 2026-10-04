@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v11.0
+                نظام إدارة الجداول الذكي v11.5
             </div>
         </div>
     </aside>
@@ -136,7 +136,7 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">الصف والشعبة والمادة (اختياري، غير مخصصة للمرشد التربوي أو المدراء):</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">الصف والشعبة والمادة (اختياري، غير مخصصة للمرشد التربوي):</span>
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
@@ -222,7 +222,7 @@
             </div>
         </section>
 
-        <!-- 5. تقرير الحضور الأسبوعي مع أزرار الحذف والتحديث -->
+        <!-- 5. تقرير الحضور الأسبوعي -->
         <section id="reportsView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -383,6 +383,7 @@
 
         window.onload = function() {
             buildGradesForm('gradesContainer', '');
+            buildGradesForm('editGradesContainer', 'edit_');
             refreshAllViews();
         };
 
@@ -396,6 +397,7 @@
 
         function buildGradesForm(containerId, prefix = '') {
             const container = document.getElementById(containerId);
+            if (!container) return;
             let html = '';
             gradeNames.forEach((gName, gIdx) => {
                 html += `
@@ -462,7 +464,6 @@
             const assignments = [];
             let totalQuota = 0;
 
-            // إذا لم يكن مرشداً تربوياً، نقوم بتسجيل الحصص والصفوف
             if (role !== 'مرشد تربوي') {
                 gradeNames.forEach((_, gIdx) => {
                     const gChk = document.getElementById(`g_chk_${gIdx}`);
@@ -520,6 +521,118 @@
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
                 processSave('');
+            }
+        }
+
+        // --- دوال تعديل بيانات المعلم والنافذة (Modal) ---
+        function openEditModal(id) {
+            let teachers = getTeachers();
+            let t = teachers.find(item => item.id == id);
+            if (!t) return;
+
+            document.getElementById('editTeacherId').value = t.id;
+            document.getElementById('editTName').value = t.name || '';
+            document.getElementById('editTRole').value = t.role || 'معلم';
+            document.getElementById('editTPhone').value = t.phone || '';
+
+            buildGradesForm('editGradesContainer', 'edit_');
+
+            if (t.assignments && t.assignments.length > 0) {
+                t.assignments.forEach(asgn => {
+                    let gIdx = asgn.gradeIndex;
+                    let sIdx = asgn.sectionIndex;
+
+                    let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                    let gBox = document.getElementById(`edit_g_box_${gIdx}`);
+                    if (gChk) {
+                        gChk.checked = true;
+                        if (gBox) gBox.classList.remove('hidden');
+                    }
+
+                    let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+                    if (sChk) sChk.checked = true;
+
+                    let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
+                    let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
+
+                    if (sub1 && !sub1.value) {
+                        sub1.value = asgn.subject;
+                    } else if (sub2) {
+                        sub2.value = asgn.subject;
+                    }
+                });
+            }
+
+            let modal = document.getElementById('editTeacherModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            let modal = document.getElementById('editTeacherModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveTeacherEdits() {
+            let id = document.getElementById('editTeacherId').value;
+            let list = getTeachers();
+            let idx = list.findIndex(t => t.id == id);
+            if (idx === -1) return;
+
+            let name = document.getElementById('editTName').value.trim();
+            let role = document.getElementById('editTRole').value;
+            let phone = document.getElementById('editTPhone').value.trim();
+            let photoInput = document.getElementById('editTPhoto');
+
+            if (!name) { alert('يرجى كتابة الاسم'); return; }
+
+            let assignments = [];
+            let totalQuota = 0;
+
+            if (role !== 'مرشد تربوي') {
+                gradeNames.forEach((_, gIdx) => {
+                    const gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                    if (gChk && gChk.checked) {
+                        const gradeQuota = parseInt(document.getElementById(`edit_quota_${gIdx}`).value) || 12;
+                        totalQuota += gradeQuota;
+
+                        secNames.forEach((_, sIdx) => {
+                            const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+                            if (sChk && sChk.checked) {
+                                const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
+                                const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+
+                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                            }
+                        });
+                    }
+                });
+            }
+
+            const applySave = (photoBase64) => {
+                list[idx].name = name;
+                list[idx].role = role;
+                list[idx].phone = phone;
+                if (photoBase64) list[idx].photo = photoBase64;
+                list[idx].maxQuota = role === 'مرشد تربوي' ? 0 : totalQuota;
+                list[idx].assignments = role === 'مرشد تربوي' ? [] : assignments;
+
+                saveTeachers(list);
+                autoGenerateFullSchedule();
+                closeEditModal();
+                refreshAllViews();
+                alert('تم حفظ التعديلات بنجاح!');
+            };
+
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { applySave(e.target.result); };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                applySave(null);
             }
         }
 
@@ -648,10 +761,8 @@
             modal.classList.remove('flex');
         }
 
-        // دالة التوليد التلقائي للجدول - يستثنى منها المرشد التربوي والوظائف غير التعليمية
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
-            // استبعاد المرشد التربوي من الجدول العام
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
 
             if (teachingStaff.length === 0) {
@@ -944,7 +1055,6 @@
             }).join('');
         }
 
-        // استبعاد المرشد التربوي والمدراء والإداريين من بدلاء الشواغر والمراقبة
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
             let list = getTeachers().filter(t => t.isPresent && t.role === 'معلم');
