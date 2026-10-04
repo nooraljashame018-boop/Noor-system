@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v17.0
+                نظام إدارة الجداول الذكي v18.0
             </div>
         </div>
     </aside>
@@ -169,7 +169,7 @@
             </div>
         </section>
 
-        <!-- 3. جميع الكادر المدرسي وسجل الأوقات (عرض المادة فقط في عمود المواد) -->
+        <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <h3 class="text-base font-bold text-slate-800 border-b pb-3"><i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول والانصراف</h3>
@@ -218,21 +218,45 @@
             </div>
         </section>
 
-        <!-- 5. تقرير الحضور الأسبوعي -->
+        <!-- 5. تقرير الحضور الزمني المطور المعتمد على اختيار التاريخ -->
         <section id="reportsView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
+                            <i class="fas fa-calendar-check text-purple-600"></i> سجل الحضور والغياب اليومي للكادر بالتاريخ
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1">اضغط على "عرض السجل" لرؤية تفاصيل التواريخ السابقة أو لحذف سجل معين.</p>
+                        <p class="text-xs text-slate-500 mt-1">حدد التاريخ لعرض سجل الدخول والانصراف والحالة الكاملة للكادر في ذلك اليوم.</p>
                     </div>
-                    <button onclick="clearAllAttendanceLogs()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
-                        <i class="fas fa-broom"></i> تصفير/مسح جميع السجلات القديمة
-                    </button>
+                    
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="flex items-center gap-2 bg-purple-50 border border-purple-200 px-3 py-2 rounded-xl">
+                            <label for="reportDatePicker" class="text-xs font-bold text-purple-900 whitespace-nowrap">📅 اختر التاريخ:</label>
+                            <input type="date" id="reportDatePicker" value="2026-10-05" min="2026-10-05" onchange="renderReportsList()" class="bg-white border border-purple-300 rounded-lg p-1 text-xs font-bold text-purple-900 outline-none">
+                        </div>
+
+                        <button onclick="clearAllAttendanceLogs()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fas fa-broom"></i> تصفير جميع السجلات
+                        </button>
+                    </div>
                 </div>
-                <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead class="bg-purple-900 text-white font-bold">
+                            <tr>
+                                <th class="p-3 text-center">الصورة</th>
+                                <th class="p-3">اسم العضو</th>
+                                <th class="p-3 text-center">الصفة</th>
+                                <th class="p-3 text-center">الحالة بالتاريخ المختار</th>
+                                <th class="p-3 text-center">وقت الدخول</th>
+                                <th class="p-3 text-center">وقت الانصراف</th>
+                                <th class="p-3 text-center">إدارة السجل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -729,7 +753,12 @@
             const exitEnd = 14 * 60 + 15; 
 
             const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const dateStr = now.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            
+            // صيغة التاريخ الموحدة YYYY-MM-DD
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
 
             if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
 
@@ -988,33 +1017,47 @@
             renderSchedule();
         }
 
+        // عرض تقرير الحضور والغياب بناءً على التاريخ المختار من التقويم
         function renderReportsList() {
-            const container = document.getElementById('reportsList');
+            const tableBody = document.getElementById('reportsTableBody');
+            const datePicker = document.getElementById('reportDatePicker');
+            if (!tableBody || !datePicker) return;
+
+            let selectedDate = datePicker.value;
             let list = getTeachers();
-            
+
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل في النظام</td></tr>`;
                 return;
             }
 
-            container.innerHTML = list.map(t => {
-                let historyCount = t.attendanceHistory ? t.attendanceHistory.length : 0;
+            tableBody.innerHTML = list.map(t => {
+                let historyItem = (t.attendanceHistory || []).find(h => h.date === selectedDate);
+
+                let isPresentOnDate = !!historyItem;
+                let entryTime = historyItem ? (historyItem.entryTime || historyItem.time || '-') : '-';
+                let exitTime = historyItem ? (historyItem.exitTime || '-') : '-';
+
                 return `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-200">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400"><i class="fas fa-user"></i></div>`}
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
-                                ${getRoleBadge(t.role)}
-                            </div>
-                            <span class="text-[11px] text-slate-500 font-bold mt-1 block">أيام الحضور المسجلة: <span class="text-purple-600">${historyCount}</span> يوم</span>
-                        </div>
-                    </div>
-                    <button onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
-                        <i class="fas fa-list-check"></i> عرض السجل
-                    </button>
-                </div>
+                <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                    <td class="p-3 text-center">
+                        ${t.photo ? `<img src="${t.photo}" class="w-9 h-9 rounded-full object-cover border border-slate-300 mx-auto">` : `<div class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto"><i class="fas fa-user text-xs"></i></div>`}
+                    </td>
+                    <td class="p-3 font-bold text-slate-800">${t.name}</td>
+                    <td class="p-3 text-center">${getRoleBadge(t.role)}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isPresentOnDate ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+                            ${isPresentOnDate ? '🟢 حاضر' : '🔴 غائب / لم يسجل'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-center font-bold text-emerald-600">${entryTime}</td>
+                    <td class="p-3 text-center font-bold text-amber-600">${exitTime}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1">
+                            <i class="fas fa-list-check"></i> السجل الشامل
+                        </button>
+                    </td>
+                </tr>
                 `;
             }).join('');
         }
@@ -1094,7 +1137,6 @@
             }).join('');
         }
 
-        // إخراج أسماء المواد فقط بدون الصف والترقيم
         function renderAllStaffTable() {
             const body = document.getElementById('allStaffTableBody');
             let list = getTeachers();
@@ -1106,14 +1148,12 @@
             body.innerHTML = list.map((t) => {
                 let waPhone = formatWhatsappPhone(t.phone);
                 let hasAssignments = t.assignments && t.assignments.length > 0;
-                
-                // تجميع المواد الفريدة فقط المعينة للطلب
                 let uniqueSubjects = hasAssignments ? Array.from(new Set(t.assignments.map(a => a.subject))).join(', ') : '';
 
                 return `
                 <tr>
                     <td class="p-3">
-                        ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-user text-xs"></i></div>`}
+                        ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border mx-auto">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto"><i class="fas fa-user text-xs"></i></div>`}
                     </td>
                     <td class="p-3 font-bold text-slate-800">${t.name}</td>
                     <td class="p-3">
