@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v10.0
+                نظام إدارة الجداول الذكي v10.5
             </div>
         </div>
     </aside>
@@ -222,13 +222,20 @@
             </div>
         </section>
 
-        <!-- 5. تقرير الحضور الأسبوعي -->
+        <!-- 5. تقرير الحضور الأسبوعي مع أزرار الحذف والتحديث -->
         <section id="reportsView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h3 class="text-base font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
-                </h3>
-                <p class="text-xs text-slate-500 mb-4">اضغط على "عرض السجل" لرؤية تفاصيل تواريخ وأوقات دخول وانصراف المعلم أو الإداري السابقة.</p>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-chart-bar text-purple-600"></i> تقرير الحضور الزمني للكادر
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">اضغط على "عرض السجل" لرؤية تفاصيل التواريخ السابقة أو لحذف سجل معين.</p>
+                    </div>
+                    <button onclick="clearAllAttendanceLogs()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-broom"></i> تصفير/مسح جميع السجلات القديمة
+                    </button>
+                </div>
                 <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </section>
@@ -303,7 +310,10 @@
                     <tbody id="historyTableBody" class="divide-y divide-slate-200"></tbody>
                 </table>
             </div>
-            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end">
+            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-between items-center">
+                <button id="clearSingleTeacherHistoryBtn" onclick="" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold rounded-xl text-xs transition flex items-center gap-1">
+                    <i class="fas fa-trash"></i> مسح سجل هذا المعلم
+                </button>
                 <button onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
             </div>
         </div>
@@ -510,7 +520,6 @@
             }
         }
 
-        // دالة تسجيل الدخول والانصراف بالمواصفات الزمنيّة والمواعيد المفصّلة
         function recordAttendance(id) {
             let list = getTeachers();
             let idx = list.findIndex(t => t.id == id);
@@ -519,12 +528,9 @@
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-            // المواعيد المحددة بالدقائق من منتصف الليل:
-            // الدخول: 10:00 صباحاً (600 دقيقة) إلى 11:30 صباحاً (690 دقيقة)
             const entryStart = 10 * 60; 
             const entryEnd = 11 * 60 + 30; 
 
-            // الانصراف: 01:30 ظهراً (13:30 = 810 دقيقة) إلى 02:15 ظهراً (14:15 = 855 دقيقة)
             const exitStart = 13 * 60 + 30; 
             const exitEnd = 14 * 60 + 15; 
 
@@ -533,7 +539,6 @@
 
             if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
 
-            // 1. تسجيل الدخول
             if (!list[idx].isPresent) {
                 if (currentMinutes < entryStart || currentMinutes > entryEnd) {
                     let confirmOverride = confirm(`تنبيه: وقت تسجيل الدخول الرسمي هو بين (10:00 صباحاً و 11:30 صباحاً).\nالوقت الحالي هو (${timeStr}).\n\nهل تريد التسجيل والاستثناء برغبتك؟`);
@@ -552,7 +557,6 @@
                 }
                 alert(`تم تسجيل دخول أستاذ/ة (${list[idx].name}) في تمام الساعة ${timeStr}`);
             } 
-            // 2. تسجيل الانصراف
             else {
                 if (currentMinutes < exitStart || currentMinutes > exitEnd) {
                     let confirmOverride = confirm(`تنبيه: وقت تسجيل الانصراف الرسمي هو بين (01:30 ظهراً و 02:15 ظهراً).\nالوقت الحالي هو (${timeStr}).\n\nهل تريد تسجيل الانصراف الآن؟`);
@@ -575,12 +579,48 @@
             refreshAllViews();
         }
 
+        // دالة مسح وتصفير جميع السجلات القديمة لكل المعلمين
+        function clearAllAttendanceLogs() {
+            if (!confirm('هل أنت متأكد من مسح وتصفير جميع سجلات الدخول والانصراف القديمة لكل الكادر؟')) return;
+            
+            let list = getTeachers();
+            list.forEach(t => {
+                t.attendanceHistory = [];
+                t.checkInTime = null;
+                t.checkOutTime = null;
+                t.isPresent = false;
+            });
+            
+            saveTeachers(list);
+            refreshAllViews();
+            alert('تم مسح وتصفير جميع السجلات القديمة بنجاح!');
+        }
+
+        // دالة مسح سجل معلم واحد
+        function clearSingleTeacherAttendance(id) {
+            if (!confirm('هل أنت متأكد من مسح سجل هذا المعلم فقط؟')) return;
+            let list = getTeachers();
+            let idx = list.findIndex(t => t.id == id);
+            if (idx !== -1) {
+                list[idx].attendanceHistory = [];
+                list[idx].checkInTime = null;
+                list[idx].checkOutTime = null;
+                list[idx].isPresent = false;
+                saveTeachers(list);
+                closeHistoryModal();
+                refreshAllViews();
+                alert('تم مسح سجل المعلم بنجاح.');
+            }
+        }
+
         function openHistoryModal(id) {
             let teachers = getTeachers();
             let teacher = teachers.find(t => t.id == id);
             if (!teacher) return;
             
             document.getElementById('historyTeacherName').innerText = teacher.name;
+            document.getElementById('clearSingleTeacherHistoryBtn').setAttribute('onclick', `clearSingleTeacherAttendance(${id})`);
+            
             const tbody = document.getElementById('historyTableBody');
             
             if (!teacher.attendanceHistory || teacher.attendanceHistory.length === 0) {
