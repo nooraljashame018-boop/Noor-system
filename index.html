@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v18.0
+                نظام إدارة الجداول الذكي v19.0
             </div>
         </div>
     </aside>
@@ -151,9 +151,15 @@
                         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور والانصراف بالوقت
                         </h3>
-                        <div class="mt-1 flex items-center gap-3 text-xs font-bold">
+                        <div class="mt-2 flex items-center gap-3 text-xs font-bold flex-wrap">
+                            <!-- شريط التاريخ واليوم المتزامن تلقائياً مع الجهاز -->
+                            <span class="text-emerald-900 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm">
+                                <i class="fas fa-calendar-day text-emerald-600 text-sm"></i>
+                                <span id="currentLiveDateText">تاريخ اليوم...</span>
+                            </span>
+                            
                             <span class="text-slate-600">الحضور اليوم: <strong id="activePresentNum" class="text-emerald-700 text-sm">0</strong></span>
-                            <span class="text-blue-800 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">🕒 الدخول: 10:00 - 11:30 | والانصراف: 01:30 - 02:15</span>
+                            <span class="text-blue-800 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">🕒 الدخول: 10:00 - 11:30 | والانصراف: 01:30 - 02:15</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -232,7 +238,7 @@
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="flex items-center gap-2 bg-purple-50 border border-purple-200 px-3 py-2 rounded-xl">
                             <label for="reportDatePicker" class="text-xs font-bold text-purple-900 whitespace-nowrap">📅 اختر التاريخ:</label>
-                            <input type="date" id="reportDatePicker" value="2026-10-05" min="2026-10-05" onchange="renderReportsList()" class="bg-white border border-purple-300 rounded-lg p-1 text-xs font-bold text-purple-900 outline-none">
+                            <input type="date" id="reportDatePicker" onchange="renderReportsList()" class="bg-white border border-purple-300 rounded-lg p-1 text-xs font-bold text-purple-900 outline-none">
                         </div>
 
                         <button onclick="clearAllAttendanceLogs()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
@@ -354,9 +360,45 @@
         const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
         const secNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+        const weekDaysFull = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
         const coreSubjects = ['عربي', 'رياضيات', 'إنكليزي', 'علوم'];
+
+        function getTodayFormattedISO() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function updateSystemLiveDateHeader() {
+            const now = new Date();
+            const dayName = weekDaysFull[now.getDay()];
+            const formattedDate = now.toLocaleDateString('ar-IQ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            
+            const liveElem = document.getElementById('currentLiveDateText');
+            if (liveElem) {
+                liveElem.innerText = `${dayName}، ${formattedDate}`;
+            }
+
+            // تحديث خيار اليوم التلقائي في قسم البدلاء وفقاً ليوم الهاتف الحالي
+            const backupSelect = document.getElementById('backupDaySelect');
+            if (backupSelect) {
+                const currentDayIndex = now.getDay();
+                // الأحد (0) إلى الخميس (4)
+                if (currentDayIndex >= 0 && currentDayIndex <= 4) {
+                    backupSelect.value = currentDayIndex;
+                }
+            }
+
+            // تحديث التاريخ في تقويم قسم التقرير ليطابق الهاتف
+            const reportPicker = document.getElementById('reportDatePicker');
+            if (reportPicker && !reportPicker.value) {
+                reportPicker.value = getTodayFormattedISO();
+            }
+        }
 
         function getRoleBadge(role) {
             switch (role) {
@@ -414,6 +456,7 @@
         }
 
         window.onload = function() {
+            updateSystemLiveDateHeader();
             buildGradesForm('gradesContainer', '');
             buildGradesForm('editGradesContainer', 'edit_');
             refreshAllViews();
@@ -754,11 +797,8 @@
 
             const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
             
-            // صيغة التاريخ الموحدة YYYY-MM-DD
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
+            // تاريخ الهاتف المتزامن بتركيبة YYYY-MM-DD
+            const dateStr = getTodayFormattedISO();
 
             if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
 
@@ -1005,6 +1045,7 @@
         }
 
         function manualRefreshAll() {
+            updateSystemLiveDateHeader();
             refreshAllViews();
         }
 
@@ -1017,13 +1058,12 @@
             renderSchedule();
         }
 
-        // عرض تقرير الحضور والغياب بناءً على التاريخ المختار من التقويم
         function renderReportsList() {
             const tableBody = document.getElementById('reportsTableBody');
             const datePicker = document.getElementById('reportDatePicker');
             if (!tableBody || !datePicker) return;
 
-            let selectedDate = datePicker.value;
+            let selectedDate = datePicker.value || getTodayFormattedISO();
             let list = getTeachers();
 
             if (list.length === 0) {
