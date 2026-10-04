@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v14.0
+                نظام إدارة الجداول الذكي v15.0
             </div>
         </div>
     </aside>
@@ -241,7 +241,7 @@
 
     </main>
 
-    <!-- نافذة تعديل البيانات (Modal) مع زر حذف الصورة المضاف -->
+    <!-- نافذة تعديل البيانات (Modal) -->
     <div id="editTeacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
@@ -274,7 +274,6 @@
                     </div>
                 </div>
 
-                <!-- حقل اختيار وقسم حذف الصورة الحاليّة -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">تغيير الصورة أو حذفها:</label>
                     <div class="flex items-center gap-2">
@@ -407,6 +406,7 @@
             refreshAllViews();
         }
 
+        // بناء نموذج الصفوف المحدث ليشمل خانات الحصص الخاصة بكل مادة + المجموع الذكي
         function buildGradesForm(containerId, prefix = '') {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -416,12 +416,12 @@
                   <div class="border border-slate-200 rounded-xl p-3 bg-white shadow-sm">
                     <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
                         <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
-                          <input type="checkbox" id="${prefix}g_chk_${gIdx}" onchange="document.getElementById('${prefix}g_box_${gIdx}').classList.toggle('hidden', !this.checked)" class="rounded text-emerald-600">
+                          <input type="checkbox" id="${prefix}g_chk_${gIdx}" onchange="document.getElementById('${prefix}g_box_${gIdx}').classList.toggle('hidden', !this.checked); recalculateGradeTotalQuota('${prefix}', ${gIdx});" class="rounded text-emerald-600">
                           <span>الصف ${gName}</span>
                         </label>
                         <div class="flex items-center gap-1 text-[11px] text-slate-600">
                           <label for="${prefix}quota_${gIdx}" class="font-semibold">عدد الحصص:</label>
-                          <input type="number" id="${prefix}quota_${gIdx}" value="12" min="1" max="25" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 font-bold">
+                          <input type="number" id="${prefix}quota_${gIdx}" value="0" min="0" max="30" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 font-bold">
                         </div>
                     </div>
 
@@ -433,18 +433,27 @@
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" class="rounded text-emerald-600"> شعبة ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> شعبة ${sName}
                           </label>
 
-                          <div class="grid grid-cols-2 gap-1 mt-1">
-                            <select id="${prefix}sub_${gIdx}_${sIdx}_1" class="text-[11px] p-1 border rounded bg-white font-medium">
-                                <option value="">المادة الأولى</option>
-                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
-                            <select id="${prefix}sub_${gIdx}_${sIdx}_2" class="text-[11px] p-1 border rounded bg-white font-medium">
-                                <option value="">المادة الثانية (اختياري)</option>
-                                ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
+                          <div class="space-y-1.5 mt-1">
+                            <!-- المادة الأولى مع حقل عدد حصصها -->
+                            <div class="flex items-center gap-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                                  <option value="">المادة الأولى</option>
+                                  ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                              </select>
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="4" min="1" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-10 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                            </div>
+
+                            <!-- المادة الثانية مع حقل عدد حصصها -->
+                            <div class="flex items-center gap-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                                  <option value="">المادة الثانية (اختياري)</option>
+                                  ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                              </select>
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="2" min="1" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-10 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                            </div>
                           </div>
                         </div>
                       `).join('')}
@@ -455,6 +464,28 @@
             container.innerHTML = html;
         }
 
+        // إشعار ودالة لحساب المجموع التلقائي لحصص الصف
+        function recalculateGradeTotalQuota(prefix, gIdx) {
+            let total = 0;
+            const gChk = document.getElementById(`${prefix}g_chk_${gIdx}`);
+            if (gChk && gChk.checked) {
+                secNames.forEach((_, sIdx) => {
+                    const sChk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
+                    if (sChk && sChk.checked) {
+                        const s1 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_1`).value;
+                        const q1 = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_1`).value) || 0;
+                        if (s1) total += q1;
+
+                        const s2 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_2`).value;
+                        const q2 = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_2`).value) || 0;
+                        if (s2) total += q2;
+                    }
+                });
+            }
+            const quotaInput = document.getElementById(`${prefix}quota_${gIdx}`);
+            if (quotaInput) quotaInput.value = total;
+        }
+
         function clearSectionSelection(prefix, gIdx, sIdx) {
             const chk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
             const sub1 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_1`);
@@ -463,6 +494,8 @@
             if (chk) chk.checked = false;
             if (sub1) sub1.value = '';
             if (sub2) sub2.value = '';
+
+            recalculateGradeTotalQuota(prefix, gIdx);
         }
 
         function saveNewTeacher() {
@@ -480,18 +513,21 @@
                 gradeNames.forEach((_, gIdx) => {
                     const gChk = document.getElementById(`g_chk_${gIdx}`);
                     if (gChk && gChk.checked) {
-                        const gradeQuota = parseInt(document.getElementById(`quota_${gIdx}`).value) || 12;
+                        const gradeQuota = parseInt(document.getElementById(`quota_${gIdx}`).value) || 0;
                         totalQuota += gradeQuota;
 
                         secNames.forEach((_, sIdx) => {
                             const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
                             if (sChk && sChk.checked) {
                                 const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
-                                const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
+                                const q1 = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_1`).value) || 4;
 
-                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
-                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
-                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                                const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
+                                const q2 = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_2`).value) || 2;
+
+                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1, subjectQuota: q1 });
+                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2, subjectQuota: q2 });
+                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام', subjectQuota: 4 });
                             }
                         });
                     }
@@ -536,7 +572,6 @@
             }
         }
 
-        // فتح نافذة التعديل وإتاحة خيار مسح الصورة
         function openEditModal(id) {
             let teachers = getTeachers();
             let t = teachers.find(item => item.id == id);
@@ -580,14 +615,20 @@
                     if (sChk) sChk.checked = true;
 
                     let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
+                    let sub1Q = document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_1`);
                     let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
+                    let sub2Q = document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_2`);
 
                     if (sub1 && !sub1.value) {
                         sub1.value = asgn.subject;
+                        if (sub1Q) sub1Q.value = asgn.subjectQuota || 4;
                     } else if (sub2) {
                         sub2.value = asgn.subject;
+                        if (sub2Q) sub2Q.value = asgn.subjectQuota || 2;
                     }
                 });
+
+                gradeNames.forEach((_, gIdx) => recalculateGradeTotalQuota('edit_', gIdx));
             }
 
             let modal = document.getElementById('editTeacherModal');
@@ -629,18 +670,21 @@
                 gradeNames.forEach((_, gIdx) => {
                     const gChk = document.getElementById(`edit_g_chk_${gIdx}`);
                     if (gChk && gChk.checked) {
-                        const gradeQuota = parseInt(document.getElementById(`edit_quota_${gIdx}`).value) || 12;
+                        const gradeQuota = parseInt(document.getElementById(`edit_quota_${gIdx}`).value) || 0;
                         totalQuota += gradeQuota;
 
                         secNames.forEach((_, sIdx) => {
                             const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
                             if (sChk && sChk.checked) {
                                 const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
-                                const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+                                const q1 = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_1`).value) || 4;
 
-                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
-                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
-                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                                const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
+                                const q2 = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_2`).value) || 2;
+
+                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1, subjectQuota: q1 });
+                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2, subjectQuota: q2 });
+                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام', subjectQuota: 4 });
                             }
                         });
                     }
@@ -817,11 +861,11 @@
             let pool = [];
             teachingStaff.forEach(t => {
                 let assignedQuota = 0;
-                let quotaPerAsgn = Math.max(1, Math.floor((t.maxQuota || 12) / t.assignments.length));
 
                 t.assignments.forEach(asgn => {
-                    for(let i = 0; i < quotaPerAsgn; i++) {
-                        if (assignedQuota < t.maxQuota) {
+                    let qCount = asgn.subjectQuota || Math.max(1, Math.floor((t.maxQuota || 12) / t.assignments.length));
+                    for(let i = 0; i < qCount; i++) {
+                        if (assignedQuota < (t.maxQuota || 30)) {
                             pool.push({
                                 tId: t.id,
                                 name: t.name,
@@ -1034,7 +1078,7 @@
                         </div>
 
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                            ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي (حضور وانصراف فقط)</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
+                            ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي (حضور وانصراف فقط)</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b> (${a.subjectQuota || 4} حصص)`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
                         </div>
                     </div>
 
