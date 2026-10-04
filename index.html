@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v12.0
+                نظام إدارة الجداول الذكي v13.0
             </div>
         </div>
     </aside>
@@ -75,7 +75,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
-                    <p class="text-xs text-slate-500">يمكنك الضغط على أي خلية للكتابة والتعديل المباشر، وتُحفظ التغييرات تلقائياً.</p>
+                    <p class="text-xs text-slate-500">يمكنك الضغط على أي خلية للكتابة والتعديل المباشر، وتُحفظ التغييرات تلقائياً وتنعكس على المراقبة.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -145,7 +145,6 @@
                 </button>
             </div>
 
-            <!-- سجل إثبات الحضور بالوقت والقيود الزمني-->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
@@ -196,15 +195,15 @@
             </div>
         </section>
 
-        <!-- 4. بدلاء الشواغر والمراقبة اليومية بدون تكرار أسبوعي -->
+        <!-- 4. بدلاء الشواغر والمراقبة اليومية (ثابتة ومربوطة بالجدول مباشرة) -->
         <section id="backupView" class="tab-content hidden space-y-4">
             <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-5 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
                     <div>
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
-                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية الذكية (توزيع أسبوعي بدون تكرار)
+                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية المربوطة بالجدول
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>5 معلمات عدهم أقل حصص</b> باليوم، <u>مع استبعاد من شاركت سابقاً هذا الأسبوع</u> لمنع التكرار من الأحد إلى الخميس.</p>
+                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة <b>مباشرة من الجدول العام المصمم</b>، وتحديد أقل 5 معلمات عدهم حصص في اليوم المختار بدون تكرار طيلة الأسبوع.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
@@ -378,6 +377,7 @@
             if(confirm('هل أنت متأكد من تفريغ الجدول بالكامل؟')) {
                 localStorage.removeItem('app_schedule_grid_v7');
                 renderSchedule();
+                refreshBackupTeachers();
             }
         }
 
@@ -767,6 +767,7 @@
             if (teachingStaff.length === 0) {
                 localStorage.removeItem('app_schedule_grid_v7');
                 renderSchedule();
+                refreshBackupTeachers();
                 return;
             }
 
@@ -868,8 +869,10 @@
 
             saveScheduleData(grid);
             renderSchedule();
+            refreshBackupTeachers();
         }
 
+        // تحديث الخلية يدوياً مع تحديث الحسابات التلقائية للمراقبة
         function updateCellManual(cellKey, field, value) {
             let savedGrid = getScheduleData();
             if (!savedGrid[cellKey]) {
@@ -877,6 +880,7 @@
             }
             savedGrid[cellKey][field] = value.trim();
             saveScheduleData(savedGrid);
+            refreshBackupTeachers();
         }
 
         function deleteTeacher(id) {
@@ -1054,7 +1058,7 @@
             }).join('');
         }
 
-        // خوارزمية اختيار أقل 5 معلمات عدهم حصص مع ضمان عدم تكرار المراقبة للمعلمة في الأسبوع
+        // حساب قراءة الحصص مباشرة من الجدول العام بدون تكرار
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
             let list = getTeachers().filter(t => t.isPresent && t.role === 'معلم');
@@ -1066,7 +1070,7 @@
                 return;
             }
 
-            // 1. حساب حصص جميع المعلمات لجميع أيام الأسبوع (من 0 إلى 4)
+            // قراءة الحصص الحقيقية المسجلة بالجدول لكل معلمة
             let teacherWeeklyAssignments = {};
             days.forEach((_, dayIdx) => {
                 let dayStats = list.map(t => {
@@ -1075,7 +1079,8 @@
                         gradeNames.forEach((_, gIdx) => {
                             secNames.forEach((_, sIdx) => {
                                 let cellKey = `${dayIdx}_${lIdx}_${gIdx}_${sIdx}`;
-                                if (grid[cellKey] && grid[cellKey].tId == t.id) {
+                                let cell = grid[cellKey];
+                                if (cell && (cell.tId == t.id || (cell.name && cell.name.includes(t.name)))) {
                                     dailyCount++;
                                 }
                             });
@@ -1087,7 +1092,7 @@
                 teacherWeeklyAssignments[dayIdx] = dayStats;
             });
 
-            // 2. جمع أسرار التكليفات في الأيام السابقة لمعرفة المعلمات اللاتي جرى ترشيحهن
+            // استبعاد من تكلفت مسبقاً خلال الأسبوع
             let assignedTeacherIds = new Set();
             for (let d = 0; d < selectedDay; d++) {
                 let dayPool = teacherWeeklyAssignments[d] || [];
@@ -1096,14 +1101,14 @@
                 pickedForDay.forEach(p => assignedTeacherIds.add(p.tId));
             }
 
-            // 3. حساب حصص يوم المحدد وتوزيع الترشيح
             let currentDayStats = list.map(t => {
                 let dailyLessonsCount = 0;
                 lessons.forEach((_, lIdx) => {
                     gradeNames.forEach((_, gIdx) => {
                         secNames.forEach((_, sIdx) => {
                             let cellKey = `${selectedDay}_${lIdx}_${gIdx}_${sIdx}`;
-                            if (grid[cellKey] && grid[cellKey].tId == t.id) {
+                            let cell = grid[cellKey];
+                            if (cell && (cell.tId == t.id || (cell.name && cell.name.includes(t.name)))) {
                                 dailyLessonsCount++;
                             }
                         });
@@ -1117,7 +1122,6 @@
                 };
             });
 
-            // ترتيب المعلمات: إعطاء الأولوية لمن لم تُكلّف هذا الأسبوع أولاً، ثم بأقل الحصص
             currentDayStats.sort((a, b) => {
                 if (a.alreadyAssignedThisWeek !== b.alreadyAssignedThisWeek) {
                     return a.alreadyAssignedThisWeek ? 1 : -1;
@@ -1147,7 +1151,7 @@
                         </div>
 
                         <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 mb-3 flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold">حصص اليوم (${days[selectedDay]}):</span>
+                            <span class="text-slate-600 font-bold">حصص اليوم بالجدول (${days[selectedDay]}):</span>
                             <span class="px-2 py-0.5 rounded-lg ${item.dailyLessonsCount <= 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-black text-xs">
                                 ${item.dailyLessonsCount} حصة/حصص
                             </span>
