@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v15.0
+                نظام إدارة الجداول الذكي v16.0
             </div>
         </div>
     </aside>
@@ -169,7 +169,7 @@
             </div>
         </section>
 
-        <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
+        <!-- 3. جميع الكادر المدرسي وسجل الأوقات (المعدل بدون الصفة والحصص وزر الإرسال) -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <h3 class="text-base font-bold text-slate-800 border-b pb-3"><i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول والانصراف</h3>
@@ -179,14 +179,11 @@
                             <tr>
                                 <th class="p-3">الصورة</th>
                                 <th class="p-3">اسم العضو</th>
-                                <th class="p-3">الصفة</th>
                                 <th class="p-3">رقم الهاتف</th>
                                 <th class="p-3">الصفوف والشعب</th>
-                                <th class="p-3 text-center">الحصص</th>
                                 <th class="p-3 text-center">وقت الدخول اليوم</th>
                                 <th class="p-3 text-center">وقت الانصراف اليوم</th>
                                 <th class="p-3 text-center">الحالة</th>
-                                <th class="p-3 text-center">إرسال الجدول</th>
                             </tr>
                         </thead>
                         <tbody id="allStaffTableBody" class="divide-y divide-slate-200"></tbody>
@@ -406,7 +403,6 @@
             refreshAllViews();
         }
 
-        // بناء نموذج الصفوف المحدث ليشمل خانات الحصص الخاصة بكل مادة + المجموع الذكي
         function buildGradesForm(containerId, prefix = '') {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -437,7 +433,6 @@
                           </label>
 
                           <div class="space-y-1.5 mt-1">
-                            <!-- المادة الأولى مع حقل عدد حصصها -->
                             <div class="flex items-center gap-1">
                               <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
@@ -446,7 +441,6 @@
                               <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="4" min="1" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-10 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
-                            <!-- المادة الثانية مع حقل عدد حصصها -->
                             <div class="flex items-center gap-1">
                               <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية (اختياري)</option>
@@ -464,7 +458,6 @@
             container.innerHTML = html;
         }
 
-        // إشعار ودالة لحساب المجموع التلقائي لحصص الصف
         function recalculateGradeTotalQuota(prefix, gIdx) {
             let total = 0;
             const gChk = document.getElementById(`${prefix}g_chk_${gIdx}`);
@@ -1101,11 +1094,12 @@
             }).join('');
         }
 
+        // بناء جدول جميع الكادر المنسق بعد إزالة الأوردة غير المجرية
         function renderAllStaffTable() {
             const body = document.getElementById('allStaffTableBody');
             let list = getTeachers();
             if (list.length === 0) {
-                body.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400">لا يوجد كادر</td></tr>`;
+                body.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</td></tr>`;
                 return;
             }
 
@@ -1117,8 +1111,7 @@
                     <td class="p-3">
                         ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"><i class="fas fa-user text-xs"></i></div>`}
                     </td>
-                    <td class="p-3 font-bold">${t.name}</td>
-                    <td class="p-3">${getRoleBadge(t.role)}</td>
+                    <td class="p-3 font-bold text-slate-800">${t.name}</td>
                     <td class="p-3">
                         ${t.phone ? `
                             <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition">
@@ -1127,17 +1120,9 @@
                         ` : '-'}
                     </td>
                     <td class="p-3">${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">إرشاد تربوي</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}):${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>')}</td>
-                    <td class="p-3 text-center font-bold">${t.role === 'مرشد تربوي' ? '0' : (t.maxQuota || 0)}</td>
                     <td class="p-3 text-center font-bold text-emerald-600">${t.checkInTime ? t.checkInTime : '-'}</td>
                     <td class="p-3 text-center font-bold text-amber-600">${t.checkOutTime ? t.checkOutTime : '-'}</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
-                    <td class="p-3 text-center">
-                        ${hasAssignments ? `
-                        <button onclick="sendTeacherScheduleWhatsApp(${t.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition inline-flex items-center gap-1">
-                            <i class="fab fa-whatsapp text-sm"></i> إرسال
-                        </button>
-                        ` : '-'}
-                    </td>
                 </tr>
             `;
             }).join('');
