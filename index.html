@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v10.5
+                نظام إدارة الجداول الذكي v11.0
             </div>
         </div>
     </aside>
@@ -136,7 +136,7 @@
                 </div>
 
                 <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3 mb-4">
-                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">الصف والشعبة والمادة (تخصيص الحصص اختياري للمدراء والإداريين والمعاونين):</span>
+                    <span class="text-xs font-bold text-emerald-900 block border-b border-emerald-200 pb-2">الصف والشعبة والمادة (اختياري، غير مخصصة للمرشد التربوي أو المدراء):</span>
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
@@ -204,7 +204,7 @@
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
                             <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية الذكية
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>أقل 5 معلمين</b> حصصاً في اليوم المحدد تلقائياً من الكادر الحاضر لتكليفهم بالمراقبة والشواغر</p>
+                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>أقل 5 معلمين</b> حصصاً في اليوم المحدد تلقائياً من الكادر الحاضر (مستثنى منهم المرشد التربوي والمدراء)</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
@@ -312,7 +312,7 @@
             </div>
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-between items-center">
                 <button id="clearSingleTeacherHistoryBtn" onclick="" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold rounded-xl text-xs transition flex items-center gap-1">
-                    <i class="fas fa-trash"></i> مسح سجل هذا المعلم
+                    <i class="fas fa-trash"></i> مسح سجل هذا العضو
                 </button>
                 <button onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
             </div>
@@ -462,25 +462,28 @@
             const assignments = [];
             let totalQuota = 0;
 
-            gradeNames.forEach((_, gIdx) => {
-                const gChk = document.getElementById(`g_chk_${gIdx}`);
-                if (gChk && gChk.checked) {
-                    const gradeQuota = parseInt(document.getElementById(`quota_${gIdx}`).value) || 12;
-                    totalQuota += gradeQuota;
+            // إذا لم يكن مرشداً تربوياً، نقوم بتسجيل الحصص والصفوف
+            if (role !== 'مرشد تربوي') {
+                gradeNames.forEach((_, gIdx) => {
+                    const gChk = document.getElementById(`g_chk_${gIdx}`);
+                    if (gChk && gChk.checked) {
+                        const gradeQuota = parseInt(document.getElementById(`quota_${gIdx}`).value) || 12;
+                        totalQuota += gradeQuota;
 
-                    secNames.forEach((_, sIdx) => {
-                        const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
-                        if (sChk && sChk.checked) {
-                            const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
-                            const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
+                        secNames.forEach((_, sIdx) => {
+                            const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
+                            if (sChk && sChk.checked) {
+                                const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
+                                const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
 
-                            if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
-                            if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
-                            if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
-                        }
-                    });
-                }
-            });
+                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1 });
+                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2 });
+                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام' });
+                            }
+                        });
+                    }
+                });
+            }
 
             const processSave = (photoBase64) => {
                 let list = getTeachers();
@@ -490,12 +493,12 @@
                     role: role || 'معلم',
                     phone: phone,
                     photo: photoBase64 || '',
-                    maxQuota: totalQuota || 0,
+                    maxQuota: role === 'مرشد تربوي' ? 0 : (totalQuota || 0),
                     isPresent: false,
                     checkInTime: null,
                     checkOutTime: null,
                     attendanceHistory: [],
-                    assignments: assignments
+                    assignments: role === 'مرشد تربوي' ? [] : assignments
                 };
                 list.push(newTeacher);
                 saveTeachers(list);
@@ -555,7 +558,7 @@
                 } else {
                     list[idx].attendanceHistory.push({ date: dateStr, entryTime: timeStr, exitTime: '-' });
                 }
-                alert(`تم تسجيل دخول أستاذ/ة (${list[idx].name}) في تمام الساعة ${timeStr}`);
+                alert(`تم تسجيل دخول (${list[idx].name}) في تمام الساعة ${timeStr}`);
             } 
             else {
                 if (currentMinutes < exitStart || currentMinutes > exitEnd) {
@@ -572,14 +575,13 @@
                 } else {
                     list[idx].attendanceHistory.push({ date: dateStr, entryTime: list[idx].checkInTime || '-', exitTime: timeStr });
                 }
-                alert(`تم تسجيل انصراف أستاذ/ة (${list[idx].name}) في تمام الساعة ${timeStr}`);
+                alert(`تم تسجيل انصراف (${list[idx].name}) في تمام الساعة ${timeStr}`);
             }
 
             saveTeachers(list);
             refreshAllViews();
         }
 
-        // دالة مسح وتصفير جميع السجلات القديمة لكل المعلمين
         function clearAllAttendanceLogs() {
             if (!confirm('هل أنت متأكد من مسح وتصفير جميع سجلات الدخول والانصراف القديمة لكل الكادر؟')) return;
             
@@ -596,9 +598,8 @@
             alert('تم مسح وتصفير جميع السجلات القديمة بنجاح!');
         }
 
-        // دالة مسح سجل معلم واحد
         function clearSingleTeacherAttendance(id) {
-            if (!confirm('هل أنت متأكد من مسح سجل هذا المعلم فقط؟')) return;
+            if (!confirm('هل أنت متأكد من مسح سجل هذا العضو فقط؟')) return;
             let list = getTeachers();
             let idx = list.findIndex(t => t.id == id);
             if (idx !== -1) {
@@ -609,7 +610,7 @@
                 saveTeachers(list);
                 closeHistoryModal();
                 refreshAllViews();
-                alert('تم مسح سجل المعلم بنجاح.');
+                alert('تم مسح السجل بنجاح.');
             }
         }
 
@@ -647,9 +648,11 @@
             modal.classList.remove('flex');
         }
 
+        // دالة التوليد التلقائي للجدول - يستثنى منها المرشد التربوي والوظائف غير التعليمية
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
-            let teachingStaff = teachers.filter(t => t.assignments && t.assignments.length > 0);
+            // استبعاد المرشد التربوي من الجدول العام
+            let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
 
             if (teachingStaff.length === 0) {
                 localStorage.removeItem('app_schedule_grid_v7');
@@ -865,7 +868,7 @@
                                 </div>
 
                                 <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-1">
-                                    <span>الحصص: ${t.maxQuota || 0}</span>
+                                    <span>الحصص: ${t.role === 'مرشد تربوي' ? '0 (إرشاد)' : (t.maxQuota || 0)}</span>
                                     ${t.phone ? `
                                         <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
                                             <i class="fab fa-whatsapp text-emerald-500 text-xs"></i> ${t.phone}
@@ -876,7 +879,7 @@
                         </div>
 
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                            ${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة في الجدول</span>'}
+                            ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي (حضور وانصراف فقط)</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b>`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
                         </div>
                     </div>
 
@@ -924,8 +927,8 @@
                             </a>
                         ` : '-'}
                     </td>
-                    <td class="p-3">${hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}):${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>'}</td>
-                    <td class="p-3 text-center font-bold">${t.maxQuota || 0}</td>
+                    <td class="p-3">${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">إرشاد تربوي</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}):${a.subject}`).join(', ') : '<span class="text-slate-400">لا يوجد حصص</span>')}</td>
+                    <td class="p-3 text-center font-bold">${t.role === 'مرشد تربوي' ? '0' : (t.maxQuota || 0)}</td>
                     <td class="p-3 text-center font-bold text-emerald-600">${t.checkInTime ? t.checkInTime : '-'}</td>
                     <td class="p-3 text-center font-bold text-amber-600">${t.checkOutTime ? t.checkOutTime : '-'}</td>
                     <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
@@ -941,14 +944,15 @@
             }).join('');
         }
 
+        // استبعاد المرشد التربوي والمدراء والإداريين من بدلاء الشواغر والمراقبة
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
-            let list = getTeachers().filter(t => t.isPresent);
+            let list = getTeachers().filter(t => t.isPresent && t.role === 'معلم');
             let selectedDay = parseInt(document.getElementById('backupDaySelect').value) || 0;
             let grid = getScheduleData();
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد كادر حاضر مسجل حالياً في المدرسة</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمون حاضرون مسجلون حالياً للمراقبة</div>`;
                 return;
             }
 
