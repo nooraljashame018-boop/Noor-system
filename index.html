@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v11.5
+                نظام إدارة الجداول الذكي v12.0
             </div>
         </div>
     </aside>
@@ -196,15 +196,15 @@
             </div>
         </section>
 
-        <!-- 4. بدلاء الشواغر والمراقبة اليومية -->
+        <!-- 4. بدلاء الشواغر والمراقبة اليومية بدون تكرار أسبوعي -->
         <section id="backupView" class="tab-content hidden space-y-4">
             <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-5 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
                     <div>
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
-                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية الذكية
+                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية الذكية (توزيع أسبوعي بدون تكرار)
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>أقل 5 معلمين</b> حصصاً في اليوم المحدد تلقائياً من الكادر الحاضر (مستثنى منهم المرشد التربوي والمدراء)</p>
+                        <p class="text-xs text-amber-700 mt-1">يتم اختيار <b>5 معلمات عدهم أقل حصص</b> باليوم، <u>مع استبعاد من شاركت سابقاً هذا الأسبوع</u> لمنع التكرار من الأحد إلى الخميس.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
@@ -524,7 +524,6 @@
             }
         }
 
-        // --- دوال تعديل بيانات المعلم والنافذة (Modal) ---
         function openEditModal(id) {
             let teachers = getTeachers();
             let t = teachers.find(item => item.id == id);
@@ -1055,6 +1054,7 @@
             }).join('');
         }
 
+        // خوارزمية اختيار أقل 5 معلمات عدهم حصص مع ضمان عدم تكرار المراقبة للمعلمة في الأسبوع
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
             let list = getTeachers().filter(t => t.isPresent && t.role === 'معلم');
@@ -1066,9 +1066,39 @@
                 return;
             }
 
-            let teacherStats = list.map(t => {
+            // 1. حساب حصص جميع المعلمات لجميع أيام الأسبوع (من 0 إلى 4)
+            let teacherWeeklyAssignments = {};
+            days.forEach((_, dayIdx) => {
+                let dayStats = list.map(t => {
+                    let dailyCount = 0;
+                    lessons.forEach((_, lIdx) => {
+                        gradeNames.forEach((_, gIdx) => {
+                            secNames.forEach((_, sIdx) => {
+                                let cellKey = `${dayIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                                if (grid[cellKey] && grid[cellKey].tId == t.id) {
+                                    dailyCount++;
+                                }
+                            });
+                        });
+                    });
+                    return { tId: t.id, dailyCount: dailyCount };
+                });
+                dayStats.sort((a, b) => a.dailyCount - b.dailyCount);
+                teacherWeeklyAssignments[dayIdx] = dayStats;
+            });
+
+            // 2. جمع أسرار التكليفات في الأيام السابقة لمعرفة المعلمات اللاتي جرى ترشيحهن
+            let assignedTeacherIds = new Set();
+            for (let d = 0; d < selectedDay; d++) {
+                let dayPool = teacherWeeklyAssignments[d] || [];
+                let filteredPool = dayPool.filter(item => !assignedTeacherIds.has(item.tId));
+                let pickedForDay = filteredPool.slice(0, 5);
+                pickedForDay.forEach(p => assignedTeacherIds.add(p.tId));
+            }
+
+            // 3. حساب حصص يوم المحدد وتوزيع الترشيح
+            let currentDayStats = list.map(t => {
                 let dailyLessonsCount = 0;
-                
                 lessons.forEach((_, lIdx) => {
                     gradeNames.forEach((_, gIdx) => {
                         secNames.forEach((_, sIdx) => {
@@ -1082,20 +1112,28 @@
 
                 return {
                     teacher: t,
-                    dailyLessonsCount: dailyLessonsCount
+                    dailyLessonsCount: dailyLessonsCount,
+                    alreadyAssignedThisWeek: assignedTeacherIds.has(t.id)
                 };
             });
 
-            teacherStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
+            // ترتيب المعلمات: إعطاء الأولوية لمن لم تُكلّف هذا الأسبوع أولاً، ثم بأقل الحصص
+            currentDayStats.sort((a, b) => {
+                if (a.alreadyAssignedThisWeek !== b.alreadyAssignedThisWeek) {
+                    return a.alreadyAssignedThisWeek ? 1 : -1;
+                }
+                return a.dailyLessonsCount - b.dailyLessonsCount;
+            });
 
-            container.innerHTML = teacherStats.map((item, index) => {
+            container.innerHTML = currentDayStats.map((item, index) => {
                 let t = item.teacher;
                 let waPhone = formatWhatsappPhone(t.phone);
-                let isTop5 = index < 5;
+                let isTop5 = index < 5 && !item.alreadyAssignedThisWeek;
 
                 return `
-                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative overflow-hidden">
-                    ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشح رئيسي للمراقبة #${index+1}</div>` : ''}
+                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : (item.alreadyAssignedThisWeek ? 'border-slate-200 opacity-60' : 'border-slate-200')} shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشحة للمراقبة اليوم #${index+1}</div>` : ''}
+                    ${item.alreadyAssignedThisWeek ? `<div class="absolute top-0 left-0 bg-slate-400 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-bold">تم تكليفها في يوم سابق هذا الأسبوع</div>` : ''}
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             ${t.photo ? `<img src="${t.photo}" class="w-10 h-10 rounded-full object-cover border">` : `<div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs"><i class="fas fa-user"></i></div>`}
@@ -1104,7 +1142,7 @@
                                     <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
                                     ${getRoleBadge(t.role)}
                                 </div>
-                                <span class="text-[10px] text-emerald-600 font-bold block mt-0.5">🟢 حاضر منذ: ${t.checkInTime}</span>
+                                <span class="text-[10px] text-emerald-600 font-bold block mt-0.5">🟢 حاضرة منذ: ${t.checkInTime}</span>
                             </div>
                         </div>
 
