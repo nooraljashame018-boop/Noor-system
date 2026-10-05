@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v21.0
+                نظام إدارة الجداول الذكي v22.0
             </div>
         </div>
     </aside>
@@ -75,11 +75,11 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
-                    <p class="text-xs text-slate-500">التوزيع الذكي يمنع تضارب المعلمات تماماً. يمكنك الضغط على أي خلية للتعديل المباشر عند الحاجة.</p>
+                    <p class="text-xs text-slate-500">التوزيع الذكي يمنع تضارب المعلمات ولا يكرر نفس المادة في اليوم للشعبة.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
-                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول (بدون تضارب)
+                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول
                     </button>
                     <button onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
                         <i class="fas fa-trash-alt"></i> تفريغ الجدول
@@ -900,7 +900,7 @@
         }
 
         // ==========================================
-        // دالة التوليد الذكية الصارمة (تمنع التضارب)
+        // دالة التوليد الذكية الصارمة v22.0 (تمنع التضارب وتمنع تكرار نفس المادة في نفس اليوم للشعبة)
         // ==========================================
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
@@ -914,16 +914,26 @@
             }
 
             let grid = {};
-            // تتبع المعلمات المشغولات في كل (يوم + حصة): busy[dayIndex][lessonIndex][teacherId] = true
-            let busy = {};
+            let teacherBusy = {};
+            let sectionDaySubjectBusy = {};
+
             days.forEach((_, dIdx) => {
-                busy[dIdx] = {};
+                teacherBusy[dIdx] = {};
                 lessons.forEach((_, lIdx) => {
-                    busy[dIdx][lIdx] = {};
+                    teacherBusy[dIdx][lIdx] = {};
                 });
             });
 
-            // تجميع كافة الحصص المطلوبة لكل المعلمات
+            gradeNames.forEach((_, gIdx) => {
+                sectionDaySubjectBusy[gIdx] = {};
+                secNames.forEach((_, sIdx) => {
+                    sectionDaySubjectBusy[gIdx][sIdx] = {};
+                    days.forEach((_, dIdx) => {
+                        sectionDaySubjectBusy[gIdx][sIdx][dIdx] = {};
+                    });
+                });
+            });
+
             let pool = [];
             teachingStaff.forEach(t => {
                 t.assignments.forEach(asgn => {
@@ -940,45 +950,53 @@
                 });
             });
 
-            // خلط الحصص عشوائياً لضمان التوزيع العادل
             pool.sort(() => Math.random() - 0.5);
 
-            // تجهيز جميع خانات الجدول المتاحة (5 أيام × 5 حصص × 6 صفوف × 3 شعب = 450 خانة)
             let allSlots = [];
             days.forEach((_, dIdx) => {
                 lessons.forEach((_, lIdx) => {
                     gradeNames.forEach((_, gIdx) => {
                         secNames.forEach((_, sIdx) => {
-                            allSlots.append ? null : null;
                             allSlots.push({ d: dIdx, l: lIdx, g: gIdx, s: sIdx });
                         });
                     });
                 });
             });
 
-            // محاولة توزيع كل حصة في خانة مناسبة مع التدقيق الصارم لعدم تضارب المعلمة
+            allSlots.sort(() => Math.random() - 0.5);
+
             pool.forEach(item => {
-                // نأخذ الخانات التي تخص نفس (الصف والشعبة) وغير محجوزة مسبقاً لهذه الشعبة
-                let validSlots = allSlots.filter(slot => slot.g === item.gradeIndex && slot.s === item.sectionIndex);
-                
-                // نبحث عن أول خانة تكون فيها المعلمة غير مشغولة في تلك الحصة واليوم
                 let targetSlotIndex = -1;
-                for (let i = 0; i < validSlots.length; i++) {
-                    let s = validSlots[i];
-                    if (!busy[s.d][s.l][item.tId]) {
-                        targetSlotIndex = i;
-                        break;
+                for (let i = 0; i < allSlots.length; i++) {
+                    let slot = allSlots[i];
+                    if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
+                        let isTeacherFree = !teacherBusy[slot.d][slot.l][item.tId];
+                        let isSubjectFreeToday = !sectionDaySubjectBusy[slot.g][slot.s][slot.d][item.subject];
+
+                        if (isTeacherFree && isSubjectFreeToday) {
+                            targetSlotIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (targetSlotIndex === -1) {
+                    for (let i = 0; i < allSlots.length; i++) {
+                        let slot = allSlots[i];
+                        if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
+                            if (!teacherBusy[slot.d][slot.l][item.tId]) {
+                                targetSlotIndex = i;
+                                break;
+                            }
+                        }
                     }
                 }
 
                 if (targetSlotIndex !== -1) {
-                    let chosenSlot = validSlots.splice(targetSlotIndex, 1)[0];
-                    // نحذف الخانة من القائمة العامة للكل
-                    let globalIdx = allSlots.findIndex(s => s.d === chosenSlot.d && s.l === chosenSlot.l && s.g === chosenSlot.g && s.s === chosenSlot.s);
-                    if (globalIdx !== -1) allSlots.splice(globalIdx, 1);
+                    let chosenSlot = allSlots.splice(targetSlotIndex, 1)[0];
 
-                    // حجز المعلمة في هذا الوقت واليوم لمنع التضارب
-                    busy[chosenSlot.d][chosenSlot.l][item.tId] = true;
+                    teacherBusy[chosenSlot.d][chosenSlot.l][item.tId] = true;
+                    sectionDaySubjectBusy[chosenSlot.g][chosenSlot.s][chosenSlot.d][item.subject] = true;
 
                     let cellKey = `${chosenSlot.d}_${chosenSlot.l}_${chosenSlot.g}_${chosenSlot.s}`;
                     grid[cellKey] = {
