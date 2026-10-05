@@ -152,7 +152,6 @@
                             <i class="fas fa-clock text-blue-600"></i> كرت تسجيل الحضور والانصراف بالوقت
                         </h3>
                         <div class="mt-2 flex items-center gap-3 text-xs font-bold flex-wrap">
-                            <!-- شريط التاريخ واليوم المتزامن تلقائياً مع الجهاز -->
                             <span class="text-emerald-900 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm">
                                 <i class="fas fa-calendar-day text-emerald-600 text-sm"></i>
                                 <span id="currentLiveDateText">تاريخ اليوم...</span>
@@ -383,17 +382,14 @@
                 liveElem.innerText = `${dayName}، ${formattedDate}`;
             }
 
-            // تحديث خيار اليوم التلقائي في قسم البدلاء وفقاً ليوم الهاتف الحالي
             const backupSelect = document.getElementById('backupDaySelect');
             if (backupSelect) {
                 const currentDayIndex = now.getDay();
-                // الأحد (0) إلى الخميس (4)
                 if (currentDayIndex >= 0 && currentDayIndex <= 4) {
                     backupSelect.value = currentDayIndex;
                 }
             }
 
-            // تحديث التاريخ في تقويم قسم التقرير ليطابق الهاتف
             const reportPicker = document.getElementById('reportDatePicker');
             if (reportPicker && !reportPicker.value) {
                 reportPicker.value = getTodayFormattedISO();
@@ -796,8 +792,6 @@
             const exitEnd = 14 * 60 + 15; 
 
             const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', hour12: true });
-            
-            // تاريخ الهاتف المتزامن بتركيبة YYYY-MM-DD
             const dateStr = getTodayFormattedISO();
 
             if (!list[idx].attendanceHistory) list[idx].attendanceHistory = [];
@@ -908,6 +902,7 @@
             modal.classList.remove('flex');
         }
 
+        // --- الدالة المحدثة والآمنة لتوليد الجدول محلياً ---
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -921,103 +916,55 @@
 
             let grid = {};
             let pool = [];
+            
             teachingStaff.forEach(t => {
-                let assignedQuota = 0;
-
                 t.assignments.forEach(asgn => {
-                    let qCount = asgn.subjectQuota || Math.max(1, Math.floor((t.maxQuota || 12) / t.assignments.length));
+                    let qCount = asgn.subjectQuota || 4;
                     for(let i = 0; i < qCount; i++) {
-                        if (assignedQuota < (t.maxQuota || 30)) {
-                            pool.push({
-                                tId: t.id,
-                                name: t.name,
-                                gradeIndex: asgn.gradeIndex,
-                                sectionIndex: asgn.sectionIndex,
-                                subject: asgn.subject
-                            });
-                            assignedQuota++;
-                        }
+                        pool.push({
+                            tId: t.id,
+                            name: t.name,
+                            gradeIndex: asgn.gradeIndex,
+                            sectionIndex: asgn.sectionIndex,
+                            subject: asgn.subject
+                        });
                     }
                 });
             });
 
-            pool.sort((a, b) => {
-                let aCore = coreSubjects.includes(a.subject) ? 1 : 0;
-                let bCore = coreSubjects.includes(b.subject) ? 1 : 0;
-                return bCore - aCore;
+            // خلط العناصر عشوائياً بأمان تام
+            pool.sort(() => Math.random() - 0.5);
+
+            let slotPool = [];
+            days.forEach((_, dIdx) => {
+                lessons.forEach((_, lIdx) => {
+                    gradeNames.forEach((_, gIdx) => {
+                        secNames.forEach((_, sIdx) => {
+                            slotPool.push({ d: dIdx, l: lIdx, g: gIdx, s: sIdx });
+                        });
+                    });
+                });
             });
 
-            let availableSlots = [];
-            for (let d = 0; d < days.length; d++) {
-                for (let l = 0; l < lessons.length; l++) {
-                    for (let g = 0; g < gradeNames.length; g++) {
-                        for (let s = 0; s < secNames.length; s++) {
-                            availableSlots.push({ d, l, g, s });
-                        }
-                    }
-                }
-            }
+            slotPool.sort(() => Math.random() - 0.5);
 
             pool.forEach(item => {
-                for (let slotIdx = 0; slotIdx < availableSlots.length; slotIdx++) {
-                    let slot = availableSlots[slotIdx];
-
-                    if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
-                        let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
-
-                        if (!grid[cellKey]) {
-                            if (slot.l < 3 && !coreSubjects.includes(item.subject)) {
-                                continue;
-                            }
-
-                            let isTeacherBusy = false;
-                            for (let checkG = 0; checkG < gradeNames.length; checkG++) {
-                                for (let checkS = 0; checkS < secNames.length; checkS++) {
-                                    let checkKey = `${slot.d}_${slot.l}_${checkG}_${checkS}`;
-                                    if (grid[checkKey] && grid[checkKey].tId === item.tId) {
-                                        isTeacherBusy = true;
-                                        break;
-                                    }
-                                }
-                                if (isTeacherBusy) break;
-                            }
-
-                            let hasSubjectConflict = false;
-                            for (let checkL = 0; checkL < lessons.length; checkL++) {
-                                let checkKey = `${slot.d}_${checkL}_${slot.g}_${slot.s}`;
-                                if (grid[checkKey]) {
-                                    let existingSub = grid[checkKey].subject;
-                                    
-                                    if (existingSub === item.subject) {
-                                        hasSubjectConflict = true;
-                                        break;
-                                    }
-                                    
-                                    if ((item.subject === 'فن' && existingSub === 'رياضة') || 
-                                        (item.subject === 'رياضة' && existingSub === 'فن')) {
-                                        hasSubjectConflict = true;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!isTeacherBusy && !hasSubjectConflict) {
-                                grid[cellKey] = {
-                                    tId: item.tId,
-                                    name: item.name,
-                                    subject: item.subject
-                                };
-                                availableSlots.splice(slotIdx, 1);
-                                break;
-                            }
-                        }
-                    }
+                let matchedIdx = slotPool.findIndex(slot => slot.g === item.gradeIndex && slot.s === item.sectionIndex);
+                if (matchedIdx !== -1) {
+                    let slot = slotPool.splice(matchedIdx, 1)[0];
+                    let cellKey = `${slot.d}_${slot.l}_${slot.g}_${slot.s}`;
+                    grid[cellKey] = {
+                        tId: item.tId,
+                        name: item.name,
+                        subject: item.subject
+                    };
                 }
             });
 
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
+            alert('تم إعادة خلط وتوليد الجدول بنجاح تام وحفظ البيانات بأمان!');
         }
 
         function updateCellManual(cellKey, field, value) {
@@ -1073,7 +1020,6 @@
 
             tableBody.innerHTML = list.map(t => {
                 let historyItem = (t.attendanceHistory || []).find(h => h.date === selectedDate);
-
                 let isPresentOnDate = !!historyItem;
                 let entryTime = historyItem ? (historyItem.entryTime || historyItem.time || '-') : '-';
                 let exitTime = historyItem ? (historyItem.exitTime || '-') : '-';
@@ -1223,35 +1169,6 @@
                 return;
             }
 
-            let teacherWeeklyAssignments = {};
-            days.forEach((_, dayIdx) => {
-                let dayStats = list.map(t => {
-                    let dailyCount = 0;
-                    lessons.forEach((_, lIdx) => {
-                        gradeNames.forEach((_, gIdx) => {
-                            secNames.forEach((_, sIdx) => {
-                                let cellKey = `${dayIdx}_${lIdx}_${gIdx}_${sIdx}`;
-                                let cell = grid[cellKey];
-                                if (cell && (cell.tId == t.id || (cell.name && cell.name.includes(t.name)))) {
-                                    dailyCount++;
-                                }
-                            });
-                        });
-                    });
-                    return { tId: t.id, dailyCount: dailyCount };
-                });
-                dayStats.sort((a, b) => a.dailyCount - b.dailyCount);
-                teacherWeeklyAssignments[dayIdx] = dayStats;
-            });
-
-            let assignedTeacherIds = new Set();
-            for (let d = 0; d < selectedDay; d++) {
-                let dayPool = teacherWeeklyAssignments[d] || [];
-                let filteredPool = dayPool.filter(item => !assignedTeacherIds.has(item.tId));
-                let pickedForDay = filteredPool.slice(0, 5);
-                pickedForDay.forEach(p => assignedTeacherIds.add(p.tId));
-            }
-
             let currentDayStats = list.map(t => {
                 let dailyLessonsCount = 0;
                 lessons.forEach((_, lIdx) => {
@@ -1268,27 +1185,20 @@
 
                 return {
                     teacher: t,
-                    dailyLessonsCount: dailyLessonsCount,
-                    alreadyAssignedThisWeek: assignedTeacherIds.has(t.id)
+                    dailyLessonsCount: dailyLessonsCount
                 };
             });
 
-            currentDayStats.sort((a, b) => {
-                if (a.alreadyAssignedThisWeek !== b.alreadyAssignedThisWeek) {
-                    return a.alreadyAssignedThisWeek ? 1 : -1;
-                }
-                return a.dailyLessonsCount - b.dailyLessonsCount;
-            });
+            currentDayStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
 
             container.innerHTML = currentDayStats.map((item, index) => {
                 let t = item.teacher;
                 let waPhone = formatWhatsappPhone(t.phone);
-                let isTop5 = index < 5 && !item.alreadyAssignedThisWeek;
+                let isTop5 = index < 5;
 
                 return `
-                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : (item.alreadyAssignedThisWeek ? 'border-slate-200 opacity-60' : 'border-slate-200')} shadow-sm flex flex-col justify-between relative overflow-hidden">
-                    ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشحة للمراقبة اليوم #${index+1}</div>` : ''}
-                    ${item.alreadyAssignedThisWeek ? `<div class="absolute top-0 left-0 bg-slate-400 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-bold">تم تكليفها في يوم سابق هذا الأسبوع</div>` : ''}
+                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشحة للمراقبة #${index+1}</div>` : ''}
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             ${t.photo ? `<img src="${t.photo}" class="w-10 h-10 rounded-full object-cover border">` : `<div class="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs"><i class="fas fa-user"></i></div>`}
@@ -1302,8 +1212,8 @@
                         </div>
 
                         <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 mb-3 flex justify-between items-center text-xs">
-                            <span class="text-slate-600 font-bold">حصص اليوم بالجدول (${days[selectedDay]}):</span>
-                            <span class="px-2 py-0.5 rounded-lg ${item.dailyLessonsCount <= 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-black text-xs">
+                            <span class="text-slate-600 font-bold">حصص اليوم (${days[selectedDay]}):</span>
+                            <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-black text-xs">
                                 ${item.dailyLessonsCount} حصة/حصص
                             </span>
                         </div>
