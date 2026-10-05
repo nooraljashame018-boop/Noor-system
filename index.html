@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Tajawal Font -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- html2canvas Library for Image Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
@@ -62,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v22.0
+                نظام إدارة الجداول الذكي v23.0
             </div>
         </div>
     </aside>
@@ -72,25 +74,29 @@
 
         <!-- 1. الجدول الأسبوعي العام -->
         <section id="scheduleView" class="tab-content space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center no-print">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
                     <p class="text-xs text-slate-500">التوزيع الذكي يمنع تضارب المعلمات ولا يكرر نفس المادة في اليوم للشعبة.</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
                         <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول
                     </button>
                     <button onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
                         <i class="fas fa-trash-alt"></i> تفريغ الجدول
                     </button>
-                    <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-2">
+                    <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5">
                         <i class="fas fa-print"></i> طباعة (PDF)
+                    </button>
+                    <button onclick="exportScheduleAsImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5">
+                        <i class="fab fa-whatsapp text-sm"></i> إرسال الجدول لصورة (واتساب)
                     </button>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
+            <div id="printableScheduleCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
+                <div class="text-center font-black text-slate-800 text-sm mb-2 hidden print-block">جدول دروس مدرسة الضياء الابتدائية</div>
                 <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[75vh]">
                     <table class="w-full text-center border-collapse text-xs whitespace-nowrap">
                         <thead class="bg-slate-800 text-white">
@@ -448,6 +454,44 @@
                 renderSchedule();
                 refreshBackupTeachers();
             }
+        }
+
+        // دالة توليد صورة الجدول وإرسالها
+        function exportScheduleAsImage() {
+            const card = document.getElementById('printableScheduleCard');
+            if (!card) return;
+
+            // إظهار عنوان الطباعة مؤقتاً لتظهر في الصورة
+            const printTitle = card.querySelector('.print-block');
+            if (printTitle) printTitle.classList.remove('hidden');
+
+            html2canvas(card, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+                if (printTitle) printTitle.classList.add('hidden');
+
+                canvas.toBlob(blob => {
+                    const file = new File([blob], "school_schedule.png", { type: "image/png" });
+                    
+                    // التحقق مما إذا كان المتصفح يدعم مشاركة الملفات (Web Share API)
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'جدول مدرسة الضياء',
+                            text: 'إليك جدول الدروس الأسبوعي لمدرسة الضياء'
+                        }).catch(error => console.log('خطأ في المشاركة:', error));
+                    } else {
+                        // طريقة بديلة للتحميل المباشر للصورة إذا لم تدعم المشاركة المباشرة
+                        const link = document.createElement('a');
+                        link.download = 'schedule.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        alert('تم تنزيل صورة الجدول بنجاح! يمكنك الآن مشاركتها عبر الواتساب.');
+                    }
+                });
+            }).catch(err => {
+                if (printTitle) printTitle.classList.add('hidden');
+                alert('حدث خطأ أثناء تصوير الجدول.');
+                console.error(err);
+            });
         }
 
         window.onload = function() {
@@ -900,7 +944,7 @@
         }
 
         // ==========================================
-        // دالة التوليد الذكية الصارمة v22.0 (تمنع التضارب وتمنع تكرار نفس المادة في نفس اليوم للشعبة)
+        // دالة التوليد الذكية الصارمة v23.0 (تمنع التضارب وتمنع تكرار نفس المادة في نفس اليوم للشعبة)
         // ==========================================
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
