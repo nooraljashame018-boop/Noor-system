@@ -62,7 +62,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v19.0
+                نظام إدارة الجداول الذكي v20.0
             </div>
         </div>
     </aside>
@@ -205,7 +205,7 @@
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
                             <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية المربوطة بالجدول
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة <b>مباشرة من الجدول العام المصمم</b>، وتحديد أقل 5 معلمات عدهم حصص في اليوم المختار بدون تكرار طيلة الأسبوع.</p>
+                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة <b>مباشرة من الجدول العام المصمم</b>، وتحديد أقل 5 معلمات عدهم حصص في اليوم المختار.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
@@ -501,15 +501,23 @@
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="4" min="1" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-10 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
                               <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
-                                  <option value="">المادة الثانية (اختياري)</option>
+                                  <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="2" min="1" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-10 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                            </div>
+
+                            <div class="flex items-center gap-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                                  <option value="">المادة الثالثة</option>
+                                  ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                              </select>
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
                           </div>
                         </div>
@@ -528,13 +536,11 @@
                 secNames.forEach((_, sIdx) => {
                     const sChk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
                     if (sChk && sChk.checked) {
-                        const s1 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_1`).value;
-                        const q1 = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_1`).value) || 0;
-                        if (s1) total += q1;
-
-                        const s2 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_2`).value;
-                        const q2 = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_2`).value) || 0;
-                        if (s2) total += q2;
+                        for(let i = 1; i <= 3; i++) {
+                            const s = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_${i}`).value;
+                            const q = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                            if (s) total += q;
+                        }
                     }
                 });
             }
@@ -544,13 +550,13 @@
 
         function clearSectionSelection(prefix, gIdx, sIdx) {
             const chk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
-            const sub1 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_1`);
-            const sub2 = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_2`);
-            
             if (chk) chk.checked = false;
-            if (sub1) sub1.value = '';
-            if (sub2) sub2.value = '';
-
+            for(let i = 1; i <= 3; i++) {
+                const sub = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_${i}`);
+                const q = document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_${i}`);
+                if (sub) sub.value = '';
+                if (q) q.value = '';
+            }
             recalculateGradeTotalQuota(prefix, gIdx);
         }
 
@@ -575,15 +581,13 @@
                         secNames.forEach((_, sIdx) => {
                             const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
                             if (sChk && sChk.checked) {
-                                const s1 = document.getElementById(`sub_${gIdx}_${sIdx}_1`).value;
-                                const q1 = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_1`).value) || 4;
-
-                                const s2 = document.getElementById(`sub_${gIdx}_${sIdx}_2`).value;
-                                const q2 = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_2`).value) || 2;
-
-                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1, subjectQuota: q1 });
-                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2, subjectQuota: q2 });
-                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام', subjectQuota: 4 });
+                                for(let i = 1; i <= 3; i++) {
+                                    const sub = document.getElementById(`sub_${gIdx}_${sIdx}_${i}`).value;
+                                    const q = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                                    if (sub && q > 0) {
+                                        assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: sub, subjectQuota: q });
+                                    }
+                                }
                             }
                         });
                     }
@@ -656,34 +660,30 @@
             buildGradesForm('editGradesContainer', 'edit_');
 
             if (t.assignments && t.assignments.length > 0) {
+                let gradeSubCounts = {};
                 t.assignments.forEach(asgn => {
                     let gIdx = asgn.gradeIndex;
                     let sIdx = asgn.sectionIndex;
+                    let key = `${gIdx}_${sIdx}`;
+                    if (!gradeSubCounts[key]) gradeSubCounts[key] = 1;
+                    let subIndex = gradeSubCounts[key];
+                    if (subIndex <= 3) {
+                        let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
+                        let gBox = document.getElementById(`edit_g_box_${gIdx}`);
+                        if (gChk) {
+                            gChk.checked = true;
+                            if (gBox) gBox.classList.remove('hidden');
+                        }
+                        let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
+                        if (sChk) sChk.checked = true;
 
-                    let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
-                    let gBox = document.getElementById(`edit_g_box_${gIdx}`);
-                    if (gChk) {
-                        gChk.checked = true;
-                        if (gBox) gBox.classList.remove('hidden');
-                    }
-
-                    let sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
-                    if (sChk) sChk.checked = true;
-
-                    let sub1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`);
-                    let sub1Q = document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_1`);
-                    let sub2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`);
-                    let sub2Q = document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_2`);
-
-                    if (sub1 && !sub1.value) {
-                        sub1.value = asgn.subject;
-                        if (sub1Q) sub1Q.value = asgn.subjectQuota || 4;
-                    } else if (sub2) {
-                        sub2.value = asgn.subject;
-                        if (sub2Q) sub2Q.value = asgn.subjectQuota || 2;
+                        let subSel = document.getElementById(`edit_sub_${gIdx}_${sIdx}_${subIndex}`);
+                        let subQ = document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_${subIndex}`);
+                        if (subSel) subSel.value = asgn.subject;
+                        if (subQ) subQ.value = asgn.subjectQuota || '';
+                        gradeSubCounts[key]++;
                     }
                 });
-
                 gradeNames.forEach((_, gIdx) => recalculateGradeTotalQuota('edit_', gIdx));
             }
 
@@ -732,15 +732,13 @@
                         secNames.forEach((_, sIdx) => {
                             const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
                             if (sChk && sChk.checked) {
-                                const s1 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_1`).value;
-                                const q1 = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_1`).value) || 4;
-
-                                const s2 = document.getElementById(`edit_sub_${gIdx}_${sIdx}_2`).value;
-                                const q2 = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_2`).value) || 2;
-
-                                if (s1) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s1, subjectQuota: q1 });
-                                if (s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: s2, subjectQuota: q2 });
-                                if (!s1 && !s2) assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: 'عام', subjectQuota: 4 });
+                                for(let i = 1; i <= 3; i++) {
+                                    const sub = document.getElementById(`edit_sub_${gIdx}_${sIdx}_${i}`).value;
+                                    const q = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                                    if (sub && q > 0) {
+                                        assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: sub, subjectQuota: q });
+                                    }
+                                }
                             }
                         });
                     }
@@ -902,7 +900,6 @@
             modal.classList.remove('flex');
         }
 
-        // --- الدالة المحدثة والآمنة لتوليد الجدول محلياً ---
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -932,7 +929,6 @@
                 });
             });
 
-            // خلط العناصر عشوائياً بأمان تام
             pool.sort(() => Math.random() - 0.5);
 
             let slotPool = [];
@@ -964,7 +960,6 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم إعادة خلط وتوليد الجدول بنجاح تام وحفظ البيانات بأمان!');
         }
 
         function updateCellManual(cellKey, field, value) {
