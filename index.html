@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v24.0
+                نظام إدارة الجداول الذكي v25.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
-                    <p class="text-xs text-slate-500">التوزيع الذكي يمنع تضارب المعلمات ولا يكرر نفس المادة في نفس اليوم بالشعبة.</p>
+                    <p class="text-xs text-slate-500">الحصة الأخيرة خالية من (عربي، رياضيات، إنكليزي)، وتوزيع متوازن بدون تكرار يومي.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -180,10 +180,19 @@
             </div>
         </section>
 
-        <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
+        <!-- 3. جميع الكادر المدرسي وسجل الأوقات (مع تاريخ افتراضي يبدأ من تاريخ اليوم تلقائياً) -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h3 class="text-base font-bold text-slate-800 border-b pb-3"><i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول والانصراف</h3>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-users-line text-indigo-600"></i> سجل الكادر وقائمة أوقات الدخول والانصراف
+                    </h3>
+                    <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl">
+                        <label for="allStaffDatePicker" class="text-xs font-bold text-indigo-900">📅 تاريخ اليوم:</label>
+                        <input type="date" id="allStaffDatePicker" onchange="renderAllStaffTable()" class="bg-white border border-indigo-300 rounded-lg p-1 text-xs font-bold text-indigo-900 outline-none">
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto border border-slate-200 rounded-xl">
                     <table class="w-full text-right border-collapse text-xs">
                         <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
@@ -192,8 +201,8 @@
                                 <th class="p-3">اسم العضو</th>
                                 <th class="p-3">رقم الهاتف</th>
                                 <th class="p-3">المادة</th>
-                                <th class="p-3 text-center">وقت الدخول اليوم</th>
-                                <th class="p-3 text-center">وقت الانصراف اليوم</th>
+                                <th class="p-3 text-center">وقت الدخول</th>
+                                <th class="p-3 text-center">وقت الانصراف</th>
                                 <th class="p-3 text-center">الحالة</th>
                             </tr>
                         </thead>
@@ -364,12 +373,13 @@
     <script>
         const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
         const secNames = ['الأولى (أ)', 'الثانية (ب)', 'الثالثة (ج)'];
-        // اختصار أسماء الشعب للعرض في الرأس
         const secShortNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         const weekDaysFull = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
+        // المواد الممنوعة في الحصة الأخيرة (الخامسة) نهائياً
+        const forbiddenLastLessonSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
 
         function getTodayFormattedISO() {
             const now = new Date();
@@ -400,6 +410,11 @@
             const reportPicker = document.getElementById('reportDatePicker');
             if (reportPicker && !reportPicker.value) {
                 reportPicker.value = getTodayFormattedISO();
+            }
+
+            const allStaffPicker = document.getElementById('allStaffDatePicker');
+            if (allStaffPicker && !allStaffPicker.value) {
+                allStaffPicker.value = getTodayFormattedISO();
             }
         }
 
@@ -943,7 +958,7 @@
         }
 
         // ==========================================
-        // دالة التوليد الذكية الصارمة v24.0 (توزع الحصص مقسمة على الأيام والحصص الخمسة بدون تكرار المادة يومياً)
+        // دالة التوليد الذكية الصارمة v25.0 (تمنع عربي/رياضيات/إنكليزي في الحصة الخامسة نهائياً)
         // ==========================================
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
@@ -957,11 +972,8 @@
             }
 
             let grid = {};
-            // تتبع انشغال المعلمات في (اليوم + الحصة): teacherBusy[dIdx][lIdx][tId] = true
             let teacherBusy = {};
-            // تتبع المواد المدندسة في اليوم لنفس الشعبة: sectionDaySubjectBusy[gIdx][sIdx][dIdx][subject] = true
             let sectionDaySubjectBusy = {};
-            // تتبع عدد الحصص المأخوذة لكل شعبة في كل يوم: sectionDayCount[gIdx][sIdx][dIdx] = count
             let sectionDayCount = {};
 
             days.forEach((_, dIdx) => {
@@ -1000,21 +1012,28 @@
                 });
             });
 
-            pool.sort(() => Math.random() - 0.5);
+            // نعزل الحصص الخاصة بمواد (عربي، رياضيات، إنكليزي) لكي يتم توزيعها على الحصص (1 إلى 4) حصراً لتجنب الحصة الأخيرة
+            let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
+            let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
+            let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
 
-            pool.forEach(item => {
+            poolRestricted.sort(() => Math.random() - 0.5);
+            poolOther.sort(() => Math.random() - 0.5);
+
+            // دمج المعالجة: نوزع المواد المقيدة أولاً (الحصص 1 إلى 4 فقط)، ثم باقي المواد
+            let fullOrderedPool = [...poolRestricted, ...poolOther];
+
+            fullOrderedPool.forEach(item => {
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
+                let isRestricted = restrictedSubjects.includes(item.subject);
 
-                // نبحث عن اليوم الأنسب (الذي يحتوي على أقل عدد من الحصص لهذه الشعبة لضمان التوزيع المتوازن عبر أيام الأسبوع)
                 let bestDay = -1;
                 let minDayCount = 999;
                 let availableDays = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
 
                 for (let d of availableDays) {
-                    // شروط اليوم: لم يتم تدريس نفس المادة في هذا اليوم لهذه الشعبة
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
-                    // الشعبة لم تكتمل حصصها اليومية بالكامل (أقل من 5 حصص)
                     let isDayNotFull = sectionDayCount[g][s][d] < 5;
 
                     if (isSubjectFreeToday && isDayNotFull && sectionDayCount[g][s][d] < minDayCount) {
@@ -1023,7 +1042,6 @@
                     }
                 }
 
-                // إذا لم نجد يوماً مثالياً مستوفي لكل الشروط، نختار أي يوم لا تكرر فيه المادة
                 if (bestDay === -1) {
                     for (let d of availableDays) {
                         if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
@@ -1034,11 +1052,12 @@
                 }
 
                 if (bestDay !== -1) {
-                    // نبحث عن حصة فارغة وغير مشغولة للمعلمة في هذا اليوم
                     let chosenLesson = -1;
-                    let availableLessons = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
+                    // إذا كانت المادة مقيدة (عربي، رياضيات، إنكليزي)، نسمح فقط بالحصص من 0 إلى 3 (أي الحصة الأولى للرابعة)
+                    let lessonIndices = isRestricted ? [0, 1, 2, 3] : [0, 1, 2, 3, 4];
+                    lessonIndices.sort(() => Math.random() - 0.5);
 
-                    for (let l of availableLessons) {
+                    for (let l of lessonIndices) {
                         let isSlotFreeInGrid = !grid[`${bestDay}_${l}_${g}_${s}`];
                         let isTeacherFree = !teacherBusy[bestDay][l][item.tId];
 
@@ -1049,7 +1068,6 @@
                     }
 
                     if (chosenLesson !== -1) {
-                        // تثبيت البيانات
                         teacherBusy[bestDay][chosenLesson][item.tId] = true;
                         sectionDaySubjectBusy[g][s][bestDay][item.subject] = true;
                         sectionDayCount[g][s][bestDay]++;
@@ -1227,7 +1245,12 @@
 
         function renderAllStaffTable() {
             const body = document.getElementById('allStaffTableBody');
+            const datePicker = document.getElementById('allStaffDatePicker');
             let list = getTeachers();
+
+            if (!body) return;
+            let selectedDate = datePicker && datePicker.value ? datePicker.value : getTodayFormattedISO();
+
             if (list.length === 0) {
                 body.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</td></tr>`;
                 return;
@@ -1238,8 +1261,13 @@
                 let hasAssignments = t.assignments && t.assignments.length > 0;
                 let uniqueSubjects = hasAssignments ? Array.from(new Set(t.assignments.map(a => a.subject))).join(', ') : '';
 
+                let historyItem = (t.attendanceHistory || []).find(h => h.date === selectedDate);
+                let isPresentOnDate = !!historyItem;
+                let entryTime = historyItem ? (historyItem.entryTime || historyItem.time || '-') : '-';
+                let exitTime = historyItem ? (historyItem.exitTime || '-') : '-';
+
                 return `
-                <tr>
+                <tr class="hover:bg-slate-50 transition border-b border-slate-200">
                     <td class="p-3">
                         ${t.photo ? `<img src="${t.photo}" class="w-8 h-8 rounded-full object-cover border mx-auto">` : `<div class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto"><i class="fas fa-user text-xs"></i></div>`}
                     </td>
@@ -1252,9 +1280,9 @@
                         ` : '-'}
                     </td>
                     <td class="p-3 font-bold text-blue-900">${t.role === 'مرشد تربوي' ? '<span class="text-teal-700">إرشاد تربوي</span>' : (uniqueSubjects ? uniqueSubjects : '<span class="text-slate-400">لا يوجد مواد</span>')}</td>
-                    <td class="p-3 text-center font-bold text-emerald-600">${t.checkInTime ? t.checkInTime : '-'}</td>
-                    <td class="p-3 text-center font-bold text-amber-600">${t.checkOutTime ? t.checkOutTime : '-'}</td>
-                    <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.isPresent ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${t.isPresent ? '🟢 حاضر' : '🔴 غائب'}</span></td>
+                    <td class="p-3 text-center font-bold text-emerald-600">${entryTime}</td>
+                    <td class="p-3 text-center font-bold text-amber-600">${exitTime}</td>
+                    <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isPresentOnDate ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${isPresentOnDate ? '🟢 حاضر' : '🔴 غائب'}</span></td>
                 </tr>
             `;
             }).join('');
