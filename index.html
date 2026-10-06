@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v25.0
+                نظام إدارة الجداول الذكي v26.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
-                    <p class="text-xs text-slate-500">الحصة الأخيرة خالية من (عربي، رياضيات، إنكليزي)، وتوزيع متوازن بدون تكرار يومي.</p>
+                    <p class="text-xs text-slate-500">الحصة الأخيرة خالية تماماً من (عربي، رياضيات، إنكليزي)، وتوزيع متوازن بدون تكرار يومي.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -163,6 +163,7 @@
                                 <span id="currentLiveDateText">تاريخ اليوم...</span>
                             </span>
                             
+                            <span class="text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl">إجمالي الكادر: <strong id="totalStaffCount" class="text-indigo-700 text-sm">0</strong></span>
                             <span class="text-slate-600">الحضور اليوم: <strong id="activePresentNum" class="text-emerald-700 text-sm">0</strong></span>
                             <span class="text-blue-800 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">🕒 الدخول: 10:00 - 11:30 | والانصراف: 01:30 - 02:15</span>
                         </div>
@@ -180,7 +181,7 @@
             </div>
         </section>
 
-        <!-- 3. جميع الكادر المدرسي وسجل الأوقات (مع تاريخ افتراضي يبدأ من تاريخ اليوم تلقائياً) -->
+        <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -238,7 +239,7 @@
             </div>
         </section>
 
-        <!-- 5. تقرير الحضور الزمني المطور المعتمد على اختيار التاريخ -->
+        <!-- 5. تقرير الحضور الزمني المطور -->
         <section id="reportsView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -378,7 +379,6 @@
         const weekDaysFull = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
-        // المواد الممنوعة في الحصة الأخيرة (الخامسة) نهائياً
         const forbiddenLastLessonSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
 
         function getTodayFormattedISO() {
@@ -442,11 +442,16 @@
             return cleaned;
         }
 
-        function updatePresentCountDisplay() {
+        function updateStaffCountsDisplay() {
             const list = getTeachers();
-            const count = list.filter(t => t.isPresent).length;
-            const elem = document.getElementById('activePresentNum');
-            if (elem) elem.innerText = count;
+            const totalCount = list.length;
+            const presentCount = list.filter(t => t.isPresent).length;
+            
+            const totalElem = document.getElementById('totalStaffCount');
+            if (totalElem) totalElem.innerText = totalCount;
+
+            const presentElem = document.getElementById('activePresentNum');
+            if (presentElem) presentElem.innerText = presentCount;
         }
 
         function getTeachers() {
@@ -473,7 +478,6 @@
             }
         }
 
-        // دالة توليد صورة الجدول وإرسالها
         function exportScheduleAsImage() {
             const card = document.getElementById('printableScheduleCard');
             if (!card) return;
@@ -957,9 +961,6 @@
             modal.classList.remove('flex');
         }
 
-        // ==========================================
-        // دالة التوليد الذكية الصارمة v25.0 (تمنع عربي/رياضيات/إنكليزي في الحصة الخامسة نهائياً)
-        // ==========================================
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1012,7 +1013,6 @@
                 });
             });
 
-            // نعزل الحصص الخاصة بمواد (عربي، رياضيات، إنكليزي) لكي يتم توزيعها على الحصص (1 إلى 4) حصراً لتجنب الحصة الأخيرة
             let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
             let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
             let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
@@ -1020,7 +1020,6 @@
             poolRestricted.sort(() => Math.random() - 0.5);
             poolOther.sort(() => Math.random() - 0.5);
 
-            // دمج المعالجة: نوزع المواد المقيدة أولاً (الحصص 1 إلى 4 فقط)، ثم باقي المواد
             let fullOrderedPool = [...poolRestricted, ...poolOther];
 
             fullOrderedPool.forEach(item => {
@@ -1053,7 +1052,6 @@
 
                 if (bestDay !== -1) {
                     let chosenLesson = -1;
-                    // إذا كانت المادة مقيدة (عربي، رياضيات، إنكليزي)، نسمح فقط بالحصص من 0 إلى 3 (أي الحصة الأولى للرابعة)
                     let lessonIndices = isRestricted ? [0, 1, 2, 3] : [0, 1, 2, 3, 4];
                     lessonIndices.sort(() => Math.random() - 0.5);
 
@@ -1117,7 +1115,7 @@
         }
 
         function refreshAllViews() {
-            updatePresentCountDisplay();
+            updateStaffCountsDisplay();
             renderTeachersCards();
             renderAllStaffTable();
             refreshBackupTeachers();
