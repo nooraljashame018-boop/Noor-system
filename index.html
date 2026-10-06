@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v23.0
+                نظام إدارة الجداول الذكي v24.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
-                    <p class="text-xs text-slate-500">التوزيع الذكي يمنع تضارب المعلمات ولا يكرر نفس المادة في اليوم للشعبة.</p>
+                    <p class="text-xs text-slate-500">التوزيع الذكي يمنع تضارب المعلمات ولا يكرر نفس المادة في نفس اليوم بالشعبة.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -363,7 +363,9 @@
 
     <script>
         const gradeNames = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس'];
-        const secNames = ['أ', 'ب', 'ج'];
+        const secNames = ['الأولى (أ)', 'الثانية (ب)', 'الثالثة (ج)'];
+        // اختصار أسماء الشعب للعرض في الرأس
+        const secShortNames = ['أ', 'ب', 'ج'];
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
         const weekDaysFull = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
@@ -461,7 +463,6 @@
             const card = document.getElementById('printableScheduleCard');
             if (!card) return;
 
-            // إظهار عنوان الطباعة مؤقتاً لتظهر في الصورة
             const printTitle = card.querySelector('.print-block');
             if (printTitle) printTitle.classList.remove('hidden');
 
@@ -471,7 +472,6 @@
                 canvas.toBlob(blob => {
                     const file = new File([blob], "school_schedule.png", { type: "image/png" });
                     
-                    // التحقق مما إذا كان المتصفح يدعم مشاركة الملفات (Web Share API)
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         navigator.share({
                             files: [file],
@@ -479,12 +479,11 @@
                             text: 'إليك جدول الدروس الأسبوعي لمدرسة الضياء'
                         }).catch(error => console.log('خطأ في المشاركة:', error));
                     } else {
-                        // طريقة بديلة للتحميل المباشر للصورة إذا لم تدعم المشاركة المباشرة
                         const link = document.createElement('a');
                         link.download = 'schedule.png';
                         link.href = canvas.toDataURL('image/png');
                         link.click();
-                        alert('تم تنزيل صورة الجدول بنجاح! يمكنك الآن مشاركتها عبر الواتساب.');
+                        alert('تم تنزيل صورة الجدول بنجاح! يمكنك مشاركتها الآن عبر الواتساب.');
                     }
                 });
             }).catch(err => {
@@ -535,7 +534,7 @@
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> شعبة ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
@@ -944,7 +943,7 @@
         }
 
         // ==========================================
-        // دالة التوليد الذكية الصارمة v23.0 (تمنع التضارب وتمنع تكرار نفس المادة في نفس اليوم للشعبة)
+        // دالة التوليد الذكية الصارمة v24.0 (توزع الحصص مقسمة على الأيام والحصص الخمسة بدون تكرار المادة يومياً)
         // ==========================================
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
@@ -958,8 +957,12 @@
             }
 
             let grid = {};
+            // تتبع انشغال المعلمات في (اليوم + الحصة): teacherBusy[dIdx][lIdx][tId] = true
             let teacherBusy = {};
+            // تتبع المواد المدندسة في اليوم لنفس الشعبة: sectionDaySubjectBusy[gIdx][sIdx][dIdx][subject] = true
             let sectionDaySubjectBusy = {};
+            // تتبع عدد الحصص المأخوذة لكل شعبة في كل يوم: sectionDayCount[gIdx][sIdx][dIdx] = count
+            let sectionDayCount = {};
 
             days.forEach((_, dIdx) => {
                 teacherBusy[dIdx] = {};
@@ -970,10 +973,13 @@
 
             gradeNames.forEach((_, gIdx) => {
                 sectionDaySubjectBusy[gIdx] = {};
+                sectionDayCount[gIdx] = {};
                 secNames.forEach((_, sIdx) => {
                     sectionDaySubjectBusy[gIdx][sIdx] = {};
+                    sectionDayCount[gIdx][sIdx] = {};
                     days.forEach((_, dIdx) => {
                         sectionDaySubjectBusy[gIdx][sIdx][dIdx] = {};
+                        sectionDayCount[gIdx][sIdx][dIdx] = 0;
                     });
                 });
             });
@@ -996,58 +1002,65 @@
 
             pool.sort(() => Math.random() - 0.5);
 
-            let allSlots = [];
-            days.forEach((_, dIdx) => {
-                lessons.forEach((_, lIdx) => {
-                    gradeNames.forEach((_, gIdx) => {
-                        secNames.forEach((_, sIdx) => {
-                            allSlots.push({ d: dIdx, l: lIdx, g: gIdx, s: sIdx });
-                        });
-                    });
-                });
-            });
-
-            allSlots.sort(() => Math.random() - 0.5);
-
             pool.forEach(item => {
-                let targetSlotIndex = -1;
-                for (let i = 0; i < allSlots.length; i++) {
-                    let slot = allSlots[i];
-                    if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
-                        let isTeacherFree = !teacherBusy[slot.d][slot.l][item.tId];
-                        let isSubjectFreeToday = !sectionDaySubjectBusy[slot.g][slot.s][slot.d][item.subject];
+                let g = item.gradeIndex;
+                let s = item.sectionIndex;
 
-                        if (isTeacherFree && isSubjectFreeToday) {
-                            targetSlotIndex = i;
+                // نبحث عن اليوم الأنسب (الذي يحتوي على أقل عدد من الحصص لهذه الشعبة لضمان التوزيع المتوازن عبر أيام الأسبوع)
+                let bestDay = -1;
+                let minDayCount = 999;
+                let availableDays = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
+
+                for (let d of availableDays) {
+                    // شروط اليوم: لم يتم تدريس نفس المادة في هذا اليوم لهذه الشعبة
+                    let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
+                    // الشعبة لم تكتمل حصصها اليومية بالكامل (أقل من 5 حصص)
+                    let isDayNotFull = sectionDayCount[g][s][d] < 5;
+
+                    if (isSubjectFreeToday && isDayNotFull && sectionDayCount[g][s][d] < minDayCount) {
+                        minDayCount = sectionDayCount[g][s][d];
+                        bestDay = d;
+                    }
+                }
+
+                // إذا لم نجد يوماً مثالياً مستوفي لكل الشروط، نختار أي يوم لا تكرر فيه المادة
+                if (bestDay === -1) {
+                    for (let d of availableDays) {
+                        if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
+                            bestDay = d;
                             break;
                         }
                     }
                 }
 
-                if (targetSlotIndex === -1) {
-                    for (let i = 0; i < allSlots.length; i++) {
-                        let slot = allSlots[i];
-                        if (slot.g === item.gradeIndex && slot.s === item.sectionIndex) {
-                            if (!teacherBusy[slot.d][slot.l][item.tId]) {
-                                targetSlotIndex = i;
-                                break;
-                            }
+                if (bestDay !== -1) {
+                    // نبحث عن حصة فارغة وغير مشغولة للمعلمة في هذا اليوم
+                    let chosenLesson = -1;
+                    let availableLessons = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
+
+                    for (let l of availableLessons) {
+                        let isSlotFreeInGrid = !grid[`${bestDay}_${l}_${g}_${s}`];
+                        let isTeacherFree = !teacherBusy[bestDay][l][item.tId];
+
+                        if (isSlotFreeInGrid && isTeacherFree) {
+                            chosenLesson = l;
+                            break;
                         }
                     }
-                }
 
-                if (targetSlotIndex !== -1) {
-                    let chosenSlot = allSlots.splice(targetSlotIndex, 1)[0];
+                    if (chosenLesson !== -1) {
+                        // تثبيت البيانات
+                        teacherBusy[bestDay][chosenLesson][item.tId] = true;
+                        sectionDaySubjectBusy[g][s][bestDay][item.subject] = true;
+                        sectionDayCount[g][s][bestDay]++;
 
-                    teacherBusy[chosenSlot.d][chosenSlot.l][item.tId] = true;
-                    sectionDaySubjectBusy[chosenSlot.g][chosenSlot.s][chosenSlot.d][item.subject] = true;
-
-                    let cellKey = `${chosenSlot.d}_${chosenSlot.l}_${chosenSlot.g}_${chosenSlot.s}`;
-                    grid[cellKey] = {
-                        tId: item.tId,
-                        name: item.name,
-                        subject: item.subject
-                    };
+                        let cellKey = `${bestDay}_${chosenLesson}_${g}_${s}`;
+                        grid[cellKey] = {
+                            tId: item.tId,
+                            name: item.name,
+                            subject: item.subject
+                        };
+                    }
                 }
             });
 
@@ -1331,7 +1344,7 @@
 
             gradeNames.forEach(gName => {
                 hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white" colspan="3">الصف ${gName}</th>`;
-                secNames.forEach(sName => {
+                secShortNames.forEach(sName => {
                     hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-800 text-[11px]">شعبة ${sName}</th>`;
                 });
             });
@@ -1352,7 +1365,7 @@
                     tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-amber-50 text-amber-900 text-[11px]">${lesson}</td>`;
 
                     gradeNames.forEach((_, gIdx) => {
-                        secNames.forEach((_, sIdx) => {
+                        secShortNames.forEach((_, sIdx) => {
                             let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
                             let cellData = savedGrid[cellKey] || { subject: '', name: '' };
 
