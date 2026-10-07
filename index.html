@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v32.0
+                نظام إدارة الجداول الثابت v33.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">الجدول ثابت ومستقر، ولإعادة الخلط والتوزيع اضغط على زر "إعادة خلط وتوليد الجدول".</p>
+                    <p class="text-xs text-slate-500">الشعب غير المخصصة لها حصص تبقى فارغة تماماً.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -986,6 +986,24 @@
                 return;
             }
 
+            // تحديد الشعب الفعالة فقط التي لديها حصص ومعلمين مخصصين
+            let activeSectionsMap = {};
+            gradeNames.forEach((_, gIdx) => {
+                activeSectionsMap[gIdx] = {};
+                secNames.forEach((_, sIdx) => {
+                    activeSectionsMap[gIdx][sIdx] = false;
+                });
+            });
+
+            teachingStaff.forEach(t => {
+                t.assignments.forEach(asgn => {
+                    let qCount = (asgn.subject === 'فن' || asgn.subject === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
+                    if (qCount > 0) {
+                        activeSectionsMap[asgn.gradeIndex][asgn.sectionIndex] = true;
+                    }
+                });
+            });
+
             let grid = {};
             let teacherBusy = {};
             let sectionDaySubjectBusy = {};
@@ -1041,13 +1059,14 @@
                 let s = item.sectionIndex;
                 let isRestricted = restrictedSubjects.includes(item.subject);
 
+                // إذا كانت الشعبة الحالية غير مخصصة أو تم تجاوز حد الـ 5 أيام، نبحث عن شعبة فعالة أخرى في نفس المرحلة
                 let sectionSubjectCount = 0;
                 days.forEach((_, d) => {
                     if (sectionDaySubjectBusy[g][s][d][item.subject]) sectionSubjectCount++;
                 });
 
-                if (sectionSubjectCount >= 5) {
-                    let otherSections = [0, 1, 2].filter(secIdx => secIdx !== s);
+                if (!activeSectionsMap[g][s] || sectionSubjectCount >= 5) {
+                    let otherSections = [0, 1, 2].filter(secIdx => activeSectionsMap[g][secIdx] && secIdx !== s);
                     for (let altSec of otherSections) {
                         let altCount = 0;
                         days.forEach((_, d) => {
@@ -1059,6 +1078,8 @@
                         }
                     }
                 }
+
+                if (!activeSectionsMap[g][s]) return; // تخطي الشرايح غير النشطة تماماً
 
                 let bestDay = -1;
                 let minDayCount = 999;
@@ -1116,7 +1137,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم إعادة توليد وخلط الجدول بنجاح وتوزيع الحصص الإضافية على شعب المرحلة بسلاسة!');
+            alert('تم إعادة توليد وخلط الجدول بنجاح والتزام تام بعدم ملء أي شعبة فارغة ليس لها حصص!');
         }
 
         function updateCellManual(cellKey, field, value) {
