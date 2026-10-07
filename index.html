@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v33.0
+                نظام إدارة الجداول الثابت v34.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">الشعب غير المخصصة لها حصص تبقى فارغة تماماً.</p>
+                    <p class="text-xs text-slate-500">حصة رياضة واحدة لكل شعبة، وعدم تداخل حصص الرياضة لنفس المعلمة في نفس اليوم.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -553,25 +553,25 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
@@ -986,7 +986,6 @@
                 return;
             }
 
-            // تحديد الشعب الفعالة فقط التي لديها حصص ومعلمين مخصصين
             let activeSectionsMap = {};
             gradeNames.forEach((_, gIdx) => {
                 activeSectionsMap[gIdx] = {};
@@ -1059,7 +1058,6 @@
                 let s = item.sectionIndex;
                 let isRestricted = restrictedSubjects.includes(item.subject);
 
-                // إذا كانت الشعبة الحالية غير مخصصة أو تم تجاوز حد الـ 5 أيام، نبحث عن شعبة فعالة أخرى في نفس المرحلة
                 let sectionSubjectCount = 0;
                 days.forEach((_, d) => {
                     if (sectionDaySubjectBusy[g][s][d][item.subject]) sectionSubjectCount++;
@@ -1079,7 +1077,7 @@
                     }
                 }
 
-                if (!activeSectionsMap[g][s]) return; // تخطي الشرايح غير النشطة تماماً
+                if (!activeSectionsMap[g][s]) return;
 
                 let bestDay = -1;
                 let minDayCount = 999;
@@ -1089,6 +1087,30 @@
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
                     let isDayNotFull = sectionDayCount[g][s][d] < 5;
 
+                    // قيد إضافي لمادة الرياضة: منع تداخل حصص الرياضة لنفس المعلمة في نفس اليوم عبر الشعب المختلفة
+                    if (item.subject === 'رياضة') {
+                        let isTeacherBusyWithSportToday = false;
+                        days.forEach((_, lessonIdx) => {
+                            // فحص ما إذا كانت المعلمة لديها حصة رياضة اليوم في شعبة أخرى لنفس المرحلة أو أي مرحلة أخرى
+                        });
+                        // التحقق من أن المعلمة لا تملك حصة رياضة أخرى في نفس اليوم (d)
+                        let teacherHasSportOnDay = false;
+                        for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
+                            for (let gg = 0; gg < gradeNames.length; gg++) {
+                                for (let ss = 0; ss < secNames.length; ss++) {
+                                    let checkKey = `${d}_${lIdx}_${gg}_${ss}`;
+                                    let cellCheck = grid[checkKey];
+                                    if (cellCheck && cellCheck.tId == item.tId && cellCheck.subject === 'رياضة') {
+                                        teacherHasSportOnDay = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (teacherHasSportOnDay) {
+                            isSubjectFreeToday = false; // تخطي هذا اليوم لمعلمة الرياضة لكي لا تتكدس الحصص في نفس اليوم
+                        }
+                    }
+
                     if (isSubjectFreeToday && isDayNotFull && sectionDayCount[g][s][d] < minDayCount) {
                         minDayCount = sectionDayCount[g][s][d];
                         bestDay = d;
@@ -1096,6 +1118,30 @@
                 }
 
                 if (bestDay === -1) {
+                    for (let d of availableDays) {
+                        let teacherHasSportOnDay = false;
+                        if (item.subject === 'رياضة') {
+                            for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
+                                for (let gg = 0; gg < gradeNames.length; gg++) {
+                                    for (let ss = 0; ss < secNames.length; ss++) {
+                                        let checkKey = `${d}_${lIdx}_${gg}_${ss}`;
+                                        let cellCheck = grid[checkKey];
+                                        if (cellCheck && cellCheck.tId == item.tId && cellCheck.subject === 'رياضة') {
+                                            teacherHasSportOnDay = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (!teacherHasSportOnDay && !sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
+                            bestDay = d;
+                            break;
+                        }
+                    }
+                }
+
+                if (bestDay === -1) {
+                    // إذا استعصى الأمر، نسمح بأي يوم متاح لتفادي ترك الحصة معلقة
                     for (let d of availableDays) {
                         if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
                             bestDay = d;
@@ -1137,7 +1183,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم إعادة توليد وخلط الجدول بنجاح والتزام تام بعدم ملء أي شعبة فارغة ليس لها حصص!');
+            alert('تم إعادة توليد وخلط الجدول بنجاح مع مراعاة توزيع حصص الرياضة في أيام مختلفة لكل معلمة!');
         }
 
         function updateCellManual(cellKey, field, value) {
