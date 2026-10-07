@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الجدول المدرسي الثابت - مدرسة الضياء</title>
+    <title>نظام الجدول المدرسي الثابت الذكي - مدرسة الضياء</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v30.0
+                نظام إدارة الجداول الثابت v31.0
             </div>
         </div>
     </aside>
@@ -76,8 +76,8 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">الجدول ثابت ومستقر، ولا يتغير إلا عند النقر على زر إعادة الخلط أو تعديل الكادر.</p>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام مع توزيع الحصص الإضافية ذكياً)</h2>
+                    <p class="text-xs text-slate-500">الجدول ثابت ومستقر، ويتم توزيع الحصص التي تتجاوز 5 على شعب نفس المرحلة تلقائياً.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -518,7 +518,6 @@
             buildGradesForm('editGradesContainer', 'edit_');
             refreshAllViews();
             
-            // توليد الجدول تلقائياً فقط إذا لم يكن موجوداً من قبل ليبقى ثابتاً طوال العام
             let savedGrid = getScheduleData();
             if (Object.keys(savedGrid).length === 0) {
                 autoGenerateFullSchedule();
@@ -693,7 +692,7 @@
                 document.getElementById('tRole').value = 'معلم';
                 buildGradesForm('gradesContainer', '');
                 refreshAllViews();
-                alert('تم حفظ الكادر بنجاح! (الجدول ثابت ولن يتغير إلا إذا أردت خلطه من زر إعادة التوليد).');
+                alert('تم حفظ الكادر بنجاح!');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -1041,6 +1040,26 @@
                 let s = item.sectionIndex;
                 let isRestricted = restrictedSubjects.includes(item.subject);
 
+                // إذا كانت الشعبة تجاوزت الحد الأقصى للمادة (5 أيام)، نقوم بإعادة توجيه الحصة الزائدة لشعبة أخرى في نفس المرحلة
+                let sectionSubjectCount = 0;
+                days.forEach(d => {
+                    if (sectionDaySubjectBusy[g][s][d][item.subject]) sectionSubjectCount++;
+                });
+
+                if (sectionSubjectCount >= 5) {
+                    let otherSections = [0, 1, 2].filter(secIdx => secIdx !== s);
+                    for (let altSec of otherSections) {
+                        let altCount = 0;
+                        days.forEach(d => {
+                            if (sectionDaySubjectBusy[g][altSec][d][item.subject]) altCount++;
+                        });
+                        if (altCount < 5) {
+                            s = altSec;
+                            break;
+                        }
+                    }
+                }
+
                 let bestDay = -1;
                 let minDayCount = 999;
                 let availableDays = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
@@ -1097,7 +1116,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم إعادة توليد وخلط الجدول بنجاح!');
+            alert('تم إعادة توليد وخلط الجدول بنجاح وتوزيع الحصص الإضافية على شعب المرحلة بسلاسة!');
         }
 
         function updateCellManual(cellKey, field, value) {
@@ -1389,7 +1408,6 @@
             hSub.innerHTML = hSubHtml;
 
             let tbodyHtml = '';
-            days.days = days; // reference
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
                     let isLastLessonOfDay = (lIdx === lessons.length - 1);
