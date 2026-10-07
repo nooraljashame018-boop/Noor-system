@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v31.0
+                نظام إدارة الجداول الثابت v32.0
             </div>
         </div>
     </aside>
@@ -76,20 +76,20 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام مع توزيع الحصص الإضافية ذكياً)</h2>
-                    <p class="text-xs text-slate-500">الجدول ثابت ومستقر، ويتم توزيع الحصص التي تتجاوز 5 على شعب نفس المرحلة تلقائياً.</p>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
+                    <p class="text-xs text-slate-500">الجدول ثابت ومستقر، ولإعادة الخلط والتوزيع اضغط على زر "إعادة خلط وتوليد الجدول".</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
+                    <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول
                     </button>
-                    <button onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5">
+                    <button type="button" onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-trash-alt"></i> تفريغ الجدول
                     </button>
-                    <button onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5">
+                    <button type="button" onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-print"></i> طباعة (PDF)
                     </button>
-                    <button onclick="exportScheduleAsImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5">
+                    <button type="button" onclick="exportScheduleAsImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fab fa-whatsapp text-sm"></i> إرسال الجدول لصورة (واتساب)
                     </button>
                 </div>
@@ -146,7 +146,7 @@
                     <div id="gradesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs"></div>
                 </div>
 
-                <button type="button" onclick="saveNewTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md">
+                <button type="button" onclick="saveNewTeacher()" class="px-6 bg-emerald-600 text-white font-bold py-2.5 rounded-xl hover:bg-emerald-700 transition text-sm shadow-md cursor-pointer">
                     + حفظ في النظام
                 </button>
             </div>
@@ -256,7 +256,7 @@
                             <input type="date" id="reportDatePicker" onchange="renderReportsList()" class="bg-white border border-purple-300 rounded-lg p-1 text-xs font-bold text-purple-900 outline-none">
                         </div>
 
-                        <button onclick="clearAllAttendanceLogs()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm">
+                        <button type="button" onclick="clearAllAttendanceLogs()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer">
                             <i class="fas fa-broom"></i> تصفير جميع السجلات
                         </button>
                     </div>
@@ -288,7 +288,7 @@
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-pen text-blue-400"></i> تعديل بيانات الكادر</h3>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-white transition text-lg cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="p-5 overflow-y-auto space-y-4">
@@ -322,7 +322,7 @@
                         <input type="file" id="editTPhoto" accept="image/*" class="w-full text-xs text-slate-500 border border-slate-200 p-1 rounded-xl">
                         <div id="currentPhotoPreviewArea" class="hidden items-center gap-2 shrink-0">
                             <img id="editTPhotoPreview" src="" class="w-8 h-8 rounded-full object-cover border border-slate-300">
-                            <button type="button" onclick="markPhotoForDeletion()" title="حذف الصورة الحالية" class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 font-black rounded-xl flex items-center justify-center transition text-sm border border-red-200">
+                            <button type="button" onclick="markPhotoForDeletion()" title="حذف الصورة الحالية" class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 font-black rounded-xl flex items-center justify-center transition text-sm border border-red-200 cursor-pointer">
                                 <i class="fas fa-xmark"></i>
                             </button>
                         </div>
@@ -337,8 +337,8 @@
             </div>
 
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end gap-2">
-                <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إلغاء</button>
-                <button onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md">حفظ التعديلات</button>
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer">إلغاء</button>
+                <button type="button" onclick="saveTeacherEdits()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer">حفظ التعديلات</button>
             </div>
         </div>
     </div>
@@ -348,7 +348,7 @@
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
             <div class="bg-purple-900 text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-clock-rotate-left text-purple-300"></i> سجل أوقات: <span id="historyTeacherName" class="text-purple-100"></span></h3>
-                <button onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeHistoryModal()" class="text-purple-300 hover:text-white transition text-lg cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-0 overflow-y-auto max-h-[60vh]">
                 <table class="w-full text-center border-collapse text-xs">
@@ -363,10 +363,10 @@
                 </table>
             </div>
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-between items-center">
-                <button id="clearSingleTeacherHistoryBtn" onclick="" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold rounded-xl text-xs transition flex items-center gap-1">
+                <button type="button" id="clearSingleTeacherHistoryBtn" onclick="" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer">
                     <i class="fas fa-trash"></i> مسح سجل هذا العضو
                 </button>
-                <button onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">إغلاق</button>
+                <button type="button" onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer">إغلاق</button>
             </div>
         </div>
     </div>
@@ -553,7 +553,7 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
@@ -982,6 +982,7 @@
                 localStorage.removeItem('app_schedule_grid_v7');
                 renderSchedule();
                 refreshBackupTeachers();
+                alert('لا توجد مواد أو حصص مخصصة للكادر لتوليد الجدول!');
                 return;
             }
 
@@ -1040,9 +1041,8 @@
                 let s = item.sectionIndex;
                 let isRestricted = restrictedSubjects.includes(item.subject);
 
-                // إذا كانت الشعبة تجاوزت الحد الأقصى للمادة (5 أيام)، نقوم بإعادة توجيه الحصة الزائدة لشعبة أخرى في نفس المرحلة
                 let sectionSubjectCount = 0;
-                days.forEach(d => {
+                days.forEach((_, d) => {
                     if (sectionDaySubjectBusy[g][s][d][item.subject]) sectionSubjectCount++;
                 });
 
@@ -1050,7 +1050,7 @@
                     let otherSections = [0, 1, 2].filter(secIdx => secIdx !== s);
                     for (let altSec of otherSections) {
                         let altCount = 0;
-                        days.forEach(d => {
+                        days.forEach((_, d) => {
                             if (sectionDaySubjectBusy[g][altSec][d][item.subject]) altCount++;
                         });
                         if (altCount < 5) {
@@ -1186,7 +1186,7 @@
                     <td class="p-3 text-center font-bold text-emerald-600">${entryTime}</td>
                     <td class="p-3 text-center font-bold text-amber-600">${exitTime}</td>
                     <td class="p-3 text-center">
-                        <button onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1">
+                        <button type="button" onclick="openHistoryModal(${t.id})" class="bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 px-3 py-1.5 rounded-xl text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer">
                             <i class="fas fa-list-check"></i> السجل الشامل
                         </button>
                     </td>
@@ -1222,10 +1222,10 @@
                             
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <button onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5">
+                                    <button type="button" onclick="openEditModal(${t.id})" title="تعديل" class="text-slate-400 hover:text-blue-600 transition text-xs p-0.5 cursor-pointer">
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
-                                    <button onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition text-xs p-0.5">
+                                    <button type="button" onclick="deleteTeacher(${t.id})" title="حذف" class="text-slate-300 hover:text-red-600 transition text-xs p-0.5 cursor-pointer">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -1256,11 +1256,11 @@
                             <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs">
                                 <div>🟢 الدخول: ${t.checkInTime}</div>${t.checkOutTime ? `<div class="text-amber-800 text-[11px] mt-0.5">🔴 الانصراف: ${t.checkOutTime}</div>` : ''}
                             </div>
-                            <button onclick="recordAttendance(${t.id})" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm">
+                            <button type="button" onclick="recordAttendance(${t.id})" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer">
                                 <i class="fas fa-right-from-bracket"></i> تسجيل الانصراف
                             </button>
                         ` : `
-                            <button onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
+                            <button type="button" onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fas fa-fingerprint text-base"></i> تسجيل الدخول للدوام
                             </button>
                         `}
