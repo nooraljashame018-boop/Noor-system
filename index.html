@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v35.0
+                نظام إدارة الجداول الثابت v36.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">التوزيع مرتبط حصراً بالشعب المنسوب لها المعلم أثناء إدخال البيانات.</p>
+                    <p class="text-xs text-slate-500">التعديلات اليدوية والبيانات المدخلة تُحفظ تلقائياً في الجدول ولا يتم مسحها.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -552,17 +552,17 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
@@ -978,14 +978,10 @@
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
 
             if (teachingStaff.length === 0) {
-                localStorage.removeItem('app_schedule_grid_v7');
-                renderSchedule();
-                refreshBackupTeachers();
                 alert('لا توجد مواد أو حصص مخصصة للكادر لتوليد الجدول!');
                 return;
             }
 
-            // خريطة لتحديد الشعب المنسوب لها المعلمون حصراً (حسب ادخال بيانات المعلم)
             let assignedSectionsMap = {};
             gradeNames.forEach((_, gIdx) => {
                 assignedSectionsMap[gIdx] = {};
@@ -1003,7 +999,6 @@
                     let qCount = (sub === 'فن' || sub === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
 
                     if (qCount > 0) {
-                        // تسجيل أن هذا المعلم منسوب لهذه المادة في هذه الشعبة حصراً
                         if (!assignedSectionsMap[g][s][sub]) {
                             assignedSectionsMap[g][s][sub] = [];
                         }
@@ -1025,7 +1020,8 @@
                 });
             });
 
-            let grid = {};
+            // جلب الجدول الحالي للحفاظ على الخلايا التي تم تعديلها يدوياً
+            let grid = getScheduleData();
             let teacherBusy = {};
             let sectionDaySubjectBusy = {};
             let sectionDayCount = {};
@@ -1050,6 +1046,24 @@
                 });
             });
 
+            // تسجيل الخلايا الموجودة مسبقاً (المدخلة يدوياً أو المحفوظة) لكي لا يتم مسحها أو تداخلها
+            Object.keys(grid).forEach(cellKey => {
+                let cell = grid[cellKey];
+                if (cell && cell.subject) {
+                    let parts = cellKey.split('_'); // dIdx, lIdx, gIdx, sIdx
+                    let d = parseInt(parts[0]);
+                    let l = parseInt(parts[1]);
+                    let g = parseInt(parts[2]);
+                    let s = parseInt(parts[3]);
+
+                    if (cell.tId) {
+                        teacherBusy[d][l][cell.tId] = true;
+                    }
+                    sectionDaySubjectBusy[g][s][d][cell.subject] = true;
+                    sectionDayCount[g][s][d]++;
+                }
+            });
+
             let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
             let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
             let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
@@ -1064,9 +1078,8 @@
                 let s = item.sectionIndex;
                 let isRestricted = restrictedSubjects.includes(item.subject);
 
-                // التأكد الصارم من أن المعلم منسوب لهذه الشعبة والمادة بناءً على إدخاله
                 let isAssignedHere = assignedSectionsMap[g][s][item.subject] && assignedSectionsMap[g][s][item.subject].some(ts => ts.tId == item.tId);
-                if (!isAssignedHere) return; // منع التكليف المطلق لشعبة غير منسب لها المعلم
+                if (!isAssignedHere) return;
 
                 let bestDay = -1;
                 let minDayCount = 999;
@@ -1076,7 +1089,6 @@
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
                     let isDayNotFull = sectionDayCount[g][s][d] < 5;
 
-                    // قيد رياضة: عدم تكديس حصص الرياضة لنفس المعلمة في نفس اليوم عبر الشعب المختلفة
                     if (item.subject === 'رياضة') {
                         let teacherHasSportOnDay = false;
                         for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
@@ -1103,29 +1115,6 @@
 
                 if (bestDay === -1) {
                     for (let d of availableDays) {
-                        let teacherHasSportOnDay = false;
-                        if (item.subject === 'رياضة') {
-                            for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
-                                for (let gg = 0; gg < gradeNames.length; gg++) {
-                                    for (let ss = 0; ss < secNames.length; ss++) {
-                                        let checkKey = `${d}_${lIdx}_${gg}_${ss}`;
-                                        let cellCheck = grid[checkKey];
-                                        if (cellCheck && cellCheck.tId == item.tId && cellCheck.subject === 'رياضة') {
-                                            teacherHasSportOnDay = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (!teacherHasSportOnDay && !sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
-                            bestDay = d;
-                            break;
-                        }
-                    }
-                }
-
-                if (bestDay === -1) {
-                    for (let d of availableDays) {
                         if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
                             bestDay = d;
                             break;
@@ -1139,10 +1128,11 @@
                     lessonIndices.sort(() => Math.random() - 0.5);
 
                     for (let l of lessonIndices) {
-                        let isSlotFreeInGrid = !grid[`${bestDay}_${l}_${g}_${s}`];
+                        let cellKey = `${bestDay}_${l}_${g}_${s}`;
+                        let isSlotEmptyOrUnfilled = !grid[cellKey] || !grid[cellKey].subject;
                         let isTeacherFree = !teacherBusy[bestDay][l][item.tId];
 
-                        if (isSlotFreeInGrid && isTeacherFree) {
+                        if (isSlotEmptyOrUnfilled && isTeacherFree) {
                             chosenLesson = l;
                             break;
                         }
@@ -1166,7 +1156,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم إعادة توليد الجدول بنجاح والتزام تام بعدم تكليف أي معلم بشعبة غير منسب لها رسمياً!');
+            alert('تم تحديث الجدول وحفظ البيانات والتعديلات اليدوية بنجاح دون مسحها!');
         }
 
         function updateCellManual(cellKey, field, value) {
