@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الجدول المدرسي التلقائي - مدرسة الضياء</title>
+    <title>نظام الجدول المدرسي الثابت - مدرسة الضياء</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الذكي v26.0
+                نظام إدارة الجداول الثابت v30.0
             </div>
         </div>
     </aside>
@@ -76,8 +76,8 @@
         <section id="scheduleView" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (قابل للتعديل المباشر)</h2>
-                    <p class="text-xs text-slate-500">الحصة الأخيرة خالية تماماً من (عربي، رياضيات، إنكليزي)، وتوزيع متوازن بدون تكرار يومي.</p>
+                    <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
+                    <p class="text-xs text-slate-500">الجدول ثابت ومستقر، ولا يتغير إلا عند النقر على زر إعادة الخلط أو تعديل الكادر.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5">
@@ -517,6 +517,12 @@
             buildGradesForm('gradesContainer', '');
             buildGradesForm('editGradesContainer', 'edit_');
             refreshAllViews();
+            
+            // توليد الجدول تلقائياً فقط إذا لم يكن موجوداً من قبل ليبقى ثابتاً طوال العام
+            let savedGrid = getScheduleData();
+            if (Object.keys(savedGrid).length === 0) {
+                autoGenerateFullSchedule();
+            }
         };
 
         function switchTab(tabId) {
@@ -548,37 +554,37 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثالثة</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
                           </div>
                         </div>
@@ -599,7 +605,10 @@
                     if (sChk && sChk.checked) {
                         for(let i = 1; i <= 3; i++) {
                             const s = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_${i}`).value;
-                            const q = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                            let q = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                            if (s === 'فن' || s === 'رياضة') {
+                                q = 1;
+                            }
                             if (s) total += q;
                         }
                     }
@@ -644,7 +653,12 @@
                             if (sChk && sChk.checked) {
                                 for(let i = 1; i <= 3; i++) {
                                     const sub = document.getElementById(`sub_${gIdx}_${sIdx}_${i}`).value;
-                                    const q = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                                    let q = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                                    
+                                    if (sub === 'فن' || sub === 'رياضة') {
+                                        q = 1;
+                                    }
+
                                     if (sub && q > 0) {
                                         assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: sub, subjectQuota: q });
                                     }
@@ -673,15 +687,13 @@
                 list.push(newTeacher);
                 saveTeachers(list);
 
-                autoGenerateFullSchedule();
-
                 document.getElementById('tName').value = '';
                 document.getElementById('tPhone').value = '';
                 document.getElementById('tPhoto').value = '';
                 document.getElementById('tRole').value = 'معلم';
                 buildGradesForm('gradesContainer', '');
                 refreshAllViews();
-                alert('تم حفظ البيانات بنجاح!');
+                alert('تم حفظ الكادر بنجاح! (الجدول ثابت ولن يتغير إلا إذا أردت خلطه من زر إعادة التوليد).');
             };
 
             if (photoInput.files && photoInput.files[0]) {
@@ -741,7 +753,7 @@
                         let subSel = document.getElementById(`edit_sub_${gIdx}_${sIdx}_${subIndex}`);
                         let subQ = document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_${subIndex}`);
                         if (subSel) subSel.value = asgn.subject;
-                        if (subQ) subQ.value = asgn.subjectQuota || '';
+                        if (subQ) subQ.value = (asgn.subject === 'فن' || asgn.subject === 'رياضة') ? 1 : (asgn.subjectQuota || '');
                         gradeSubCounts[key]++;
                     }
                 });
@@ -795,7 +807,12 @@
                             if (sChk && sChk.checked) {
                                 for(let i = 1; i <= 3; i++) {
                                     const sub = document.getElementById(`edit_sub_${gIdx}_${sIdx}_${i}`).value;
-                                    const q = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                                    let q = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
+                                    
+                                    if (sub === 'فن' || sub === 'رياضة') {
+                                        q = 1;
+                                    }
+
                                     if (sub && q > 0) {
                                         assignments.push({ gradeIndex: gIdx, sectionIndex: sIdx, subject: sub, subjectQuota: q });
                                     }
@@ -821,7 +838,6 @@
                 list[idx].assignments = role === 'مرشد تربوي' ? [] : assignments;
 
                 saveTeachers(list);
-                autoGenerateFullSchedule();
                 closeEditModal();
                 refreshAllViews();
                 alert('تم حفظ التعديلات بنجاح!');
@@ -871,7 +887,6 @@
                 } else {
                     list[idx].attendanceHistory.push({ date: dateStr, entryTime: timeStr, exitTime: '-' });
                 }
-                alert(`تم تسجيل دخول (${list[idx].name}) في تمام الساعة ${timeStr}`);
             } 
             else {
                 if (currentMinutes < exitStart || currentMinutes > exitEnd) {
@@ -888,7 +903,6 @@
                 } else {
                     list[idx].attendanceHistory.push({ date: dateStr, entryTime: list[idx].checkInTime || '-', exitTime: timeStr });
                 }
-                alert(`تم تسجيل انصراف (${list[idx].name}) في تمام الساعة ${timeStr}`);
             }
 
             saveTeachers(list);
@@ -908,7 +922,7 @@
             
             saveTeachers(list);
             refreshAllViews();
-            alert('تم مسح وتصفير جميع السجلات القديمة بنجاح!');
+            alert('تم مسح وتصفير جميع السجلات بنجاح!');
         }
 
         function clearSingleTeacherAttendance(id) {
@@ -1000,7 +1014,7 @@
             let pool = [];
             teachingStaff.forEach(t => {
                 t.assignments.forEach(asgn => {
-                    let qCount = asgn.subjectQuota || 0;
+                    let qCount = (asgn.subject === 'فن' || asgn.subject === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
                     for(let i = 0; i < qCount; i++) {
                         pool.push({
                             tId: t.id,
@@ -1083,6 +1097,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
+            alert('تم إعادة توليد وخلط الجدول بنجاح!');
         }
 
         function updateCellManual(cellKey, field, value) {
@@ -1099,19 +1114,14 @@
             if(!confirm('هل أنت متأكد من الحذف؟')) return;
             let list = getTeachers().filter(t => t.id != id);
             saveTeachers(list);
-
-            if (list.length === 0) {
-                localStorage.removeItem('app_schedule_grid_v7');
-            } else {
-                autoGenerateFullSchedule();
-            }
-
             refreshAllViews();
+            alert('تم حذف المعلم بنجاح.');
         }
 
         function manualRefreshAll() {
             updateSystemLiveDateHeader();
             refreshAllViews();
+            alert('تم تحديث العرض بنجاح!');
         }
 
         function refreshAllViews() {
@@ -1218,7 +1228,7 @@
                         </div>
 
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                            ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي (حضور وانصراف فقط)</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b> (${a.subjectQuota || 0} حصص)`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
+                            ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي (حضور وانصراف فقط)</span>' : (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secNames[a.sectionIndex]}): <b>${a.subject}</b> (${(a.subject === 'فن' || a.subject === 'رياضة') ? 1 : (a.subjectQuota || 0)} حصص)`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
                         </div>
                     </div>
 
@@ -1379,6 +1389,7 @@
             hSub.innerHTML = hSubHtml;
 
             let tbodyHtml = '';
+            days.days = days; // reference
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
                     let isLastLessonOfDay = (lIdx === lessons.length - 1);
