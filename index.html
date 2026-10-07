@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v34.0
+                نظام إدارة الجداول الثابت v35.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">حصة رياضة واحدة لكل شعبة، وعدم تداخل حصص الرياضة لنفس المعلمة في نفس اليوم.</p>
+                    <p class="text-xs text-slate-500">التوزيع مرتبط حصراً بالشعب المنسوب لها المعلم أثناء إدخال البيانات.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -379,7 +379,6 @@
         const weekDaysFull = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
-        const forbiddenLastLessonSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
 
         function getTodayFormattedISO() {
             const now = new Date();
@@ -567,11 +566,11 @@
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
@@ -986,19 +985,42 @@
                 return;
             }
 
-            let activeSectionsMap = {};
+            // خريطة لتحديد الشعب المنسوب لها المعلمون حصراً (حسب ادخال بيانات المعلم)
+            let assignedSectionsMap = {};
             gradeNames.forEach((_, gIdx) => {
-                activeSectionsMap[gIdx] = {};
+                assignedSectionsMap[gIdx] = {};
                 secNames.forEach((_, sIdx) => {
-                    activeSectionsMap[gIdx][sIdx] = false;
+                    assignedSectionsMap[gIdx][sIdx] = {};
                 });
             });
 
+            let pool = [];
             teachingStaff.forEach(t => {
                 t.assignments.forEach(asgn => {
-                    let qCount = (asgn.subject === 'فن' || asgn.subject === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
+                    let g = asgn.gradeIndex;
+                    let s = asgn.sectionIndex;
+                    let sub = asgn.subject;
+                    let qCount = (sub === 'فن' || sub === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
+
                     if (qCount > 0) {
-                        activeSectionsMap[asgn.gradeIndex][asgn.sectionIndex] = true;
+                        // تسجيل أن هذا المعلم منسوب لهذه المادة في هذه الشعبة حصراً
+                        if (!assignedSectionsMap[g][s][sub]) {
+                            assignedSectionsMap[g][s][sub] = [];
+                        }
+                        assignedSectionsMap[g][s][sub].push({
+                            tId: t.id,
+                            name: t.name
+                        });
+
+                        for(let i = 0; i < qCount; i++) {
+                            pool.push({
+                                tId: t.id,
+                                name: t.name,
+                                gradeIndex: g,
+                                sectionIndex: s,
+                                subject: sub
+                            });
+                        }
                     }
                 });
             });
@@ -1028,22 +1050,6 @@
                 });
             });
 
-            let pool = [];
-            teachingStaff.forEach(t => {
-                t.assignments.forEach(asgn => {
-                    let qCount = (asgn.subject === 'فن' || asgn.subject === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
-                    for(let i = 0; i < qCount; i++) {
-                        pool.push({
-                            tId: t.id,
-                            name: t.name,
-                            gradeIndex: asgn.gradeIndex,
-                            sectionIndex: asgn.sectionIndex,
-                            subject: asgn.subject
-                        });
-                    }
-                });
-            });
-
             let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
             let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
             let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
@@ -1058,26 +1064,9 @@
                 let s = item.sectionIndex;
                 let isRestricted = restrictedSubjects.includes(item.subject);
 
-                let sectionSubjectCount = 0;
-                days.forEach((_, d) => {
-                    if (sectionDaySubjectBusy[g][s][d][item.subject]) sectionSubjectCount++;
-                });
-
-                if (!activeSectionsMap[g][s] || sectionSubjectCount >= 5) {
-                    let otherSections = [0, 1, 2].filter(secIdx => activeSectionsMap[g][secIdx] && secIdx !== s);
-                    for (let altSec of otherSections) {
-                        let altCount = 0;
-                        days.forEach((_, d) => {
-                            if (sectionDaySubjectBusy[g][altSec][d][item.subject]) altCount++;
-                        });
-                        if (altCount < 5) {
-                            s = altSec;
-                            break;
-                        }
-                    }
-                }
-
-                if (!activeSectionsMap[g][s]) return;
+                // التأكد الصارم من أن المعلم منسوب لهذه الشعبة والمادة بناءً على إدخاله
+                let isAssignedHere = assignedSectionsMap[g][s][item.subject] && assignedSectionsMap[g][s][item.subject].some(ts => ts.tId == item.tId);
+                if (!isAssignedHere) return; // منع التكليف المطلق لشعبة غير منسب لها المعلم
 
                 let bestDay = -1;
                 let minDayCount = 999;
@@ -1087,13 +1076,8 @@
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
                     let isDayNotFull = sectionDayCount[g][s][d] < 5;
 
-                    // قيد إضافي لمادة الرياضة: منع تداخل حصص الرياضة لنفس المعلمة في نفس اليوم عبر الشعب المختلفة
+                    // قيد رياضة: عدم تكديس حصص الرياضة لنفس المعلمة في نفس اليوم عبر الشعب المختلفة
                     if (item.subject === 'رياضة') {
-                        let isTeacherBusyWithSportToday = false;
-                        days.forEach((_, lessonIdx) => {
-                            // فحص ما إذا كانت المعلمة لديها حصة رياضة اليوم في شعبة أخرى لنفس المرحلة أو أي مرحلة أخرى
-                        });
-                        // التحقق من أن المعلمة لا تملك حصة رياضة أخرى في نفس اليوم (d)
                         let teacherHasSportOnDay = false;
                         for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
                             for (let gg = 0; gg < gradeNames.length; gg++) {
@@ -1107,7 +1091,7 @@
                             }
                         }
                         if (teacherHasSportOnDay) {
-                            isSubjectFreeToday = false; // تخطي هذا اليوم لمعلمة الرياضة لكي لا تتكدس الحصص في نفس اليوم
+                            isSubjectFreeToday = false;
                         }
                     }
 
@@ -1141,7 +1125,6 @@
                 }
 
                 if (bestDay === -1) {
-                    // إذا استعصى الأمر، نسمح بأي يوم متاح لتفادي ترك الحصة معلقة
                     for (let d of availableDays) {
                         if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
                             bestDay = d;
@@ -1183,7 +1166,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم إعادة توليد وخلط الجدول بنجاح مع مراعاة توزيع حصص الرياضة في أيام مختلفة لكل معلمة!');
+            alert('تم إعادة توليد الجدول بنجاح والتزام تام بعدم تكليف أي معلم بشعبة غير منسب لها رسمياً!');
         }
 
         function updateCellManual(cellKey, field, value) {
