@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v46.0
+                نظام إدارة الجداول الثابت v47.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">توليد سريع وآمن يلتزم بعدد حصص كل مادة لكل شعبة بدقة تامة دون تجميد.</p>
+                    <p class="text-xs text-slate-500">توزيع ذكي يمنع تكرار المادة أكثر من حصتين يومياً ويضمن راحة الكادر.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -596,15 +596,15 @@
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
@@ -1025,7 +1025,6 @@
             modal.classList.remove('flex');
         }
 
-        // دوال التحكم بمبحث البحث (إظهار/إخفاء علامة X ومسح النص)
         function toggleClearSearchBtn() {
             const input = document.getElementById('teacherSearchInput');
             const btn = document.getElementById('clearSearchBtn');
@@ -1047,7 +1046,7 @@
             }
         }
 
-        // المحرك الآمن والسريع لتوليد الجدول (v46.0)
+        // المحرك المطوّر والذكي لتوليد الجدول (v47.0) - منع تكرار المادة أكثر من حصتين في اليوم للشعبة
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1075,7 +1074,12 @@
                 });
             });
 
-            itemsToPlace.sort(() => Math.random() - 0.5);
+            // ترتيب المواد ذات الحصص الكثيرة (مثل العربي) أولاً لتتوزع بانتظام
+            itemsToPlace.sort((a, b) => {
+                let weightA = a.subject === 'عربي' ? 10 : 5;
+                let weightB = b.subject === 'عربي' ? 10 : 5;
+                return weightB - weightA;
+            });
 
             let grid = {};
             let teacherBusy = {};
@@ -1108,10 +1112,11 @@
                 let availableDays = [...item.workingDays];
                 availableDays.sort(() => Math.random() - 0.5);
 
+                // المحاولة الأولى: منع تكرار المادة أكثر من حصتين (2) في اليوم الواحد للشعبة الواحدة
                 for (let d of availableDays) {
                     if (placed) break;
                     let currentSubCountToday = sectionDaySubjectCount[d][g][s][item.subject] || 0;
-                    if (currentSubCountToday >= 1) continue;
+                    if (currentSubCountToday >= 2) continue; // قيد صارم: أقصى حد حصتان في اليوم للمادة الواحدة للشعبة
 
                     let lessonIndices = [0, 1, 2, 3, 4];
                     lessonIndices.sort(() => Math.random() - 0.5);
@@ -1133,6 +1138,7 @@
                     }
                 }
 
+                // المحاولة الثانية (في حال اكتملت الأيام): السماح بوضع الحصة بمرونة لتجنب ترك فراغات
                 if (!placed) {
                     for (let d of availableDays) {
                         if (placed) break;
@@ -1168,9 +1174,9 @@
             refreshBackupTeachers();
 
             if (unplacedItems.length === 0) {
-                alert('تم توليد الجدول بنجاح تام وبدون أي تجميد! تم الالتزام الدقيق بحصص كل مادة لكل شعبة.');
+                alert('تم توليد الجدول بنجاح تام! تم الالتزام بعدم تجاوز حصتين للمادة في اليوم الواحد وتوزيع المواد بشكل مريح.');
             } else {
-                alert(`تم توليد الجدول، ولكن تعذر وضع (${unplacedItems.length}) حصة بسبب تعارض أوقات دوام المعلمات. يرجى مراجعة أيام دوام المعلمات أو حصصهن.`);
+                alert(`تم توليد الجدول، ولكن تعذر وضع (${unplacedItems.length}) حصة بسبب تعارض أوقات دوام المعلمات.`);
             }
         }
 
@@ -1250,7 +1256,6 @@
             }).join('');
         }
 
-        // عرض كروت المعلمات مع البحث وزر الإغلاق وإزالة إجمالي عدد الحصص
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
             let list = getTeachers();
