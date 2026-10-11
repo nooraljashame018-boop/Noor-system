@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v42.0
+                نظام إدارة الجداول الثابت v43.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">توليد دقيق يلتزم بتمام عدد الحصص المحددة للمعلمة دون أي زيادة أو تكرار زاد عن المحدد.</p>
+                    <p class="text-xs text-slate-500">محرك حل قيود دقيق يضمن استكمال نصاب جميع المعلمات بالكامل دون زيادة أو تكرار يومي.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -598,15 +598,15 @@
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثالثة</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
                           </div>
                         </div>
@@ -1015,6 +1015,7 @@
             modal.classList.remove('flex');
         }
 
+        // محرك حل القيود المطور (Backtracking Constraint Solver v43.0)
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1024,198 +1025,112 @@
                 return;
             }
 
-            let assignedSectionsMap = {};
-            let teacherWorkingDaysMap = {};
-            let teacherMaxQuotaMap = {};
-
+            // بناء قائمة الحصص المطلوبة بالضبط (Pool)
+            let itemsToPlace = [];
             teachingStaff.forEach(t => {
-                teacherWorkingDaysMap[t.id] = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
-                teacherMaxQuotaMap[t.id] = t.maxQuota || 0;
-            });
-
-            gradeNames.forEach((_, gIdx) => {
-                assignedSectionsMap[gIdx] = {};
-                secNames.forEach((_, sIdx) => {
-                    assignedSectionsMap[gIdx][sIdx] = {};
-                });
-            });
-
-            // تكوين خزان الحصص المظبوط تماماً بحسب الإدخالات
-            let pool = [];
-            teachingStaff.forEach(t => {
+                let wDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
                 t.assignments.forEach(asgn => {
-                    let g = asgn.gradeIndex;
-                    let s = asgn.sectionIndex;
-                    let sub = asgn.subject;
-                    let qCount = (sub === 'فن' || sub === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
-
-                    if (qCount > 0) {
-                        if (!assignedSectionsMap[g][s][sub]) {
-                            assignedSectionsMap[g][s][sub] = [];
-                        }
-                        assignedSectionsMap[g][s][sub].push({
+                    let qCount = (asgn.subject === 'فن' || asgn.subject === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
+                    for (let i = 0; i < qCount; i++) {
+                        itemsToPlace.push({
                             tId: t.id,
-                            name: t.name
+                            name: t.name,
+                            gradeIndex: asgn.gradeIndex,
+                            sectionIndex: asgn.sectionIndex,
+                            subject: asgn.subject,
+                            workingDays: wDays,
+                            totalQuota: qCount
                         });
-
-                        for(let i = 0; i < qCount; i++) {
-                            pool.push({
-                                tId: t.id,
-                                name: t.name,
-                                gradeIndex: g,
-                                sectionIndex: s,
-                                subject: sub
-                            });
-                        }
                     }
                 });
+            });
+
+            // ترتيب المواد الصعبة (المواد ذات القود الأعلى أولاً)
+            itemsToPlace.sort((a, b) => {
+                let prioA = (['عربي', 'رياضيات', 'إنكليزي'].includes(a.subject) ? 10 : 0) + (a.totalQuota > 3 ? 5 : 0);
+                let prioB = (['عربي', 'رياضيات', 'إنكليزي'].includes(b.subject) ? 10 : 0) + (b.totalQuota > 3 ? 5 : 0);
+                return prioB - prioA;
             });
 
             let grid = {};
             let teacherBusy = {};
-            let teacherDailyCount = {};
-            let teacherSlotHistory = {}; 
-            let sectionDaySubjectBusy = {};
-            let sectionDayCount = {};
+            let sectionSlotBusy = {};
+            let sectionDaySubjectCount = {};
 
             days.forEach((_, dIdx) => {
                 teacherBusy[dIdx] = {};
-                teacherDailyCount[dIdx] = {};
+                sectionSlotBusy[dIdx] = {};
+                sectionDaySubjectCount[dIdx] = {};
                 lessons.forEach((_, lIdx) => {
                     teacherBusy[dIdx][lIdx] = {};
+                    sectionSlotBusy[dIdx][lIdx] = {};
                 });
-            });
-
-            teachingStaff.forEach(t => {
-                teacherSlotHistory[t.id] = [];
-            });
-
-            gradeNames.forEach((_, gIdx) => {
-                sectionDaySubjectBusy[gIdx] = {};
-                sectionDayCount[gIdx] = {};
-                secNames.forEach((_, sIdx) => {
-                    sectionDaySubjectBusy[gIdx][sIdx] = {};
-                    sectionDayCount[gIdx][sIdx] = {};
-                    days.forEach((_, dIdx) => {
-                        sectionDaySubjectBusy[gIdx][sIdx][dIdx] = {};
-                        sectionDayCount[gIdx][sIdx][dIdx] = 0;
+                gradeNames.forEach((_, gIdx) => {
+                    sectionDaySubjectCount[dIdx][gIdx] = {};
+                    secNames.forEach((_, sIdx) => {
+                        sectionDaySubjectCount[dIdx][gIdx][sIdx] = {};
                     });
                 });
             });
 
-            let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
-            let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
-            let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
+            // خوارزمية البحث مع التراجع المباشر
+            function solve(index) {
+                if (index >= itemsToPlace.length) return true; // اكتمل التوزيع بنسبة 100%
 
-            poolRestricted.sort(() => Math.random() - 0.5);
-            poolOther.sort(() => Math.random() - 0.5);
-
-            let fullOrderedPool = [...poolRestricted, ...poolOther];
-
-            // التوزيع الدقيق للـ pool فقط ودون إضافة أي حصة إضافية خارج الـ pool
-            fullOrderedPool.forEach(item => {
+                let item = itemsToPlace[index];
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
-                let isRestricted = restrictedSubjects.includes(item.subject);
 
-                let isAssignedHere = assignedSectionsMap[g][s][item.subject] && assignedSectionsMap[g][s][item.subject].some(ts => ts.tId == item.tId);
-                if (!isAssignedHere) return;
-
-                let teacherDays = teacherWorkingDaysMap[item.tId] || [0, 1, 2, 3, 4];
-                let totalTeacherQuota = teacherMaxQuotaMap[item.tId] || 5;
-
-                let activeDaysCount = teacherDays.length || 5;
-                let maxAllowedPerDay = Math.ceil(totalTeacherQuota / activeDaysCount);
-
-                let bestDay = -1;
-                let minDayLessonsForTeacher = 999;
-                let availableDays = teacherDays.filter(d => d >= 0 && d <= 4);
+                let availableDays = [...item.workingDays];
                 availableDays.sort(() => Math.random() - 0.5);
 
                 for (let d of availableDays) {
-                    let currentDailyCountForTeacher = teacherDailyCount[d][item.tId] || 0;
-                    let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
-                    let isDayNotFull = sectionDayCount[g][s][d] < 5;
-
-                    if (item.subject === 'رياضة') {
-                        let teacherHasSportOnDay = false;
-                        for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
-                            for (let gg = 0; gg < gradeNames.length; gg++) {
-                                for (let ss = 0; ss < secNames.length; ss++) {
-                                    let checkKey = `${d}_${lIdx}_${gg}_${ss}`;
-                                    let cellCheck = grid[checkKey];
-                                    if (cellCheck && cellCheck.tId == item.tId && cellCheck.subject === 'رياضة') {
-                                        teacherHasSportOnDay = true;
-                                    }
-                                }
-                            }
-                        }
-                        if (teacherHasSportOnDay) {
-                            isSubjectFreeToday = false;
-                        }
-                    }
-
-                    if (isSubjectFreeToday && isDayNotFull && currentDailyCountForTeacher < maxAllowedPerDay) {
-                        if (currentDailyCountForTeacher < minDayLessonsForTeacher) {
-                            minDayLessonsForTeacher = currentDailyCountForTeacher;
-                            bestDay = d;
-                        }
-                    }
-                }
-
-                if (bestDay === -1) {
-                    for (let d of availableDays) {
-                        if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
-                            bestDay = d;
-                            break;
-                        }
-                    }
-                }
-
-                if (bestDay !== -1) {
-                    let chosenLesson = -1;
-                    let lessonIndices = isRestricted ? [0, 1, 2, 3] : [0, 1, 2, 3, 4];
+                    let currentSubCountToday = sectionDaySubjectCount[d][g][s][item.subject] || 0;
                     
-                    lessonIndices.sort((l1, l2) => {
-                        let countL1 = (teacherSlotHistory[item.tId] || []).filter(l => l === l1).length;
-                        let countL2 = (teacherSlotHistory[item.tId] || []).filter(l => l === l2).length;
-                        return countL1 - countL2 || (Math.random() - 0.5);
-                    });
+                    // شرط صلب: منع تكرار نفس المادة في اليوم ذاته إذا كان النصاب يسمح بانتشارها
+                    if (item.totalQuota <= 5 && currentSubCountToday >= 1) continue;
+                    if (item.totalQuota > 5 && currentSubCountToday >= 2) continue;
+
+                    let lessonIndices = [0, 1, 2, 3, 4];
+                    lessonIndices.sort(() => Math.random() - 0.5);
 
                     for (let l of lessonIndices) {
-                        let cellKey = `${bestDay}_${l}_${g}_${s}`;
-                        let isSlotEmptyOrUnfilled = !grid[cellKey] || !grid[cellKey].subject;
-                        let isTeacherFree = !teacherBusy[bestDay][l][item.tId];
+                        let secKey = `${g}_${s}`;
+                        
+                        let isTeacherFree = !teacherBusy[d][l][item.tId];
+                        let isSectionFree = !sectionSlotBusy[d][l][secKey];
 
-                        if (isSlotEmptyOrUnfilled && isTeacherFree) {
-                            chosenLesson = l;
-                            break;
+                        if (isTeacherFree && isSectionFree) {
+                            // وضع الحصة مؤقتاً
+                            let cellKey = `${d}_${l}_${g}_${s}`;
+                            grid[cellKey] = { tId: item.tId, name: item.name, subject: item.subject };
+                            teacherBusy[d][l][item.tId] = true;
+                            sectionSlotBusy[d][l][secKey] = true;
+                            sectionDaySubjectCount[d][g][s][item.subject] = currentSubCountToday + 1;
+
+                            if (solve(index + 1)) return true;
+
+                            // التراجع في حال حدوث تعارض لاحقاً
+                            delete grid[cellKey];
+                            teacherBusy[d][l][item.tId] = false;
+                            sectionSlotBusy[d][l][secKey] = false;
+                            sectionDaySubjectCount[d][g][s][item.subject] = currentSubCountToday;
                         }
                     }
-
-                    if (chosenLesson !== -1) {
-                        teacherBusy[bestDay][chosenLesson][item.tId] = true;
-                        teacherDailyCount[bestDay][item.tId] = (teacherDailyCount[bestDay][item.tId] || 0) + 1;
-                        if (!teacherSlotHistory[item.tId]) teacherSlotHistory[item.tId] = [];
-                        teacherSlotHistory[item.tId].push(chosenLesson);
-
-                        sectionDaySubjectBusy[g][s][bestDay][item.subject] = true;
-                        sectionDayCount[g][s][bestDay]++;
-
-                        let cellKey = `${bestDay}_${chosenLesson}_${g}_${s}`;
-                        grid[cellKey] = {
-                            tId: item.tId,
-                            name: item.name,
-                            subject: item.subject
-                        };
-                    }
                 }
-            });
+                return false;
+            }
 
-            saveScheduleData(grid);
-            renderSchedule();
-            refreshBackupTeachers();
-            alert('تم توليد الجدول بنجاح! تم الالتزام الدقيق والعددي بعدد حصص المعلمة المحدد دون أي زيادة.');
+            let success = solve(0);
+
+            if (success) {
+                saveScheduleData(grid);
+                renderSchedule();
+                refreshBackupTeachers();
+                alert('تم توليد الجدول بنجاح تام! تم استكمال جميع حصص المعلمات بدقة وبدون أي خانات فارغة أو تكرارات غير مرغوبة.');
+            } else {
+                alert('تعذر استكمال الجدول بالكامل بسبب تزاحم شديد في حصص المعلمات أو أوقات دوامهن. يرجى التأكد من توزيع الصفوف بالشكل المناسب.');
+            }
         }
 
         function updateCellManual(cellKey, field, value) {
