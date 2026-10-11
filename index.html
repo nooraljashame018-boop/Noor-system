@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v41.0
+                نظام إدارة الجداول الثابت v42.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">التوليد يضمن تدوير أوقات الحصص لكل معلمة (مقدمة - وسط - نهاية) لجدول مريح ومتوازن.</p>
+                    <p class="text-xs text-slate-500">توليد دقيق يلتزم بتمام عدد الحصص المحددة للمعلمة دون أي زيادة أو تكرار زاد عن المحدد.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -1040,6 +1040,7 @@
                 });
             });
 
+            // تكوين خزان الحصص المظبوط تماماً بحسب الإدخالات
             let pool = [];
             teachingStaff.forEach(t => {
                 t.assignments.forEach(asgn => {
@@ -1073,7 +1074,7 @@
             let grid = {};
             let teacherBusy = {};
             let teacherDailyCount = {};
-            let teacherSlotHistory = {}; // تتبع سجل ترتيب الحصص للمعلمة للتنوع (مقدمة - وسط - نهاية)
+            let teacherSlotHistory = {}; 
             let sectionDaySubjectBusy = {};
             let sectionDayCount = {};
 
@@ -1111,7 +1112,7 @@
 
             let fullOrderedPool = [...poolRestricted, ...poolOther];
 
-            // 1. المرحلة الأولى: التوزيع مع التدوير الذكي لأوقات الحصص (مقدمة - وسط - نهاية)
+            // التوزيع الدقيق للـ pool فقط ودون إضافة أي حصة إضافية خارج الـ pool
             fullOrderedPool.forEach(item => {
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
@@ -1173,10 +1174,8 @@
 
                 if (bestDay !== -1) {
                     let chosenLesson = -1;
-                    // تدوير اختيارات الحصة لمنع ثبات المعلمة في نفس أوقات الدروس دائماً
                     let lessonIndices = isRestricted ? [0, 1, 2, 3] : [0, 1, 2, 3, 4];
                     
-                    // ترتيب خيارات الدروس حسب الأقل استخداماً لهذه المعلمة سابقاً
                     lessonIndices.sort((l1, l2) => {
                         let countL1 = (teacherSlotHistory[item.tId] || []).filter(l => l === l1).length;
                         let countL2 = (teacherSlotHistory[item.tId] || []).filter(l => l === l2).length;
@@ -1213,40 +1212,10 @@
                 }
             });
 
-            // 2. المرحلة الثانية: استكمال الشواغر المتبقية بمرونة واكتمال تام
-            days.forEach((_, dIdx) => {
-                lessons.forEach((_, lIdx) => {
-                    gradeNames.forEach((_, gIdx) => {
-                        secNames.forEach((_, sIdx) => {
-                            let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
-                            if (!grid[cellKey] || !grid[cellKey].subject) {
-                                for (let t of teachingStaff) {
-                                    let tDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
-                                    if (tDays.includes(dIdx) && !teacherBusy[dIdx][lIdx][t.id]) {
-                                        let matchedAsgn = t.assignments.find(a => a.gradeIndex === gIdx && a.sectionIndex === sIdx);
-                                        if (matchedAsgn) {
-                                            teacherBusy[dIdx][lIdx][t.id] = true;
-                                            teacherDailyCount[dIdx][t.id] = (teacherDailyCount[dIdx][t.id] || 0) + 1;
-                                            sectionDayCount[gIdx][sIdx][dIdx]++;
-                                            grid[cellKey] = {
-                                                tId: t.id,
-                                                name: t.name,
-                                                subject: matchedAsgn.subject
-                                            };
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    });
-                });
-            });
-
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم توليد الجدول بنجاح! تم تطبيق التدوير الذكي لأوقات الحصص (مقدمة - وسط - نهاية) لراحة جميع المعلمات.');
+            alert('تم توليد الجدول بنجاح! تم الالتزام الدقيق والعددي بعدد حصص المعلمة المحدد دون أي زيادة.');
         }
 
         function updateCellManual(cellKey, field, value) {
