@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v36.0
+                نظام إدارة الجداول الثابت v37.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">التعديلات اليدوية والبيانات المدخلة تُحفظ تلقائياً في الجدول ولا يتم مسحها.</p>
+                    <p class="text-xs text-slate-500">التوليد يعتمد على أيام دوام المعلمة المحددة مسبقاً.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -116,7 +116,7 @@
                     <i class="fas fa-user-plus text-emerald-600"></i> إدخال عضو كادر جديد
                 </h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
                         <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
@@ -138,6 +138,18 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
                         <input type="tel" id="tPhone" placeholder="07700000000" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                    </div>
+                </div>
+
+                <!-- إضافة اختيار أيام دوام المعلمة -->
+                <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200 mb-4">
+                    <span class="text-xs font-bold text-blue-900 block mb-2">📅 أيام حضور دوام المعلمة في الأسبوع (حدد الأيام التي تدوام فيها):</span>
+                    <div class="flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700" id="workingDaysContainer">
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="0" checked class="t-day-chk rounded text-blue-600"> الأحد</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="1" checked class="t-day-chk rounded text-blue-600"> الإثنين</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="2" checked class="t-day-chk rounded text-blue-600"> الثلاثاء</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="3" checked class="t-day-chk rounded text-blue-600"> الأربعاء</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="4" checked class="t-day-chk rounded text-blue-600"> الخميس</label>
                     </div>
                 </div>
 
@@ -313,6 +325,18 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">رقم الواتساب:</label>
                         <input type="tel" id="editTPhone" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- تعديل أيام دوام المعلمة -->
+                <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200">
+                    <span class="text-xs font-bold text-blue-900 block mb-2">📅 أيام حضور دوام المعلمة في الأسبوع:</span>
+                    <div class="flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700" id="editWorkingDaysContainer">
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="0" class="edit-t-day-chk rounded text-blue-600"> الأحد</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="1" class="edit-t-day-chk rounded text-blue-600"> الإثنين</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="2" class="edit-t-day-chk rounded text-blue-600"> الثلاثاء</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="3" class="edit-t-day-chk rounded text-blue-600"> الأربعاء</label>
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="4" class="edit-t-day-chk rounded text-blue-600"> الخميس</label>
                     </div>
                 </div>
 
@@ -552,25 +576,25 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
@@ -636,6 +660,12 @@
 
             if (!name) { alert('يرجى كتابة الاسم أولاً'); return; }
 
+            // جمع أيام الدواوم المحددة
+            let workingDays = [];
+            document.querySelectorAll('.t-day-chk').forEach(chk => {
+                if (chk.checked) workingDays.push(parseInt(chk.value));
+            });
+
             const assignments = [];
             let totalQuota = 0;
 
@@ -675,6 +705,7 @@
                     role: role || 'معلم',
                     phone: phone,
                     photo: photoBase64 || '',
+                    workingDays: workingDays.length > 0 ? workingDays : [0, 1, 2, 3, 4],
                     maxQuota: role === 'مرشد تربوي' ? 0 : (totalQuota || 0),
                     isPresent: false,
                     checkInTime: null,
@@ -689,6 +720,7 @@
                 document.getElementById('tPhone').value = '';
                 document.getElementById('tPhoto').value = '';
                 document.getElementById('tRole').value = 'معلم';
+                document.querySelectorAll('.t-day-chk').forEach(chk => chk.checked = true);
                 buildGradesForm('gradesContainer', '');
                 refreshAllViews();
                 alert('تم حفظ الكادر بنجاح!');
@@ -715,6 +747,11 @@
             document.getElementById('deleteCurrentPhotoFlag').value = 'false';
             document.getElementById('editTPhoto').value = '';
             document.getElementById('photoDeleteStatusText').classList.add('hidden');
+
+            let wDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
+            document.querySelectorAll('.edit-t-day-chk').forEach(chk => {
+                chk.checked = wDays.includes(parseInt(chk.value));
+            });
 
             const previewContainer = document.getElementById('currentPhotoPreviewArea');
             const previewImg = document.getElementById('editTPhotoPreview');
@@ -790,6 +827,11 @@
 
             if (!name) { alert('يرجى كتابة الاسم'); return; }
 
+            let workingDays = [];
+            document.querySelectorAll('.edit-t-day-chk').forEach(chk => {
+                if (chk.checked) workingDays.push(parseInt(chk.value));
+            });
+
             let assignments = [];
             let totalQuota = 0;
 
@@ -825,6 +867,7 @@
                 list[idx].name = name;
                 list[idx].role = role;
                 list[idx].phone = phone;
+                list[idx].workingDays = workingDays.length > 0 ? workingDays : [0, 1, 2, 3, 4];
 
                 if (photoBase64) {
                     list[idx].photo = photoBase64;
@@ -983,6 +1026,12 @@
             }
 
             let assignedSectionsMap = {};
+            let teacherWorkingDaysMap = {};
+
+            teachingStaff.forEach(t => {
+                teacherWorkingDaysMap[t.id] = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
+            });
+
             gradeNames.forEach((_, gIdx) => {
                 assignedSectionsMap[gIdx] = {};
                 secNames.forEach((_, sIdx) => {
@@ -1020,7 +1069,6 @@
                 });
             });
 
-            // جلب الجدول الحالي للحفاظ على الخلايا التي تم تعديلها يدوياً
             let grid = getScheduleData();
             let teacherBusy = {};
             let sectionDaySubjectBusy = {};
@@ -1046,11 +1094,10 @@
                 });
             });
 
-            // تسجيل الخلايا الموجودة مسبقاً (المدخلة يدوياً أو المحفوظة) لكي لا يتم مسحها أو تداخلها
             Object.keys(grid).forEach(cellKey => {
                 let cell = grid[cellKey];
                 if (cell && cell.subject) {
-                    let parts = cellKey.split('_'); // dIdx, lIdx, gIdx, sIdx
+                    let parts = cellKey.split('_');
                     let d = parseInt(parts[0]);
                     let l = parseInt(parts[1]);
                     let g = parseInt(parts[2]);
@@ -1081,9 +1128,12 @@
                 let isAssignedHere = assignedSectionsMap[g][s][item.subject] && assignedSectionsMap[g][s][item.subject].some(ts => ts.tId == item.tId);
                 if (!isAssignedHere) return;
 
+                let teacherDays = teacherWorkingDaysMap[item.tId] || [0, 1, 2, 3, 4];
+
                 let bestDay = -1;
                 let minDayCount = 999;
-                let availableDays = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
+                let availableDays = teacherDays.filter(d => d >= 0 && d <= 4);
+                availableDays.sort(() => Math.random() - 0.5);
 
                 for (let d of availableDays) {
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
@@ -1156,7 +1206,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم تحديث الجدول وحفظ البيانات والتعديلات اليدوية بنجاح دون مسحها!');
+            alert('تم تحديث الجدول بنجاح والتزام تام بأيام دوام المعلمات المحددة!');
         }
 
         function updateCellManual(cellKey, field, value) {
@@ -1254,6 +1304,9 @@
             container.innerHTML = filtered.map(t => {
                 let waPhone = formatWhatsappPhone(t.phone);
                 let hasAssignments = t.assignments && t.assignments.length > 0;
+                let tDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
+                let daysNamesList = tDays.map(dIdx => days[dIdx]).join('، ');
+
                 return `
                 <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200'} shadow-sm flex flex-col justify-between">
                     <div>
@@ -1284,6 +1337,10 @@
                                     ` : ''}
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="text-[11px] text-blue-800 font-bold bg-blue-50 p-1.5 rounded-lg mb-2 border border-blue-100">
+                            📅 أيام الدوام: ${daysNamesList}
                         </div>
 
                         <div class="text-xs text-blue-600 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
