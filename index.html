@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v44.0
+                نظام إدارة الجداول الثابت v45.0
             </div>
         </div>
     </aside>
@@ -180,7 +180,14 @@
                             <span class="text-blue-800 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">🕒 الدخول: 10:00 - 11:30 | والانصراف: 01:30 - 02:15</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
+
+                    <!-- مربع البحث + التصفية -->
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="relative min-w-[220px]">
+                            <i class="fas fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="teacherSearchInput" oninput="renderTeachersCards()" placeholder="ابحث باسم المعلمة..." class="w-full pr-8 pl-3 py-2 border-2 border-slate-200 focus:border-blue-500 bg-slate-50 rounded-xl text-xs font-bold outline-none transition">
+                        </div>
+
                         <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
                             <option value="all">جميع الكادر</option>
                             <option value="present">🟢 الحاضرون اليوم</option>
@@ -576,12 +583,12 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
@@ -1015,7 +1022,7 @@
             modal.classList.remove('flex');
         }
 
-        // المحرك الآمن والسريع لتوليد الجدول (v44.0) الالتزام الدقيق بنصاب كل مادة
+        // المحرك الآمن والسريع لتوليد الجدول (v45.0)
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1025,7 +1032,6 @@
                 return;
             }
 
-            // تفكيك حصص المواد لكل مادة ولكل شعبة بدقة بناءً على assignments
             let itemsToPlace = [];
             teachingStaff.forEach(t => {
                 let wDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
@@ -1044,7 +1050,6 @@
                 });
             });
 
-            // خلط عشوائي لضمان التنوع
             itemsToPlace.sort(() => Math.random() - 0.5);
 
             let grid = {};
@@ -1068,7 +1073,6 @@
                 });
             });
 
-            // خوارزمية جشعة ذكية وآمنة 100% (تمنع التجميد تماماً وتوزع الحصص بدقة)
             let unplacedItems = [];
 
             itemsToPlace.forEach(item => {
@@ -1079,11 +1083,10 @@
                 let availableDays = [...item.workingDays];
                 availableDays.sort(() => Math.random() - 0.5);
 
-                // المحاولة الأولى: توزيع بانتظام بدون تكرار نفس المادة في نفس اليوم للشعبة
                 for (let d of availableDays) {
                     if (placed) break;
                     let currentSubCountToday = sectionDaySubjectCount[d][g][s][item.subject] || 0;
-                    if (currentSubCountToday >= 1) continue; // منع تكرار نفس المادة في اليوم الواحد قدر الإمكان
+                    if (currentSubCountToday >= 1) continue;
 
                     let lessonIndices = [0, 1, 2, 3, 4];
                     lessonIndices.sort(() => Math.random() - 0.5);
@@ -1105,7 +1108,6 @@
                     }
                 }
 
-                // المحاولة الثانية (في حال امتلأت الأيام): وضع الحصة في أي يوم متاح للمعلمة والشعبة لتجنب تركها فارغة
                 if (!placed) {
                     for (let d of availableDays) {
                         if (placed) break;
@@ -1223,19 +1225,31 @@
             }).join('');
         }
 
+        // عرض كروت المعلمات مع دعم البحث المباشر باسم المعلمة
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
             let list = getTeachers();
             let filter = document.getElementById('attendanceFilter').value;
+            let searchInput = document.getElementById('teacherSearchInput');
+            let searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
             let filtered = list.filter(t => {
-                if (filter === 'present') return t.isPresent;
-                if (filter === 'absent') return !t.isPresent;
-                return true;
+                // تصفية حسب الحضور/الغياب
+                let matchesStatus = true;
+                if (filter === 'present') matchesStatus = t.isPresent;
+                if (filter === 'absent') matchesStatus = !t.isPresent;
+
+                // تصفية حسب اسم المعلمة
+                let matchesSearch = true;
+                if (searchQuery !== '') {
+                    matchesSearch = t.name && t.name.toLowerCase().includes(searchQuery);
+                }
+
+                return matchesStatus && matchesSearch;
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا يوجد معلمة تطابق البحث أو التصفية</div>`;
                 return;
             }
 
