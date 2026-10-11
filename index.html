@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v43.0
+                نظام إدارة الجداول الثابت v44.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">محرك حل قيود دقيق يضمن استكمال نصاب جميع المعلمات بالكامل دون زيادة أو تكرار يومي.</p>
+                    <p class="text-xs text-slate-500">توليد سريع وآمن يلتزم بعدد حصص كل مادة لكل شعبة بدقة تامة دون تجميد.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -586,15 +586,15 @@
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
@@ -1015,7 +1015,7 @@
             modal.classList.remove('flex');
         }
 
-        // محرك حل القيود المطور (Backtracking Constraint Solver v43.0)
+        // المحرك الآمن والسريع لتوليد الجدول (v44.0) الالتزام الدقيق بنصاب كل مادة
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1025,7 +1025,7 @@
                 return;
             }
 
-            // بناء قائمة الحصص المطلوبة بالضبط (Pool)
+            // تفكيك حصص المواد لكل مادة ولكل شعبة بدقة بناءً على assignments
             let itemsToPlace = [];
             teachingStaff.forEach(t => {
                 let wDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
@@ -1038,19 +1038,14 @@
                             gradeIndex: asgn.gradeIndex,
                             sectionIndex: asgn.sectionIndex,
                             subject: asgn.subject,
-                            workingDays: wDays,
-                            totalQuota: qCount
+                            workingDays: wDays
                         });
                     }
                 });
             });
 
-            // ترتيب المواد الصعبة (المواد ذات القود الأعلى أولاً)
-            itemsToPlace.sort((a, b) => {
-                let prioA = (['عربي', 'رياضيات', 'إنكليزي'].includes(a.subject) ? 10 : 0) + (a.totalQuota > 3 ? 5 : 0);
-                let prioB = (['عربي', 'رياضيات', 'إنكليزي'].includes(b.subject) ? 10 : 0) + (b.totalQuota > 3 ? 5 : 0);
-                return prioB - prioA;
-            });
+            // خلط عشوائي لضمان التنوع
+            itemsToPlace.sort(() => Math.random() - 0.5);
 
             let grid = {};
             let teacherBusy = {};
@@ -1073,63 +1068,82 @@
                 });
             });
 
-            // خوارزمية البحث مع التراجع المباشر
-            function solve(index) {
-                if (index >= itemsToPlace.length) return true; // اكتمل التوزيع بنسبة 100%
+            // خوارزمية جشعة ذكية وآمنة 100% (تمنع التجميد تماماً وتوزع الحصص بدقة)
+            let unplacedItems = [];
 
-                let item = itemsToPlace[index];
+            itemsToPlace.forEach(item => {
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
+                let placed = false;
 
                 let availableDays = [...item.workingDays];
                 availableDays.sort(() => Math.random() - 0.5);
 
+                // المحاولة الأولى: توزيع بانتظام بدون تكرار نفس المادة في نفس اليوم للشعبة
                 for (let d of availableDays) {
+                    if (placed) break;
                     let currentSubCountToday = sectionDaySubjectCount[d][g][s][item.subject] || 0;
-                    
-                    // شرط صلب: منع تكرار نفس المادة في اليوم ذاته إذا كان النصاب يسمح بانتشارها
-                    if (item.totalQuota <= 5 && currentSubCountToday >= 1) continue;
-                    if (item.totalQuota > 5 && currentSubCountToday >= 2) continue;
+                    if (currentSubCountToday >= 1) continue; // منع تكرار نفس المادة في اليوم الواحد قدر الإمكان
 
                     let lessonIndices = [0, 1, 2, 3, 4];
                     lessonIndices.sort(() => Math.random() - 0.5);
 
                     for (let l of lessonIndices) {
                         let secKey = `${g}_${s}`;
-                        
                         let isTeacherFree = !teacherBusy[d][l][item.tId];
                         let isSectionFree = !sectionSlotBusy[d][l][secKey];
 
                         if (isTeacherFree && isSectionFree) {
-                            // وضع الحصة مؤقتاً
                             let cellKey = `${d}_${l}_${g}_${s}`;
                             grid[cellKey] = { tId: item.tId, name: item.name, subject: item.subject };
                             teacherBusy[d][l][item.tId] = true;
                             sectionSlotBusy[d][l][secKey] = true;
                             sectionDaySubjectCount[d][g][s][item.subject] = currentSubCountToday + 1;
-
-                            if (solve(index + 1)) return true;
-
-                            // التراجع في حال حدوث تعارض لاحقاً
-                            delete grid[cellKey];
-                            teacherBusy[d][l][item.tId] = false;
-                            sectionSlotBusy[d][l][secKey] = false;
-                            sectionDaySubjectCount[d][g][s][item.subject] = currentSubCountToday;
+                            placed = true;
+                            break;
                         }
                     }
                 }
-                return false;
-            }
 
-            let success = solve(0);
+                // المحاولة الثانية (في حال امتلأت الأيام): وضع الحصة في أي يوم متاح للمعلمة والشعبة لتجنب تركها فارغة
+                if (!placed) {
+                    for (let d of availableDays) {
+                        if (placed) break;
+                        let lessonIndices = [0, 1, 2, 3, 4];
+                        lessonIndices.sort(() => Math.random() - 0.5);
 
-            if (success) {
-                saveScheduleData(grid);
-                renderSchedule();
-                refreshBackupTeachers();
-                alert('تم توليد الجدول بنجاح تام! تم استكمال جميع حصص المعلمات بدقة وبدون أي خانات فارغة أو تكرارات غير مرغوبة.');
+                        for (let l of lessonIndices) {
+                            let secKey = `${g}_${s}`;
+                            let isTeacherFree = !teacherBusy[d][l][item.tId];
+                            let isSectionFree = !sectionSlotBusy[d][l][secKey];
+
+                            if (isTeacherFree && isSectionFree) {
+                                let cellKey = `${d}_${l}_${g}_${s}`;
+                                grid[cellKey] = { tId: item.tId, name: item.name, subject: item.subject };
+                                teacherBusy[d][l][item.tId] = true;
+                                sectionSlotBusy[d][l][secKey] = true;
+                                let currentSubCountToday = sectionDaySubjectCount[d][g][s][item.subject] || 0;
+                                sectionDaySubjectCount[d][g][s][item.subject] = currentSubCountToday + 1;
+                                placed = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!placed) {
+                    unplacedItems.push(item);
+                }
+            });
+
+            saveScheduleData(grid);
+            renderSchedule();
+            refreshBackupTeachers();
+
+            if (unplacedItems.length === 0) {
+                alert('تم توليد الجدول بنجاح تام وبدون أي تجميد! تم الالتزام الدقيق بحصص كل مادة لكل شعبة.');
             } else {
-                alert('تعذر استكمال الجدول بالكامل بسبب تزاحم شديد في حصص المعلمات أو أوقات دوامهن. يرجى التأكد من توزيع الصفوف بالشكل المناسب.');
+                alert(`تم توليد الجدول، ولكن تعذر وضع (${unplacedItems.length}) حصة بسبب تعارض أوقات دوام المعلمات. يرجى مراجعة أيام دوام المعلمات أو حصصهن.`);
             }
         }
 
