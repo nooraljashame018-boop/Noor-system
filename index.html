@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v45.0
+                نظام إدارة الجداول الثابت v46.0
             </div>
         </div>
     </aside>
@@ -181,11 +181,14 @@
                         </div>
                     </div>
 
-                    <!-- مربع البحث + التصفية -->
+                    <!-- مربع البحث مع زر الإغلاق (X) والتصفية -->
                     <div class="flex items-center gap-3 flex-wrap">
-                        <div class="relative min-w-[220px]">
+                        <div class="relative min-w-[240px]">
                             <i class="fas fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="teacherSearchInput" oninput="renderTeachersCards()" placeholder="ابحث باسم المعلمة..." class="w-full pr-8 pl-3 py-2 border-2 border-slate-200 focus:border-blue-500 bg-slate-50 rounded-xl text-xs font-bold outline-none transition">
+                            <input type="text" id="teacherSearchInput" oninput="toggleClearSearchBtn(); renderTeachersCards();" placeholder="ابحث باسم المعلمة..." class="w-full pr-8 pl-8 py-2 border-2 border-slate-200 focus:border-blue-500 bg-slate-50 rounded-xl text-xs font-bold outline-none transition">
+                            <button type="button" id="clearSearchBtn" onclick="clearTeacherSearch()" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-600 hidden text-xs transition cursor-pointer">
+                                <i class="fas fa-xmark"></i>
+                            </button>
                         </div>
 
                         <select id="attendanceFilter" onchange="renderTeachersCards()" class="border-2 border-blue-500 bg-blue-50 text-blue-900 font-bold text-xs rounded-xl px-3 py-2 outline-none">
@@ -583,12 +586,12 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
@@ -1022,7 +1025,29 @@
             modal.classList.remove('flex');
         }
 
-        // المحرك الآمن والسريع لتوليد الجدول (v45.0)
+        // دوال التحكم بمبحث البحث (إظهار/إخفاء علامة X ومسح النص)
+        function toggleClearSearchBtn() {
+            const input = document.getElementById('teacherSearchInput');
+            const btn = document.getElementById('clearSearchBtn');
+            if (input && btn) {
+                if (input.value.trim() !== '') {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            }
+        }
+
+        function clearTeacherSearch() {
+            const input = document.getElementById('teacherSearchInput');
+            if (input) {
+                input.value = '';
+                toggleClearSearchBtn();
+                renderTeachersCards();
+            }
+        }
+
+        // المحرك الآمن والسريع لتوليد الجدول (v46.0)
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1225,7 +1250,7 @@
             }).join('');
         }
 
-        // عرض كروت المعلمات مع دعم البحث المباشر باسم المعلمة
+        // عرض كروت المعلمات مع البحث وزر الإغلاق وإزالة إجمالي عدد الحصص
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
             let list = getTeachers();
@@ -1234,12 +1259,10 @@
             let searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
             let filtered = list.filter(t => {
-                // تصفية حسب الحضور/الغياب
                 let matchesStatus = true;
                 if (filter === 'present') matchesStatus = t.isPresent;
                 if (filter === 'absent') matchesStatus = !t.isPresent;
 
-                // تصفية حسب اسم المعلمة
                 let matchesSearch = true;
                 if (searchQuery !== '') {
                     matchesSearch = t.name && t.name.toLowerCase().includes(searchQuery);
@@ -1281,7 +1304,6 @@
                                 </div>
 
                                 <div class="text-[11px] text-slate-500 font-bold flex items-center gap-2 mt-1">
-                                    <span>الحصص: ${t.role === 'مرشد تربوي' ? '0 (إرشاد)' : (t.maxQuota || 0)}</span>
                                     ${t.phone ? `
                                         <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg hover:bg-emerald-100 font-bold text-[10px]">
                                             <i class="fab fa-whatsapp text-emerald-500 text-xs"></i> ${t.phone}
