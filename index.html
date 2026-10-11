@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v37.0
+                نظام إدارة الجداول الثابت v40.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">التوليد يعتمد على أيام دوام المعلمة المحددة مسبقاً.</p>
+                    <p class="text-xs text-slate-500">التوليد يضمن توزيع نصاب المعلمة بانتظام على الأيام ومنع التكديس اليومي.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -141,9 +141,9 @@
                     </div>
                 </div>
 
-                <!-- إضافة اختيار أيام دوام المعلمة -->
+                <!-- اختيار أيام دوام المعلمة -->
                 <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200 mb-4">
-                    <span class="text-xs font-bold text-blue-900 block mb-2">📅 أيام حضور دوام المعلمة في الأسبوع (حدد الأيام التي تدوام فيها):</span>
+                    <span class="text-xs font-bold text-blue-900 block mb-2">📅 أيام حضور دوام المعلمة في الأسبوع:</span>
                     <div class="flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700" id="workingDaysContainer">
                         <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="0" checked class="t-day-chk rounded text-blue-600"> الأحد</label>
                         <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-blue-200"><input type="checkbox" value="1" checked class="t-day-chk rounded text-blue-600"> الإثنين</label>
@@ -598,15 +598,15 @@
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثالثة</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
                           </div>
                         </div>
@@ -660,7 +660,6 @@
 
             if (!name) { alert('يرجى كتابة الاسم أولاً'); return; }
 
-            // جمع أيام الدواوم المحددة
             let workingDays = [];
             document.querySelectorAll('.t-day-chk').forEach(chk => {
                 if (chk.checked) workingDays.push(parseInt(chk.value));
@@ -1027,9 +1026,11 @@
 
             let assignedSectionsMap = {};
             let teacherWorkingDaysMap = {};
+            let teacherMaxQuotaMap = {};
 
             teachingStaff.forEach(t => {
                 teacherWorkingDaysMap[t.id] = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
+                teacherMaxQuotaMap[t.id] = t.maxQuota || 0;
             });
 
             gradeNames.forEach((_, gIdx) => {
@@ -1069,13 +1070,15 @@
                 });
             });
 
-            let grid = getScheduleData();
+            let grid = {};
             let teacherBusy = {};
+            let teacherDailyCount = {};
             let sectionDaySubjectBusy = {};
             let sectionDayCount = {};
 
             days.forEach((_, dIdx) => {
                 teacherBusy[dIdx] = {};
+                teacherDailyCount[dIdx] = {};
                 lessons.forEach((_, lIdx) => {
                     teacherBusy[dIdx][lIdx] = {};
                 });
@@ -1094,23 +1097,6 @@
                 });
             });
 
-            Object.keys(grid).forEach(cellKey => {
-                let cell = grid[cellKey];
-                if (cell && cell.subject) {
-                    let parts = cellKey.split('_');
-                    let d = parseInt(parts[0]);
-                    let l = parseInt(parts[1]);
-                    let g = parseInt(parts[2]);
-                    let s = parseInt(parts[3]);
-
-                    if (cell.tId) {
-                        teacherBusy[d][l][cell.tId] = true;
-                    }
-                    sectionDaySubjectBusy[g][s][d][cell.subject] = true;
-                    sectionDayCount[g][s][d]++;
-                }
-            });
-
             let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
             let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
             let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
@@ -1120,6 +1106,7 @@
 
             let fullOrderedPool = [...poolRestricted, ...poolOther];
 
+            // 1. المرحلة الأولى: توزيع الحصص الأساسية مع توزيع الجرعات بانتظام
             fullOrderedPool.forEach(item => {
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
@@ -1129,13 +1116,19 @@
                 if (!isAssignedHere) return;
 
                 let teacherDays = teacherWorkingDaysMap[item.tId] || [0, 1, 2, 3, 4];
+                let totalTeacherQuota = teacherMaxQuotaMap[item.tId] || 5;
+
+                // تحديد الحساب اليومي المثالي لمنع التراكم
+                let activeDaysCount = teacherDays.length || 5;
+                let maxAllowedPerDay = Math.ceil(totalTeacherQuota / activeDaysCount);
 
                 let bestDay = -1;
-                let minDayCount = 999;
+                let minDayLessonsForTeacher = 999;
                 let availableDays = teacherDays.filter(d => d >= 0 && d <= 4);
                 availableDays.sort(() => Math.random() - 0.5);
 
                 for (let d of availableDays) {
+                    let currentDailyCountForTeacher = teacherDailyCount[d][item.tId] || 0;
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
                     let isDayNotFull = sectionDayCount[g][s][d] < 5;
 
@@ -1157,14 +1150,18 @@
                         }
                     }
 
-                    if (isSubjectFreeToday && isDayNotFull && sectionDayCount[g][s][d] < minDayCount) {
-                        minDayCount = sectionDayCount[g][s][d];
-                        bestDay = d;
+                    // تطبيق شرط المنع من التكديس والتوزيع المتساوي
+                    if (isSubjectFreeToday && isDayNotFull && currentDailyCountForTeacher < maxAllowedPerDay) {
+                        if (currentDailyCountForTeacher < minDayLessonsForTeacher) {
+                            minDayLessonsForTeacher = currentDailyCountForTeacher;
+                            bestDay = d;
+                        }
                     }
                 }
 
                 if (bestDay === -1) {
                     for (let d of availableDays) {
+                        let currentDailyCountForTeacher = teacherDailyCount[d][item.tId] || 0;
                         if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
                             bestDay = d;
                             break;
@@ -1190,6 +1187,7 @@
 
                     if (chosenLesson !== -1) {
                         teacherBusy[bestDay][chosenLesson][item.tId] = true;
+                        teacherDailyCount[bestDay][item.tId] = (teacherDailyCount[bestDay][item.tId] || 0) + 1;
                         sectionDaySubjectBusy[g][s][bestDay][item.subject] = true;
                         sectionDayCount[g][s][bestDay]++;
 
@@ -1203,10 +1201,40 @@
                 }
             });
 
+            // 2. المرحلة الثانية: استكمال الحصص الشاغرة دون ترك أي مكان فارغ
+            days.forEach((_, dIdx) => {
+                lessons.forEach((_, lIdx) => {
+                    gradeNames.forEach((_, gIdx) => {
+                        secNames.forEach((_, sIdx) => {
+                            let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                            if (!grid[cellKey] || !grid[cellKey].subject) {
+                                for (let t of teachingStaff) {
+                                    let tDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
+                                    if (tDays.includes(dIdx) && !teacherBusy[dIdx][lIdx][t.id]) {
+                                        let matchedAsgn = t.assignments.find(a => a.gradeIndex === gIdx && a.sectionIndex === sIdx);
+                                        if (matchedAsgn) {
+                                            teacherBusy[dIdx][lIdx][t.id] = true;
+                                            teacherDailyCount[dIdx][t.id] = (teacherDailyCount[dIdx][t.id] || 0) + 1;
+                                            sectionDayCount[gIdx][sIdx][dIdx]++;
+                                            grid[cellKey] = {
+                                                tId: t.id,
+                                                name: t.name,
+                                                subject: matchedAsgn.subject
+                                            };
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم تحديث الجدول بنجاح والتزام تام بأيام دوام المعلمات المحددة!');
+            alert('تم توليد الجدول بنجاح! تم توزيع حصص المعلمات بانتظام على أيام الدوام ومنع تكديسها في يوم واحد.');
         }
 
         function updateCellManual(cellKey, field, value) {
