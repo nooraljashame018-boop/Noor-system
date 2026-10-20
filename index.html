@@ -17,12 +17,26 @@
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
         .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
         .editable-cell:focus { outline: 2px solid #2563eb; background-color: #eff6ff !important; border-radius: 6px; }
+        
+        /* متغير الحجم الديناميكي للكتابة */
+        :root {
+            --schedule-font-size: 10px;
+        }
+
+        #scheduleTableBody td, #scheduleTableBody div, #printableScheduleCard table th {
+            font-size: var(--schedule-font-size) !important;
+        }
+
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
-            body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
-            table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
-            th, td { border: 1px solid #333 !important; padding: 4px !important; text-align: center !important; }
-            .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
+            body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #333 !important; padding: 2px 3px !important; text-align: center !important; }
+            #scheduleTableBody td, #scheduleTableBody div, #printableScheduleCard table th {
+                font-size: var(--schedule-font-size) !important; /* اعتماد حجم الخط المختار للطباعة أيضاً */
+            }
+            .day-separator-red { border-bottom: 3px solid #ef4444 !important; }
+            @page { size: landscape; margin: 10mm; }
         }
     </style>
 </head>
@@ -64,7 +78,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v48.0
+                نظام إدارة الجداول الثابت v50.0
             </div>
         </div>
     </aside>
@@ -79,18 +93,27 @@
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
                     <p class="text-xs text-slate-500">توزيع دقيق: حصة واحدة يومياً لكافة المواد، ويستثنى العربي للصفوف الأولية (1-4) بحصتين.</p>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
+                
+                <div class="flex items-center gap-3 flex-wrap">
+                    <!-- أداة التحكم بحجم خط الجدول -->
+                    <div class="flex items-center gap-2 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
+                        <i class="fas fa-text-height text-blue-600"></i>
+                        <label for="fontSizeControl">حجم الخط:</label>
+                        <input type="range" id="fontSizeControl" min="5" max="16" value="10" oninput="changeScheduleFontSize(this.value)" class="w-24 cursor-pointer accent-blue-600">
+                        <span id="fontSizeDisplay" class="bg-white border border-slate-300 px-1.5 py-0.5 rounded text-blue-800 font-extrabold text-[11px]">10px</span>
+                    </div>
+
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد الجدول
+                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد
                     </button>
                     <button type="button" onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-trash-alt"></i> تفريغ الجدول
+                        <i class="fas fa-trash-alt"></i> تفريغ
                     </button>
                     <button type="button" onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-print"></i> طباعة (PDF)
+                        <i class="fas fa-print"></i> طباعة / PDF
                     </button>
                     <button type="button" onclick="exportScheduleAsImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
-                        <i class="fab fa-whatsapp text-sm"></i> إرسال الجدول لصورة (واتساب)
+                        <i class="fab fa-whatsapp text-sm"></i> صورة (واتساب)
                     </button>
                 </div>
             </div>
@@ -181,7 +204,6 @@
                         </div>
                     </div>
 
-                    <!-- مربع البحث مع زر الإغلاق والتصفية -->
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="relative min-w-[240px]">
                             <i class="fas fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -338,7 +360,6 @@
                     </div>
                 </div>
 
-                <!-- تعديل أيام دوام المعلمة -->
                 <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200">
                     <span class="text-xs font-bold text-blue-900 block mb-2">📅 أيام حضور دوام المعلمة في الأسبوع:</span>
                     <div class="flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700" id="editWorkingDaysContainer">
@@ -413,6 +434,13 @@
         const weekDaysFull = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const lessons = ['الحصة 1', 'الحصة 2', 'الحصة 3', 'الحصة 4', 'الحصة 5'];
         const subjectOptions = ['إسلامية', 'عربي', 'إنكليزي', 'رياضيات', 'علوم', 'اجتماعيات', 'أخلاقية', 'فن', 'رياضة', 'أساس 1', 'أساس 2', 'أساس 3'];
+
+        function changeScheduleFontSize(val) {
+            document.documentElement.style.setProperty('--schedule-font-size', val + 'px');
+            const display = document.getElementById('fontSizeDisplay');
+            if (display) display.innerText = val + 'px';
+            localStorage.setItem('app_schedule_font_size', val);
+        }
 
         function getTodayFormattedISO() {
             const now = new Date();
@@ -547,6 +575,14 @@
 
         window.onload = function() {
             updateSystemLiveDateHeader();
+
+            let savedFontSize = localStorage.getItem('app_schedule_font_size') || '10';
+            const fontSizeInput = document.getElementById('fontSizeControl');
+            if (fontSizeInput) {
+                fontSizeInput.value = savedFontSize;
+                changeScheduleFontSize(savedFontSize);
+            }
+
             buildGradesForm('gradesContainer', '');
             buildGradesForm('editGradesContainer', 'edit_');
             refreshAllViews();
@@ -1046,7 +1082,6 @@
             }
         }
 
-        // المحرك الذكي v48.0: يمنع تكرار الحصص إطلاقاً إلا للغة العربية بالصفوف الأولية (1-4) بحصتين
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1074,7 +1109,6 @@
                 });
             });
 
-            // ترتيب المواد ذات النصاب العالي أولاً
             itemsToPlace.sort((a, b) => {
                 let weightA = a.subject === 'عربي' ? 10 : (a.subject === 'رياضيات' ? 8 : 5);
                 let weightB = b.subject === 'عربي' ? 10 : (b.subject === 'رياضيات' ? 8 : 5);
@@ -1105,12 +1139,10 @@
             let unplacedItems = [];
 
             itemsToPlace.forEach(item => {
-                let g = item.gradeIndex; // 0: الأول, 1: الثاني, 2: الثالث, 3: الرابع, 4: الخامس, 5: السادس
+                let g = item.gradeIndex;
                 let s = item.sectionIndex;
                 let placed = false;
 
-                // تحديد الحد الأقصى للحصص في اليوم الواحد لهذه المادة للشعبة:
-                // يمنع التكرار نهائياً (حصة واحدة) إلا لـ اللغة العربية في الصفوف الأولية (g <= 3) فيسمح بحصتين
                 let maxAllowedDaily = 1;
                 if (item.subject === 'عربي' && g <= 3) {
                     maxAllowedDaily = 2;
@@ -1154,9 +1186,9 @@
             refreshBackupTeachers();
 
             if (unplacedItems.length === 0) {
-                alert('تم توليد الجدول بنجاح تام وبشروطكِ الصارمة! حصة واحدة يومياً للمواد، وتكرار حصتين للعربي بالصفوف الأولية فقط.');
+                alert('تم توليد الجدول بنجاح تام وبشروطكِ الصارمة!');
             } else {
-                alert(`تم توليد الجدول بنجاح وفق شروطكِ. تم تعبئة معظم الحصص مع الملاحظة أحياناً بوجود (${unplacedItems.length}) حصة متبقية بسبب تقاطع أوقات حضور المعلمات.`);
+                alert(`تم توليد الجدول بنجاح مع وجود (${unplacedItems.length}) حصة متبقية بسبب تقاطع أوقات الحضور.`);
             }
         }
 
@@ -1456,7 +1488,7 @@
             gradeNames.forEach(gName => {
                 hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white" colspan="3">الصف ${gName}</th>`;
                 secShortNames.forEach(sName => {
-                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-800 text-[11px]">شعبة ${sName}</th>`;
+                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-800">شعبة ${sName}</th>`;
                 });
             });
 
@@ -1473,7 +1505,7 @@
                     if (lIdx === 0) {
                         tbodyHtml += `<td class="p-2 border border-slate-300 font-bold bg-slate-100 text-slate-800" rowspan="${lessons.length}">${day}</td>`;
                     }
-                    tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-amber-50 text-amber-900 text-[11px]">${lesson}</td>`;
+                    tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-amber-50 text-amber-900">${lesson}</td>`;
 
                     gradeNames.forEach((_, gIdx) => {
                         secShortNames.forEach((_, sIdx) => {
@@ -1492,9 +1524,9 @@
                                 }
                             }
 
-                            tbodyHtml += `<td class="p-1 border border-slate-300 ${bgClass} text-[10px] min-w-[85px] h-10 align-middle">
+                            tbodyHtml += `<td class="p-1 border border-slate-300 ${bgClass} min-w-[85px] h-10 align-middle">
                                 <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-bold text-slate-800 outline-none">${subjectName}</div>
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-[9px] text-slate-500 font-normal outline-none">${teacherName}</div>
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-slate-500 font-normal outline-none">${teacherName}</div>
                             </td>`;
                         });
                     });
