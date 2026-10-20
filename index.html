@@ -15,12 +15,17 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
-        .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
+        .day-separator-red { border-bottom: 3px solid #ef4444 !important; }
         .editable-cell:focus { outline: 2px solid #2563eb; background-color: #eff6ff !important; border-radius: 6px; }
         
-        /* متغير الحجم الديناميكي للكتابة */
+        /* متغيرات الحجم والتحجم بالجدول */
         :root {
-            --schedule-font-size: 10px;
+            --schedule-font-size: 9px;
+            --schedule-scale: 1;
+        }
+
+        #printableScheduleCard {
+            transform-origin: top right;
         }
 
         #scheduleTableBody td, #scheduleTableBody div, #printableScheduleCard table th {
@@ -29,14 +34,27 @@
 
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
-            body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            table { width: 100% !important; border-collapse: collapse !important; }
-            th, td { border: 1px solid #333 !important; padding: 2px 3px !important; text-align: center !important; }
-            #scheduleTableBody td, #scheduleTableBody div, #printableScheduleCard table th {
-                font-size: var(--schedule-font-size) !important; /* اعتماد حجم الخط المختار للطباعة أيضاً */
+            body, main { background: #ffffff !important; color: #000 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+            .print-area { 
+                background: #ffffff !important; 
+                width: 100% !important; 
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
             }
-            .day-separator-red { border-bottom: 3px solid #ef4444 !important; }
-            @page { size: landscape; margin: 10mm; }
+            table { width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; }
+            th, td { border: 1px solid #333 !important; padding: 1px 2px !important; text-align: center !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+            
+            #scheduleTableBody td, #scheduleTableBody div, #printableScheduleCard table th {
+                font-size: var(--schedule-font-size) !important;
+            }
+            .day-separator-red { border-bottom: 2px solid #ef4444 !important; }
+            
+            @page { 
+                size: landscape; 
+                margin: 5mm; 
+            }
         }
     </style>
 </head>
@@ -78,7 +96,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v50.0
+                نظام إدارة الجداول الثابت v51.0
             </div>
         </div>
     </aside>
@@ -91,20 +109,20 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">توزيع دقيق: حصة واحدة يومياً لكافة المواد، ويستثنى العربي للصفوف الأولية (1-4) بحصتين.</p>
+                    <p class="text-xs text-slate-500">توزيع دقيق لكافة الصفوف والشعب من الأول إلى السادس ابتدائي.</p>
                 </div>
                 
                 <div class="flex items-center gap-3 flex-wrap">
-                    <!-- أداة التحكم بحجم خط الجدول -->
-                    <div class="flex items-center gap-2 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
+                    <!-- التحكم بحجم الخط -->
+                    <div class="flex items-center gap-1.5 bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-xl text-xs font-bold text-slate-700">
                         <i class="fas fa-text-height text-blue-600"></i>
-                        <label for="fontSizeControl">حجم الخط:</label>
-                        <input type="range" id="fontSizeControl" min="5" max="16" value="10" oninput="changeScheduleFontSize(this.value)" class="w-24 cursor-pointer accent-blue-600">
-                        <span id="fontSizeDisplay" class="bg-white border border-slate-300 px-1.5 py-0.5 rounded text-blue-800 font-extrabold text-[11px]">10px</span>
+                        <label for="fontSizeControl">الخط:</label>
+                        <input type="range" id="fontSizeControl" min="5" max="14" value="8" oninput="changeScheduleFontSize(this.value)" class="w-20 cursor-pointer accent-blue-600">
+                        <span id="fontSizeDisplay" class="bg-white border border-slate-300 px-1 py-0.5 rounded text-blue-800 font-extrabold text-[10px]">8px</span>
                     </div>
 
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
-                        <i class="fas fa-shuffle"></i> إعادة خلط وتوليد
+                        <i class="fas fa-shuffle"></i> إعادة خلط
                     </button>
                     <button type="button" onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-trash-alt"></i> تفريغ
@@ -118,10 +136,10 @@
                 </div>
             </div>
 
-            <div id="printableScheduleCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
-                <div class="text-center font-black text-slate-800 text-sm mb-2 hidden print-block">جدول دروس مدرسة الضياء الابتدائية</div>
-                <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[75vh]">
-                    <table class="w-full text-center border-collapse text-xs whitespace-nowrap">
+            <div id="printableScheduleCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 overflow-hidden print-area">
+                <div class="text-center font-black text-slate-800 text-xs mb-1 hidden print-block">جدول دروس مدرسة الضياء الابتدائية للبنات</div>
+                <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[80vh]">
+                    <table class="w-full text-center border-collapse text-xs">
                         <thead class="bg-slate-800 text-white">
                             <tr id="tableHeaderGrades"></tr>
                             <tr id="tableHeaderSubColumns" class="bg-slate-200 text-slate-700 font-bold border-b border-slate-400"></tr>
@@ -576,7 +594,7 @@
         window.onload = function() {
             updateSystemLiveDateHeader();
 
-            let savedFontSize = localStorage.getItem('app_schedule_font_size') || '10';
+            let savedFontSize = localStorage.getItem('app_schedule_font_size') || '8';
             const fontSizeInput = document.getElementById('fontSizeControl');
             if (fontSizeInput) {
                 fontSizeInput.value = savedFontSize;
@@ -1482,13 +1500,13 @@
             let teachersList = getTeachers();
             let savedGrid = getScheduleData();
 
-            let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">الحصة</th>`;
+            let hGradesHtml = `<th class="p-1 border border-slate-700 bg-slate-900 text-white min-w-[40px]" rowspan="2">اليوم</th><th class="p-1 border border-slate-700 bg-slate-900 text-white min-w-[40px]" rowspan="2">الحصة</th>`;
             let hSubHtml = '';
 
             gradeNames.forEach(gName => {
-                hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white" colspan="3">الصف ${gName}</th>`;
+                hGradesHtml += `<th class="p-1 border border-slate-700 bg-slate-800 text-white" colspan="3">الصف ${gName}</th>`;
                 secShortNames.forEach(sName => {
-                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-800">شعبة ${sName}</th>`;
+                    hSubHtml += `<th class="p-0.5 border border-slate-400 bg-slate-200 text-slate-800 font-bold">شعبة ${sName}</th>`;
                 });
             });
 
@@ -1503,9 +1521,9 @@
 
                     tbodyHtml += `<tr class="${rowClass}">`;
                     if (lIdx === 0) {
-                        tbodyHtml += `<td class="p-2 border border-slate-300 font-bold bg-slate-100 text-slate-800" rowspan="${lessons.length}">${day}</td>`;
+                        tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-slate-100 text-slate-800 leading-tight" rowspan="${lessons.length}">${day}</td>`;
                     }
-                    tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-amber-50 text-amber-900">${lesson}</td>`;
+                    tbodyHtml += `<td class="p-0.5 border border-slate-300 font-bold bg-amber-50 text-amber-900 leading-tight">${lesson}</td>`;
 
                     gradeNames.forEach((_, gIdx) => {
                         secShortNames.forEach((_, sIdx) => {
@@ -1524,9 +1542,9 @@
                                 }
                             }
 
-                            tbodyHtml += `<td class="p-1 border border-slate-300 ${bgClass} min-w-[85px] h-10 align-middle">
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-bold text-slate-800 outline-none">${subjectName}</div>
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-slate-500 font-normal outline-none">${teacherName}</div>
+                            tbodyHtml += `<td class="p-0.5 border border-slate-300 ${bgClass} h-8 align-middle">
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-bold text-slate-800 outline-none leading-none">${subjectName}</div>
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-slate-500 font-normal outline-none leading-none mt-0.5">${teacherName}</div>
                             </td>`;
                         });
                     });
