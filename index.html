@@ -96,7 +96,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v55.0
+                نظام إدارة الجداول الثابت v56.0
             </div>
         </div>
     </aside>
@@ -865,6 +865,7 @@
             if (document.getElementById('activePresentNum')) document.getElementById('activePresentNum').innerText = list.filter(t => t.isPresent).length;
         }
 
+        // تم تعزير دالة عرض كروت المعلمات لإظهار قائمة حصص المعلمة وموادها بالتفصيل
         function renderTeachersCards() {
             const container = document.getElementById('teachersCardsList');
             if (!container) return;
@@ -879,26 +880,60 @@
                 return true;
             });
 
-            container.innerHTML = filtered.map(t => `
+            container.innerHTML = filtered.map(t => {
+                let waPhone = formatWhatsappPhone(t.phone);
+                let hasAssignments = t.assignments && t.assignments.length > 0;
+                let tDays = t.workingDays !== undefined ? t.workingDays : [0, 1, 2, 3, 4];
+                let daysNamesList = tDays.map(dIdx => days[dIdx]).join('، ');
+
+                return `
                 <div class="bg-white p-4 rounded-2xl border ${t.isPresent ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200'} shadow-sm flex flex-col justify-between">
                     <div>
                         <div class="flex items-start gap-3 mb-2">
-                            ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold"><i class="fas fa-user"></i></div>`}
+                            ${t.photo ? `<img src="${t.photo}" class="w-12 h-12 rounded-full object-cover border border-slate-300 shrink-0">` : `<div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold shrink-0"><i class="fas fa-user"></i></div>`}
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <button onclick="openEditModal(${t.id})" class="text-slate-400 hover:text-blue-600 text-xs"><i class="fas fa-pen"></i></button>
-                                    <button onclick="deleteTeacher(${t.id})" class="text-slate-300 hover:text-red-600 text-xs"><i class="fas fa-trash"></i></button>
+                                    <button onclick="openEditModal(${t.id})" class="text-slate-400 hover:text-blue-600 text-xs cursor-pointer"><i class="fas fa-pen"></i></button>
+                                    <button onclick="deleteTeacher(${t.id})" class="text-slate-300 hover:text-red-600 text-xs cursor-pointer"><i class="fas fa-trash"></i></button>
                                 </div>
-                                <h4 class="font-bold text-sm">${t.name}</h4>
+                                <h4 class="font-bold text-sm text-slate-800">${t.name}</h4>
                                 ${getRoleBadge(t.role)}
+                                ${t.phone ? `
+                                    <a href="https://wa.me/${waPhone}" target="_blank" class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg font-bold text-[10px] mt-1">
+                                        <i class="fab fa-whatsapp"></i> ${t.phone}
+                                    </a>
+                                ` : ''}
                             </div>
                         </div>
+
+                        <div class="text-[11px] text-blue-800 font-bold bg-blue-50 p-1.5 rounded-lg mb-2 border border-blue-100">
+                            📅 أيام الدوام: ${daysNamesList}
+                        </div>
+
+                        <!-- إظهار حصص المعلمة وموادها المخصصة -->
+                        <div class="text-xs text-blue-900 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            <span class="font-bold block text-slate-700 mb-1 border-b pb-1">📚 المواد والحصص:</span>
+                            ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي</span>' : (hasAssignments ? t.assignments.map(a => `• الصف ${gradeNames[a.gradeIndex]} (${secShortNames[a.sectionIndex]}): <b>${a.subject}</b> (${a.subjectQuota || 1} حصص)`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
+                        </div>
                     </div>
-                    <button onclick="recordAttendance(${t.id})" class="w-full py-2 ${t.isPresent ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-bold rounded-xl text-xs shadow-md transition">
-                        ${t.isPresent ? 'تسجيل الانصراف' : 'تسجيل الدخول'}
-                    </button>
+
+                    <div class="space-y-2">
+                        ${t.isPresent ? `
+                            <div class="bg-emerald-100 text-emerald-800 p-2 rounded-xl text-center font-bold text-xs">
+                                <div>🟢 الدخول: ${t.checkInTime}</div>${t.checkOutTime ? `<div class="text-amber-800 text-[11px] mt-0.5">🔴 الانصراف: ${t.checkOutTime}</div>` : ''}
+                            </div>
+                            <button onclick="recordAttendance(${t.id})" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer">
+                                <i class="fas fa-right-from-bracket"></i> تسجيل الانصراف
+                            </button>
+                        ` : `
+                            <button onclick="recordAttendance(${t.id})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fas fa-fingerprint text-base"></i> تسجيل الدخول للدوام
+                            </button>
+                        `}
+                    </div>
                 </div>
-            `).join('') || `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا توجد نتائج</div>`;
+            `;
+            }).join('') || `<div class="col-span-full text-center py-6 text-slate-400 font-bold">لا توجد نتائج</div>`;
         }
 
         function renderAllStaffTable() {
