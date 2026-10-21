@@ -45,6 +45,11 @@
                     <i class="fas fa-user-check text-emerald-400 text-base w-5"></i> إثبات الحضور والتوزيع
                 </button>
 
+                <!-- الأيقونة الجديدة المطلوبة -->
+                <button onclick="switchTab('staffInfoView')" id="btn-staffInfoView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
+                    <i class="fas fa-id-card-clip text-cyan-400 text-base w-5"></i> معلومات الكادر والأنصبة
+                </button>
+
                 <button onclick="switchTab('allStaffView')" id="btn-allStaffView" class="nav-btn w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800 transition text-right text-xs">
                     <i class="fas fa-users-gear text-indigo-400 text-base w-5"></i> جميع الكادر وسجل الحضور
                 </button>
@@ -64,7 +69,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v49.0
+                نظام إدارة الجداول الثابت v50.0
             </div>
         </div>
     </aside>
@@ -203,7 +208,41 @@
             </div>
         </section>
 
-        <!-- 3. جميع الكادر المدرسي وسجل الأوقات -->
+        <!-- 3. القسم الجديد: معلومات الكادر والأنصبة التلقائية -->
+        <section id="staffInfoView" class="tab-content hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-id-card-clip text-cyan-600"></i> جدول معلومات الكادر والأنصبة الدراسية
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">يتم جلب الحصص والمواد تلقائياً من زر التعديل لكل معلمة، وحساب عدد الحصص الفعلية المرتبطة بالجدول المدرسي الذكي.</p>
+                    </div>
+                    <div class="bg-cyan-50 border border-cyan-200 px-3 py-1.5 rounded-xl text-xs font-bold text-cyan-900">
+                        إجمالي المعلمات: <span id="staffInfoCount" class="text-cyan-700">0</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead class="bg-cyan-900 text-white font-bold">
+                            <tr>
+                                <th class="p-3 text-center">الصورة</th>
+                                <th class="p-3">اسم المعلمة</th>
+                                <th class="p-3 text-center">الصفة</th>
+                                <th class="p-3">رقم الهاتف</th>
+                                <th class="p-3">المواد والصفوف المخصصة (من زر التعديل)</th>
+                                <th class="p-3 text-center">إجمالي الحصص المخصصة</th>
+                                <th class="p-3 text-center">الحصص الفعلية بالجدول الذكي</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffInfoTableBody" class="divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. جميع الكادر المدرسي وسجل الأوقات -->
         <section id="allStaffView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -235,7 +274,7 @@
             </div>
         </section>
 
-        <!-- 4. بدلاء الشواغر والمراقبة اليومية -->
+        <!-- 5. بدلاء الشواغر والمراقبة اليومية -->
         <section id="backupView" class="tab-content hidden space-y-4">
             <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-5 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
@@ -261,7 +300,7 @@
             </div>
         </section>
 
-        <!-- 5. تقرير الحضور الزمني المطور -->
+        <!-- 6. تقرير الحضور الزمني المطور -->
         <section id="reportsView" class="tab-content hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -508,6 +547,7 @@
                 localStorage.removeItem('app_schedule_grid_v7');
                 renderSchedule();
                 refreshBackupTeachers();
+                renderStaffInfoTable();
             }
         }
 
@@ -1046,7 +1086,7 @@
             }
         }
 
-        // المحرك الذكي v49.0: يمنع تكرار الحصص إطلاقاً إلا للغة العربية بالصفوف الأولية (1-4) بحصتين
+        // المحرك الذكي v50.0
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1074,7 +1114,6 @@
                 });
             });
 
-            // ترتيب المواد ذات النصاب العالي أولاً
             itemsToPlace.sort((a, b) => {
                 let weightA = a.subject === 'عربي' ? 10 : (a.subject === 'رياضيات' ? 8 : 5);
                 let weightB = b.subject === 'عربي' ? 10 : (b.subject === 'رياضيات' ? 8 : 5);
@@ -1105,12 +1144,10 @@
             let unplacedItems = [];
 
             itemsToPlace.forEach(item => {
-                let g = item.gradeIndex; // 0: الأول, 1: الثاني, 2: الثالث, 3: الرابع, 4: الخامس, 5: السادس
+                let g = item.gradeIndex;
                 let s = item.sectionIndex;
                 let placed = false;
 
-                // تحديد الحد الأقصى للحصص في اليوم الواحد لهذه المادة للشعبة:
-                // يمنع التكرار نهائياً (حصة واحدة) إلا لـ اللغة العربية في الصفوف الأولية (g <= 3) فيسمح بحصتين
                 let maxAllowedDaily = 1;
                 if (item.subject === 'عربي' && g <= 3) {
                     maxAllowedDaily = 2;
@@ -1152,11 +1189,12 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
+            renderStaffInfoTable();
 
             if (unplacedItems.length === 0) {
-                alert('تم توليد الجدول بنجاح تام وبشروطكِ الصارمة! حصة واحدة يومياً للمواد، وتكرار حصتين للعربي بالصفوف الأولية فقط.');
+                alert('تم توليد الجدول بنجاح تام وبشروطكِ الصارمة!');
             } else {
-                alert(`تم توليد الجدول بنجاح وفق شروطكِ. تم تعبئة معظم الحصص مع الملاحظة أحياناً بوجود (${unplacedItems.length}) حصة متبقية بسبب تقاطع أوقات حضور المعلمات.`);
+                alert(`تم توليد الجدول مع وجود (${unplacedItems.length}) حصة غير محلولة بسبب التقاطع.`);
             }
         }
 
@@ -1168,6 +1206,7 @@
             savedGrid[cellKey][field] = value.trim();
             saveScheduleData(savedGrid);
             refreshBackupTeachers();
+            renderStaffInfoTable();
         }
 
         function deleteTeacher(id) {
@@ -1191,6 +1230,64 @@
             refreshBackupTeachers();
             renderReportsList();
             renderSchedule();
+            renderStaffInfoTable();
+        }
+
+        // دالة عرض جدول معلومات الكادر والأنصبة المرتبطة بالجدول الذكي
+        function renderStaffInfoTable() {
+            const tbody = document.getElementById('staffInfoTableBody');
+            const countElem = document.getElementById('staffInfoCount');
+            let list = getTeachers();
+            let grid = getScheduleData();
+
+            if (!tbody) return;
+            if (countElem) countElem.innerText = list.length;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold">لا يوجد كادر مسجل</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(t => {
+                let hasAssignments = t.assignments && t.assignments.length > 0;
+                let assignedQuotaTotal = t.role === 'مرشد تربوي' ? 0 : (t.assignments || []).reduce((sum, a) => sum + ((a.subject === 'فن' || a.subject === 'رياضة') ? 1 : (a.subjectQuota || 1)), 0);
+
+                // حساب الحصص الفعلية المرتبطة تلقائياً بالجدول المدرسي الذكي
+                let actualScheduledCount = 0;
+                if (t.role !== 'مرشد تربوي') {
+                    days.forEach((_, dIdx) => {
+                        lessons.forEach((_, lIdx) => {
+                            gradeNames.forEach((_, gIdx) => {
+                                secShortNames.forEach((_, sIdx) => {
+                                    let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                                    let cell = grid[cellKey];
+                                    if (cell && (cell.tId == t.id || (cell.name && cell.name.includes(t.name)))) {
+                                        actualScheduledCount++;
+                                    }
+                                });
+                            });
+                        });
+                    });
+                }
+
+                let assignmentsDetailsText = t.role === 'مرشد تربوي' ? 
+                    '<span class="text-teal-700 font-bold">🌱 مرشد تربوي</span>' : 
+                    (hasAssignments ? t.assignments.map(a => `الصف ${gradeNames[a.gradeIndex]} (${secShortNames[a.sectionIndex]}): <b>${a.subject}</b> (${(a.subject === 'فن' || a.subject === 'رياضة') ? 1 : (a.subjectQuota || 1)} حصص)`).join('<br>') : '<span class="text-slate-400">لا توجد مواد مخصصة</span>');
+
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-200">
+                    <td class="p-3 text-center">
+                        ${t.photo ? `<img src="${t.photo}" class="w-9 h-9 rounded-full object-cover border border-slate-300 mx-auto">` : `<div class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto"><i class="fas fa-user text-xs"></i></div>`}
+                    </td>
+                    <td class="p-3 font-bold text-slate-800">${t.name}</td>
+                    <td class="p-3 text-center">${getRoleBadge(t.role)}</td>
+                    <td class="p-3 font-bold text-slate-600">${t.phone || '-'}</td>
+                    <td class="p-3 text-xs text-blue-900 leading-relaxed">${assignmentsDetailsText}</td>
+                    <td class="p-3 text-center font-black text-indigo-700">${assignedQuotaTotal} حصة</td>
+                    <td class="p-3 text-center font-black text-emerald-700">${actualScheduledCount} حصة</td>
+                </tr>
+                `;
+            }).join('');
         }
 
         function renderReportsList() {
@@ -1302,7 +1399,6 @@
                             📅 أيام الدوام: ${daysNamesList}
                         </div>
 
-                        <!-- تم استرجاع وعرض حصص المعلمة وموادها بالتفصيل داخل الكرت -->
                         <div class="text-xs text-blue-900 font-medium mb-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
                             <span class="font-bold block text-slate-700 mb-1 border-b pb-1">📚 المواد والحصص:</span>
                             ${t.role === 'مرشد تربوي' ? '<span class="text-teal-700 font-bold">🌱 مرشد تربوي (حضور وانصراف فقط)</span>' : (hasAssignments ? t.assignments.map(a => `• الصف ${gradeNames[a.gradeIndex]} (${secShortNames[a.sectionIndex]}): <b>${a.subject}</b> (${(a.subject === 'فن' || a.subject === 'رياضة') ? 1 : (a.subjectQuota || 1)} حصص)`).join('<br>') : '<span class="text-slate-400 font-bold">لا يوجد حصص مخصصة</span>')}
