@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -65,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v36.0
+                نظام إدارة الجداول الثابت v37.0
             </div>
         </div>
     </aside>
@@ -78,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">التعديلات اليدوية والبيانات المدخلة تُحفظ تلقائياً في الجدول ولا يتم مسحها.</p>
+                    <p class="text-xs text-slate-500">التعديلات اليدوية والبيانات المدخلة تُحفظ تلقائياً مع نظام تنبيه تضارب المعلمات الذكي.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -553,37 +552,37 @@
                     <div id="${prefix}g_box_${gIdx}" class="hidden flex flex-col gap-2 border-r-2 border-emerald-400 pr-2 pt-1">
                       ${secNames.map((sName, sIdx) => `
                         <div class="relative border border-slate-200 bg-slate-50 rounded-lg p-2 overflow-hidden">
-                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx},${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
+                          <button type="button" onclick="clearSectionSelection('${prefix}', ${gIdx}, ${sIdx})" title="حذف الشعبة" class="absolute top-1.5 left-1.5 w-5 h-5 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center text-[10px] transition cursor-pointer">
                             <i class="fas fa-xmark"></i>
                           </button>
 
                           <label class="text-xs font-bold text-slate-700 block mb-1">
-                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="rounded text-emerald-600"> ${sName}
+                            <input type="checkbox" id="${prefix}sec_${gIdx}_${sIdx}" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="rounded text-emerald-600"> ${sName}
                           </label>
 
                           <div class="space-y-1.5 mt-1">
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_1" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الأولى</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_1" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_2" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثانية</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_2" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
 
                             <div class="flex items-center gap-1">
-                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}',${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_3" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
                                   <option value="">المادة الثالثة</option>
                                   ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                               </select>
-                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}',${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
                           </div>
                         </div>
@@ -974,6 +973,7 @@
             modal.classList.remove('flex');
         }
 
+        // خوارزمية توليد وتحديث الجدول الذكي المطورة بالكامل لمنع الازدواجية والالتزام بالحصص
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1021,8 +1021,7 @@
                 });
             });
 
-            // جلب الجدول الحالي للحفاظ على الخلايا التي تم تعديلها يدوياً
-            let grid = getScheduleData();
+            let grid = {};
             let teacherBusy = {};
             let sectionDaySubjectBusy = {};
             let sectionDayCount = {};
@@ -1045,24 +1044,6 @@
                         sectionDayCount[gIdx][sIdx][dIdx] = 0;
                     });
                 });
-            });
-
-            // تسجيل الخلايا الموجودة مسبقاً (المدخلة يدوياً أو المحفوظة) لكي لا يتم مسحها أو تداخلها
-            Object.keys(grid).forEach(cellKey => {
-                let cell = grid[cellKey];
-                if (cell && cell.subject) {
-                    let parts = cellKey.split('_'); // dIdx, lIdx, gIdx, sIdx
-                    let d = parseInt(parts[0]);
-                    let l = parseInt(parts[1]);
-                    let g = parseInt(parts[2]);
-                    let s = parseInt(parts[3]);
-
-                    if (cell.tId) {
-                        teacherBusy[d][l][cell.tId] = true;
-                    }
-                    sectionDaySubjectBusy[g][s][d][cell.subject] = true;
-                    sectionDayCount[g][s][d]++;
-                }
             });
 
             let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
@@ -1130,10 +1111,10 @@
 
                     for (let l of lessonIndices) {
                         let cellKey = `${bestDay}_${l}_${g}_${s}`;
-                        let isSlotEmptyOrUnfilled = !grid[cellKey] || !grid[cellKey].subject;
-                        let isTeacherFree = !teacherBusy[bestDay][l][item.tId];
+                        let isSlotEmpty = !grid[cellKey] || !grid[cellKey].subject;
+                        let isTeacherFree = !teacherBusy[bestDay][l][item.tId]; // منع تكرار المعلمة في نفس الوقت
 
-                        if (isSlotEmptyOrUnfilled && isTeacherFree) {
+                        if (isSlotEmpty && isTeacherFree) {
                             chosenLesson = l;
                             break;
                         }
@@ -1157,15 +1138,51 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم تحديث الجدول وحفظ البيانات والتعديلات اليدوية بنجاح دون مسحها!');
+            alert('تم توليد الجدول بنجاح والتزام تام بحصص المعلمات ومنع الازدواجية!');
         }
 
+        // التحقق اليدوي وإرسال تنبيه في حال حدث تضارب للمعلمة أو زيادة حصة مع ذكر الصف الذي تشغله
         function updateCellManual(cellKey, field, value) {
             let savedGrid = getScheduleData();
             if (!savedGrid[cellKey]) {
                 savedGrid[cellKey] = { tId: 0, name: '', subject: '' };
             }
-            savedGrid[cellKey][field] = value.trim();
+
+            let trimmedValue = value.trim();
+            savedGrid[cellKey][field] = trimmedValue;
+
+            // إذا تم تعديل اسم المعلمة يدوياً، نتحقق من عدم وجود تضارب (تشغل صف آخر في نفس اليوم والحصة)
+            if (field === 'name' && trimmedValue !== '') {
+                let parts = cellKey.split('_'); // [dIdx, lIdx, gIdx, sIdx]
+                let currentDay = parts[0];
+                let currentLesson = parts[1];
+                let currentGrade = parseInt(parts[2]);
+                let currentSec = parseInt(parts[3]);
+
+                // نبحث في نفس اليوم والحصة عن أي صف آخر تشغله نفس المعلمة
+                let conflictGradeName = '';
+                let conflictSecName = '';
+                let hasConflict = false;
+
+                Object.keys(savedGrid).forEach(otherKey => {
+                    if (otherKey !== cellKey) {
+                        let otherParts = otherKey.split('_');
+                        if (otherParts[0] === currentDay && otherParts[1] === currentLesson) {
+                            let cell = savedGrid[otherKey];
+                            if (cell && cell.name && cell.name.trim() === trimmedValue) {
+                                hasConflict = true;
+                                conflictGradeName = gradeNames[parseInt(otherParts[2])];
+                                conflictSecName = secNames[parseInt(otherParts[3])];
+                            }
+                        }
+                    }
+                });
+
+                if (hasConflict) {
+                    alert(`⚠️ تنبيه تضارب معلمات!\n\nالمعلمة (${trimmedValue}) لديها جدول مسبق في نفس الحصة واليوم في [الصف ${conflictGradeName} - شعبة ${conflictSecName}]. يرجى الانتباه وتجنب ازدواجية الحصص.`);
+                }
+            }
+
             saveScheduleData(savedGrid);
             refreshBackupTeachers();
         }
