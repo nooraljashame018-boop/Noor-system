@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v41.0
+                نظام إدارة الجداول الثابت v42.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم منع توالي حصص نفس المعلمة بشكل متتابع، مع الالتزام بأنصبة الصف الأول.</p>
+                    <p class="text-xs text-slate-500">تم تحديث أنصبة الصفين الأول والثاني الابتدائي بالكامل لجميع الشعب (أ، ب، ج).</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -973,7 +973,7 @@
             modal.classList.remove('flex');
         }
 
-        // توليد الجدول الذكي مع منع توالي حصص نفس المعلمة في نفس الشعبة حصتين متتابعتين
+        // توليد الجدول الذكي مع تطبيق أنصبة الصفين الأول والثاني ومنع توالي الحصص لنفس المعلمة
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1001,6 +1001,17 @@
 
                     // تطبيق أنصبة الصف الأول الابتدائي تلقائياً
                     if (g === 0) {
+                        if (sub === 'عربي') qCount = 8;
+                        else if (sub === 'رياضيات') qCount = 5;
+                        else if (sub === 'إنكليزي') qCount = 3;
+                        else if (sub === 'علوم') qCount = 3;
+                        else if (sub === 'إسلامية') qCount = 2;
+                        else if (sub === 'أخلاقية') qCount = 2;
+                        else if (sub === 'رياضة') qCount = 1;
+                        else if (sub === 'فن') qCount = 1;
+                    }
+                    // تطبيق أنصبة الصف الثاني الابتدائي تلقائياً لجميع الشعب (أ، ب، ج)
+                    else if (g === 1) {
                         if (sub === 'عربي') qCount = 8;
                         else if (sub === 'رياضيات') qCount = 5;
                         else if (sub === 'إنكليزي') qCount = 3;
@@ -1058,12 +1069,13 @@
                 });
             });
 
-            let poolFirstGradeArabic = pool.filter(item => item.gradeIndex === 0 && item.subject === 'عربي');
-            let otherPool = pool.filter(item => !(item.gradeIndex === 0 && item.subject === 'عربي'));
+            // ضمان توزيع حصص العربي للصفين الأول والثاني على الأيام الخمسة بالتساوي
+            let poolArabicGrades01 = pool.filter(item => (item.gradeIndex === 0 || item.gradeIndex === 1) && item.subject === 'عربي');
+            let otherPool = pool.filter(item => !((item.gradeIndex === 0 || item.gradeIndex === 1) && item.subject === 'عربي'));
 
             otherPool.sort(() => Math.random() - 0.5);
 
-            poolFirstGradeArabic.forEach((item, index) => {
+            poolArabicGrades01.forEach((item, index) => {
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
                 let targetDays = [0, 1, 2, 3, 4, 0, 1, 2]; 
@@ -1094,7 +1106,6 @@
                     }
                 }
 
-                // خطة بديلة إذا لم نجد حصة غير متتابعة
                 if (chosenLesson === -1) {
                     for (let l of lessonIndices) {
                         let cellKey = `${chosenDay}_${l}_${g}_${s}`;
@@ -1125,7 +1136,7 @@
                 let isRestricted = ['عربي', 'رياضيات', 'إنكليزي'].includes(item.subject);
 
                 let isAssignedHere = assignedSectionsMap[g][s][item.subject] && assignedSectionsMap[g][s][item.subject].some(ts => ts.tId == item.tId);
-                if (!isAssignedHere && g !== 0) return;
+                if (!isAssignedHere && g > 1) return;
 
                 let bestDay = -1;
                 let minDayCount = 999;
@@ -1204,7 +1215,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم توليد الجدول بنجاح مع عدم توالي حصص نفس المعلمة في نفس الشعبة حصتين متتابعتين!');
+            alert('تم توليد الجدول بنجاح وتطبيق أنصبة الصفين الأول والثاني الابتدائي لجميع الشعب مع منع توالي الحصص لنفس المعلمة!');
         }
 
         // التعديل اليدوي مع تنبيه التضارب وتحديد الصف المعني
