@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v37.0
+                نظام إدارة الجداول الثابت v38.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">التعديلات اليدوية والبيانات المدخلة تُحفظ تلقائياً مع نظام تنبيه تضارب المعلمات الذكي.</p>
+                    <p class="text-xs text-slate-500">عرض اسم الحصة واسم المعلمة فقط، مع تنبيهات التضارب الذكية.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -118,8 +118,8 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
-                        <input type="text" id="tName" placeholder="مثال: أستاذ علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الثلاثي:</label>
+                        <input type="text" id="tName" placeholder="مثال: نور أحمد علي" class="w-full border border-slate-200 p-2.5 rounded-xl outline-none text-sm bg-slate-50 focus:border-blue-500 focus:bg-white">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">الصفة الوظيفية:</label>
@@ -297,7 +297,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم:</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الاسم الثلاثي:</label>
                         <input type="text" id="editTName" class="w-full border border-slate-200 p-2 rounded-xl outline-none text-xs bg-slate-50 focus:border-blue-500">
                     </div>
                     <div>
@@ -634,7 +634,7 @@
             const phone = document.getElementById('tPhone').value.trim();
             const photoInput = document.getElementById('tPhoto');
 
-            if (!name) { alert('يرجى كتابة الاسم أولاً'); return; }
+            if (!name) { alert('يرجى كتابة الاسم الثلاثي أولاً'); return; }
 
             const assignments = [];
             let totalQuota = 0;
@@ -788,7 +788,7 @@
             let photoInput = document.getElementById('editTPhoto');
             let deletePhotoFlag = document.getElementById('deleteCurrentPhotoFlag').value === 'true';
 
-            if (!name) { alert('يرجى كتابة الاسم'); return; }
+            if (!name) { alert('يرجى كتابة الاسم الثلاثي'); return; }
 
             let assignments = [];
             let totalQuota = 0;
@@ -973,7 +973,7 @@
             modal.classList.remove('flex');
         }
 
-        // خوارزمية توليد وتحديث الجدول الذكي المطورة بالكامل لمنع الازدواجية والالتزام بالحصص
+        // توليد الجدول الذكي دون تكرار المعلمة في نفس الوقت وبحسب الأنصبة
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -1112,7 +1112,7 @@
                     for (let l of lessonIndices) {
                         let cellKey = `${bestDay}_${l}_${g}_${s}`;
                         let isSlotEmpty = !grid[cellKey] || !grid[cellKey].subject;
-                        let isTeacherFree = !teacherBusy[bestDay][l][item.tId]; // منع تكرار المعلمة في نفس الوقت
+                        let isTeacherFree = !teacherBusy[bestDay][l][item.tId];
 
                         if (isSlotEmpty && isTeacherFree) {
                             chosenLesson = l;
@@ -1141,7 +1141,7 @@
             alert('تم توليد الجدول بنجاح والتزام تام بحصص المعلمات ومنع الازدواجية!');
         }
 
-        // التحقق اليدوي وإرسال تنبيه في حال حدث تضارب للمعلمة أو زيادة حصة مع ذكر الصف الذي تشغله
+        // التعديل اليدوي مع تنبيه التضارب وتحديد الصف المعني
         function updateCellManual(cellKey, field, value) {
             let savedGrid = getScheduleData();
             if (!savedGrid[cellKey]) {
@@ -1151,15 +1151,11 @@
             let trimmedValue = value.trim();
             savedGrid[cellKey][field] = trimmedValue;
 
-            // إذا تم تعديل اسم المعلمة يدوياً، نتحقق من عدم وجود تضارب (تشغل صف آخر في نفس اليوم والحصة)
             if (field === 'name' && trimmedValue !== '') {
                 let parts = cellKey.split('_'); // [dIdx, lIdx, gIdx, sIdx]
                 let currentDay = parts[0];
                 let currentLesson = parts[1];
-                let currentGrade = parseInt(parts[2]);
-                let currentSec = parseInt(parts[3]);
 
-                // نبحث في نفس اليوم والحصة عن أي صف آخر تشغله نفس المعلمة
                 let conflictGradeName = '';
                 let conflictSecName = '';
                 let hasConflict = false;
@@ -1444,12 +1440,12 @@
             }).join('');
         }
 
+        // عرض الجدول بحيث تظهر فقط اسم الحصة واسم المعلمة الثلاثي بدون تفاصيل زائدة
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
             const tbody = document.getElementById('scheduleTableBody');
 
-            let teachersList = getTeachers();
             let savedGrid = getScheduleData();
 
             let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">الحصة</th>`;
@@ -1482,19 +1478,10 @@
                             let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
                             let cellData = savedGrid[cellKey] || { subject: '', name: '' };
 
-                            let bgClass = 'bg-white';
                             let teacherName = cellData.name || '';
                             let subjectName = cellData.subject || '';
 
-                            if (cellData.tId) {
-                                let tObj = teachersList.find(t => t.id == cellData.tId);
-                                if (tObj && !tObj.isPresent) {
-                                    bgClass = 'bg-red-100 text-red-800 font-bold';
-                                    teacherName = `شاغر (${tObj.name})`;
-                                }
-                            }
-
-                            tbodyHtml += `<td class="p-1 border border-slate-300 ${bgClass} text-[10px] min-w-[85px] h-10 align-middle">
+                            tbodyHtml += `<td class="p-1 border border-slate-300 bg-white text-[10px] min-w-[85px] h-10 align-middle">
                                 <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-bold text-slate-800 outline-none">${subjectName}</div>
                                 <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-[9px] text-slate-500 font-normal outline-none">${teacherName}</div>
                             </td>`;
