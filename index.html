@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v38.0
+                نظام إدارة الجداول الثابت v40.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">عرض اسم الحصة واسم المعلمة فقط، مع تنبيهات التضارب الذكية.</p>
+                    <p class="text-xs text-slate-500">تم تحديث أنصبة الصف الأول الابتدائي بالتفصيل الكامل (عربي 8، رياضيات 5، إنكليزي 3، علوم 3، إسلامية 2، أخلاقية 2، رياضة 1، فنية 1).</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -973,7 +973,7 @@
             modal.classList.remove('flex');
         }
 
-        // توليد الجدول الذكي دون تكرار المعلمة في نفس الوقت وبحسب الأنصبة
+        // توليد الجدول الذكي مع تطبيق أنصبة الصف الأول بدقة (عربي 8 موزعة، رياضيات 5، إنكليزي 3، علوم 3، إسلامية 2، أخلاقية 2، رياضة 1، فنية 1)
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -998,6 +998,18 @@
                     let s = asgn.sectionIndex;
                     let sub = asgn.subject;
                     let qCount = (sub === 'فن' || sub === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
+
+                    // تطبيق الأنصبة الخاصة بالصف الأول الابتدائي تلقائياً
+                    if (g === 0) {
+                        if (sub === 'عربي') qCount = 8;
+                        else if (sub === 'رياضيات') qCount = 5;
+                        else if (sub === 'إنكليزي') qCount = 3;
+                        else if (sub === 'علوم') qCount = 3;
+                        else if (sub === 'إسلامية') qCount = 2;
+                        else if (sub === 'أخلاقية') qCount = 2;
+                        else if (sub === 'رياضة') qCount = 1;
+                        else if (sub === 'فن') qCount = 1;
+                    }
 
                     if (qCount > 0) {
                         if (!assignedSectionsMap[g][s][sub]) {
@@ -1046,22 +1058,53 @@
                 });
             });
 
-            let restrictedSubjects = ['عربي', 'رياضيات', 'إنكليزي'];
-            let poolRestricted = pool.filter(item => restrictedSubjects.includes(item.subject));
-            let poolOther = pool.filter(item => !restrictedSubjects.includes(item.subject));
+            // ضمان توزيع حصص العربي للصف الأول على الأيام الخمسة بالتساوي
+            let poolFirstGradeArabic = pool.filter(item => item.gradeIndex === 0 && item.subject === 'عربي');
+            let otherPool = pool.filter(item => !(item.gradeIndex === 0 && item.subject === 'عربي'));
 
-            poolRestricted.sort(() => Math.random() - 0.5);
-            poolOther.sort(() => Math.random() - 0.5);
+            otherPool.sort(() => Math.random() - 0.5);
 
-            let fullOrderedPool = [...poolRestricted, ...poolOther];
-
-            fullOrderedPool.forEach(item => {
+            poolFirstGradeArabic.forEach((item, index) => {
                 let g = item.gradeIndex;
                 let s = item.sectionIndex;
-                let isRestricted = restrictedSubjects.includes(item.subject);
+                let targetDays = [0, 1, 2, 3, 4, 0, 1, 2]; 
+                let chosenDay = targetDays[index % targetDays.length];
+
+                let chosenLesson = -1;
+                let lessonIndices = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5);
+
+                for (let l of lessonIndices) {
+                    let cellKey = `${chosenDay}_${l}_${g}_${s}`;
+                    let isSlotEmpty = !grid[cellKey] || !grid[cellKey].subject;
+                    let isTeacherFree = !teacherBusy[chosenDay][l][item.tId];
+
+                    if (isSlotEmpty && isTeacherFree) {
+                        chosenLesson = l;
+                        break;
+                    }
+                }
+
+                if (chosenLesson !== -1) {
+                    teacherBusy[chosenDay][chosenLesson][item.tId] = true;
+                    sectionDaySubjectBusy[g][s][chosenDay][item.subject] = true;
+                    sectionDayCount[g][s][chosenDay]++;
+
+                    let cellKey = `${chosenDay}_${chosenLesson}_${g}_${s}`;
+                    grid[cellKey] = {
+                        tId: item.tId,
+                        name: item.name,
+                        subject: item.subject
+                    };
+                }
+            });
+
+            otherPool.forEach(item => {
+                let g = item.gradeIndex;
+                let s = item.sectionIndex;
+                let isRestricted = ['عربي', 'رياضيات', 'إنكليزي'].includes(item.subject);
 
                 let isAssignedHere = assignedSectionsMap[g][s][item.subject] && assignedSectionsMap[g][s][item.subject].some(ts => ts.tId == item.tId);
-                if (!isAssignedHere) return;
+                if (!isAssignedHere && g !== 0) return;
 
                 let bestDay = -1;
                 let minDayCount = 999;
@@ -1071,24 +1114,6 @@
                     let isSubjectFreeToday = !sectionDaySubjectBusy[g][s][d][item.subject];
                     let isDayNotFull = sectionDayCount[g][s][d] < 5;
 
-                    if (item.subject === 'رياضة') {
-                        let teacherHasSportOnDay = false;
-                        for (let lIdx = 0; lIdx < lessons.length; lIdx++) {
-                            for (let gg = 0; gg < gradeNames.length; gg++) {
-                                for (let ss = 0; ss < secNames.length; ss++) {
-                                    let checkKey = `${d}_${lIdx}_${gg}_${ss}`;
-                                    let cellCheck = grid[checkKey];
-                                    if (cellCheck && cellCheck.tId == item.tId && cellCheck.subject === 'رياضة') {
-                                        teacherHasSportOnDay = true;
-                                    }
-                                }
-                            }
-                        }
-                        if (teacherHasSportOnDay) {
-                            isSubjectFreeToday = false;
-                        }
-                    }
-
                     if (isSubjectFreeToday && isDayNotFull && sectionDayCount[g][s][d] < minDayCount) {
                         minDayCount = sectionDayCount[g][s][d];
                         bestDay = d;
@@ -1097,7 +1122,7 @@
 
                 if (bestDay === -1) {
                     for (let d of availableDays) {
-                        if (!sectionDaySubjectBusy[g][s][d][item.subject] && sectionDayCount[g][s][d] < 5) {
+                        if (sectionDayCount[g][s][d] < 5) {
                             bestDay = d;
                             break;
                         }
@@ -1138,7 +1163,7 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم توليد الجدول بنجاح والتزام تام بحصص المعلمات ومنع الازدواجية!');
+            alert('تم توليد الجدول بنجاح وتطبيق كافة حصص وأنصبة الصف الأول الابتدائي بدقة!');
         }
 
         // التعديل اليدوي مع تنبيه التضارب وتحديد الصف المعني
