@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v42.0
+                نظام إدارة الجداول الثابت v43.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم تحديث أنصبة الصفين الأول والثاني الابتدائي بالكامل لجميع الشعب (أ، ب، ج).</p>
+                    <p class="text-xs text-slate-500">تم تفعيل تنبيهات اكتمال النصاب الأسبوعي وتنبيهات التضارب التلقائي عند الإدخال اليدوي.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -1069,7 +1069,6 @@
                 });
             });
 
-            // ضمان توزيع حصص العربي للصفين الأول والثاني على الأيام الخمسة بالتساوي
             let poolArabicGrades01 = pool.filter(item => (item.gradeIndex === 0 || item.gradeIndex === 1) && item.subject === 'عربي');
             let otherPool = pool.filter(item => !((item.gradeIndex === 0 || item.gradeIndex === 1) && item.subject === 'عربي'));
 
@@ -1089,7 +1088,6 @@
                     let isSlotEmpty = !grid[cellKey] || !grid[cellKey].subject;
                     let isTeacherFree = !teacherBusy[chosenDay][l][item.tId];
 
-                    // التحقق من عدم توالي نفس المعلمة في نفس الشعبة حصتين متتابعتين
                     let hasConsecutive = false;
                     if (l > 0) {
                         let prevKey = `${chosenDay}_${l-1}_${g}_${s}`;
@@ -1218,7 +1216,7 @@
             alert('تم توليد الجدول بنجاح وتطبيق أنصبة الصفين الأول والثاني الابتدائي لجميع الشعب مع منع توالي الحصص لنفس المعلمة!');
         }
 
-        // التعديل اليدوي مع تنبيه التضارب وتحديد الصف المعني
+        // التعديل اليدوي مع فحص تضارب المعلمة واكتمال نصابها الأسبوعي
         function updateCellManual(cellKey, field, value) {
             let savedGrid = getScheduleData();
             if (!savedGrid[cellKey]) {
@@ -1232,6 +1230,7 @@
                 let parts = cellKey.split('_'); // [dIdx, lIdx, gIdx, sIdx]
                 let currentDay = parts[0];
                 let currentLesson = parts[1];
+                let currentGrade = parseInt(parts[2]);
 
                 let conflictGradeName = '';
                 let conflictSecName = '';
@@ -1253,6 +1252,23 @@
 
                 if (hasConflict) {
                     alert(`⚠️ تنبيه تضارب معلمات!\n\nالمعلمة (${trimmedValue}) لديها جدول مسبق في نفس الحصة واليوم في [الصف ${conflictGradeName} - شعبة ${conflictSecName}]. يرجى الانتباه وتجنب ازدواجية الحصص.`);
+                }
+
+                // فحص اكتمال نصاب المعلمة الأسبوعي
+                let teachersList = getTeachers();
+                let teacherObj = teachersList.find(t => t.name.trim() === trimmedValue);
+                if (teacherObj && teacherObj.maxQuota > 0) {
+                    let assignedCount = 0;
+                    Object.keys(savedGrid).forEach(k => {
+                        let cell = savedGrid[k];
+                        if (cell && cell.name && cell.name.trim() === trimmedValue) {
+                            assignedCount++;
+                        }
+                    });
+
+                    if (assignedCount > teacherObj.maxQuota) {
+                        alert(`⚠️ تنبيه اكتمال النصاب!\n\nالمعلمة (${trimmedValue}) تم إكمال نصابها المخصص (${teacherObj.maxQuota} حصص) في الجدول، وعدد الحصص الحالية لها هو (${assignedCount}).`);
+                    }
                 }
             }
 
@@ -1539,6 +1555,7 @@
             hSub.innerHTML = hSubHtml;
 
             let tbodyHtml = '';
+            days.days = days; // safety ref
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
                     let isLastLessonOfDay = (lIdx === lessons.length - 1);
