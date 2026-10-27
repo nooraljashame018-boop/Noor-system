@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v43.0
+                نظام إدارة الجداول الثابت v44.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم تفعيل تنبيهات اكتمال النصاب الأسبوعي وتنبيهات التضارب التلقائي عند الإدخال اليدوي.</p>
+                    <p class="text-xs text-slate-500">تم تحديث لوحة توزيع مواد الكادر لتشمل 4 مواد لكل شعبة.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -545,7 +545,7 @@
                         </label>
                         <div class="flex items-center gap-1 text-[11px] text-slate-600">
                           <label for="${prefix}quota_${gIdx}" class="font-semibold">عدد الحصص:</label>
-                          <input type="number" id="${prefix}quota_${gIdx}" value="0" min="0" max="30" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 font-bold">
+                          <input type="number" id="${prefix}quota_${gIdx}" value="0" min="0" max="35" class="w-12 border border-slate-300 rounded p-1 text-center bg-slate-50 font-bold">
                         </div>
                     </div>
 
@@ -584,6 +584,14 @@
                               </select>
                               <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_3" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
                             </div>
+
+                            <div class="flex items-center gap-1">
+                              <select id="${prefix}sub_${gIdx}_${sIdx}_4" onchange="recalculateGradeTotalQuota('${prefix}', ${gIdx})" class="text-[11px] p-1 border rounded bg-white font-medium flex-1">
+                                  <option value="">المادة الرابعة</option>
+                                  ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+                              </select>
+                              <input type="number" id="${prefix}sub_q_${gIdx}_${sIdx}_4" value="" placeholder="الحصص" min="0" max="15" oninput="recalculateGradeTotalQuota('${prefix}', ${gIdx})" title="عدد حصص هذه المادة" class="w-12 text-[11px] p-1 border border-blue-300 rounded bg-blue-50 text-center font-bold text-blue-900 outline-none">
+                            </div>
                           </div>
                         </div>
                       `).join('')}
@@ -601,7 +609,7 @@
                 secNames.forEach((_, sIdx) => {
                     const sChk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
                     if (sChk && sChk.checked) {
-                        for(let i = 1; i <= 3; i++) {
+                        for(let i = 1; i <= 4; i++) {
                             const s = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_${i}`).value;
                             let q = parseInt(document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
                             if (s === 'فن' || s === 'رياضة') {
@@ -619,7 +627,7 @@
         function clearSectionSelection(prefix, gIdx, sIdx) {
             const chk = document.getElementById(`${prefix}sec_${gIdx}_${sIdx}`);
             if (chk) chk.checked = false;
-            for(let i = 1; i <= 3; i++) {
+            for(let i = 1; i <= 4; i++) {
                 const sub = document.getElementById(`${prefix}sub_${gIdx}_${sIdx}_${i}`);
                 const q = document.getElementById(`${prefix}sub_q_${gIdx}_${sIdx}_${i}`);
                 if (sub) sub.value = '';
@@ -649,7 +657,7 @@
                         secNames.forEach((_, sIdx) => {
                             const sChk = document.getElementById(`sec_${gIdx}_${sIdx}`);
                             if (sChk && sChk.checked) {
-                                for(let i = 1; i <= 3; i++) {
+                                for(let i = 1; i <= 4; i++) {
                                     const sub = document.getElementById(`sub_${gIdx}_${sIdx}_${i}`).value;
                                     let q = parseInt(document.getElementById(`sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
                                     
@@ -738,7 +746,7 @@
                     let key = `${gIdx}_${sIdx}`;
                     if (!gradeSubCounts[key]) gradeSubCounts[key] = 1;
                     let subIndex = gradeSubCounts[key];
-                    if (subIndex <= 3) {
+                    if (subIndex <= 4) {
                         let gChk = document.getElementById(`edit_g_chk_${gIdx}`);
                         let gBox = document.getElementById(`edit_g_box_${gIdx}`);
                         if (gChk) {
@@ -803,7 +811,7 @@
                         secNames.forEach((_, sIdx) => {
                             const sChk = document.getElementById(`edit_sec_${gIdx}_${sIdx}`);
                             if (sChk && sChk.checked) {
-                                for(let i = 1; i <= 3; i++) {
+                                for(let i = 1; i <= 4; i++) {
                                     const sub = document.getElementById(`edit_sub_${gIdx}_${sIdx}_${i}`).value;
                                     let q = parseInt(document.getElementById(`edit_sub_q_${gIdx}_${sIdx}_${i}`).value) || 0;
                                     
@@ -973,7 +981,6 @@
             modal.classList.remove('flex');
         }
 
-        // توليد الجدول الذكي مع تطبيق أنصبة الصفين الأول والثاني ومنع توالي الحصص لنفس المعلمة
         function autoGenerateFullSchedule() {
             let teachers = getTeachers();
             let teachingStaff = teachers.filter(t => t.role !== 'مرشد تربوي' && t.assignments && t.assignments.length > 0);
@@ -999,7 +1006,6 @@
                     let sub = asgn.subject;
                     let qCount = (sub === 'فن' || sub === 'رياضة') ? 1 : (asgn.subjectQuota || 0);
 
-                    // تطبيق أنصبة الصف الأول الابتدائي تلقائياً
                     if (g === 0) {
                         if (sub === 'عربي') qCount = 8;
                         else if (sub === 'رياضيات') qCount = 5;
@@ -1010,7 +1016,6 @@
                         else if (sub === 'رياضة') qCount = 1;
                         else if (sub === 'فن') qCount = 1;
                     }
-                    // تطبيق أنصبة الصف الثاني الابتدائي تلقائياً لجميع الشعب (أ، ب، ج)
                     else if (g === 1) {
                         if (sub === 'عربي') qCount = 8;
                         else if (sub === 'رياضيات') qCount = 5;
@@ -1213,10 +1218,9 @@
             saveScheduleData(grid);
             renderSchedule();
             refreshBackupTeachers();
-            alert('تم توليد الجدول بنجاح وتطبيق أنصبة الصفين الأول والثاني الابتدائي لجميع الشعب مع منع توالي الحصص لنفس المعلمة!');
+            alert('تم توليد الجدول بنجاح!');
         }
 
-        // التعديل اليدوي مع فحص تضارب المعلمة واكتمال نصابها الأسبوعي
         function updateCellManual(cellKey, field, value) {
             let savedGrid = getScheduleData();
             if (!savedGrid[cellKey]) {
@@ -1227,10 +1231,9 @@
             savedGrid[cellKey][field] = trimmedValue;
 
             if (field === 'name' && trimmedValue !== '') {
-                let parts = cellKey.split('_'); // [dIdx, lIdx, gIdx, sIdx]
+                let parts = cellKey.split('_'); 
                 let currentDay = parts[0];
                 let currentLesson = parts[1];
-                let currentGrade = parseInt(parts[2]);
 
                 let conflictGradeName = '';
                 let conflictSecName = '';
@@ -1254,7 +1257,6 @@
                     alert(`⚠️ تنبيه تضارب معلمات!\n\nالمعلمة (${trimmedValue}) لديها جدول مسبق في نفس الحصة واليوم في [الصف ${conflictGradeName} - شعبة ${conflictSecName}]. يرجى الانتباه وتجنب ازدواجية الحصص.`);
                 }
 
-                // فحص اكتمال نصاب المعلمة الأسبوعي
                 let teachersList = getTeachers();
                 let teacherObj = teachersList.find(t => t.name.trim() === trimmedValue);
                 if (teacherObj && teacherObj.maxQuota > 0) {
@@ -1533,7 +1535,6 @@
             }).join('');
         }
 
-        // عرض الجدول بحيث تظهر فقط اسم الحصة واسم المعلمة الثلاثي بدون تفاصيل زائدة
         function renderSchedule() {
             const hGrades = document.getElementById('tableHeaderGrades');
             const hSub = document.getElementById('tableHeaderSubColumns');
@@ -1555,7 +1556,6 @@
             hSub.innerHTML = hSubHtml;
 
             let tbodyHtml = '';
-            days.days = days; // safety ref
             days.forEach((day, dIdx) => {
                 lessons.forEach((lesson, lIdx) => {
                     let isLastLessonOfDay = (lIdx === lessons.length - 1);
