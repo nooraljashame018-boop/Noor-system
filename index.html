@@ -21,8 +21,8 @@
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
             table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
-            th, td { border: 1px solid #333 !important; padding: 4px !important; text-align: center !important; }
-            .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
+            th, td { border: 1px solid #333 !important; padding: 6px !important; text-align: center !important; }
+            .print-block { display: block !important; }
         }
     </style>
 </head>
@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v47.0
+                نظام إدارة الجداول الثابت v49.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم إضافة ميزة التحكم اليدوي بالاستثناءات في قسم بدلاء الشواغر والمراقبة.</p>
+                    <p class="text-xs text-slate-500">تم إضافة ميزة الطباعة والتصدير لجدول المراقبة والشواغر أيضاً.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -86,17 +86,17 @@
                     <button type="button" onclick="clearScheduleGrid()" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-trash-alt"></i> تفريغ الجدول
                     </button>
-                    <button type="button" onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="printScheduleTable()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-print"></i> طباعة (PDF)
                     </button>
-                    <button type="button" onclick="exportTableToExcel()" class="bg-blue-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-blue-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="exportScheduleExcel()" class="bg-blue-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-blue-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-file-excel"></i> تصدير Excel
                     </button>
-                    <button type="button" onclick="exportTableToWord()" class="bg-sky-700 text-white font-bold py-2 px-3 rounded-xl hover:bg-sky-800 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="exportScheduleWord()" class="bg-sky-700 text-white font-bold py-2 px-3 rounded-xl hover:bg-sky-800 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-file-word"></i> تصدير Word
                     </button>
-                    <button type="button" onclick="exportScheduleAsImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
-                        <i class="fab fa-whatsapp text-sm"></i> إرسال الجدول لصورة (واتساب)
+                    <button type="button" onclick="exportScheduleImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
+                        <i class="fab fa-whatsapp text-sm"></i> إرسال لصورة (واتساب)
                     </button>
                 </div>
             </div>
@@ -225,18 +225,32 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-amber-200 pb-3">
                     <div>
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
-                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية المربوطة بالجدول
+                            <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية المرتبطة بجدول الحصص
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة من الجدول العام وترتيبهن حسب أقل الحصص. يمكنك التحكم في استثناء أي معلمة عبر الزر أدناه.</p>
+                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة من جدول الحصص وترتيبهن حسب أقل الحصص. يمكنك الطباعة، التصدير، أو تعديل استثناء المعلمات.</p>
                     </div>
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <button type="button" onclick="openExclusionModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
-                            <i class="fas fa-user-gear"></i> إعدادات استثناء المعلمات
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- أزرار الطباعة والتصدير الخاصة بجدول المراقبة والشواغر -->
+                        <button type="button" onclick="printBackupTable()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
+                            <i class="fas fa-print"></i> طباعة (PDF)
+                        </button>
+                        <button type="button" onclick="exportBackupExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                        <button type="button" onclick="exportBackupWord()" class="bg-sky-700 hover:bg-sky-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
+                            <i class="fas fa-file-word"></i> Word
+                        </button>
+                        <button type="button" onclick="exportBackupImage()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
+                            <i class="fab fa-whatsapp"></i> واتساب
                         </button>
 
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
-                            <select id="backupDaySelect" onchange="refreshBackupTeachers()" class="border border-amber-300 rounded-xl px-3 py-1.5 bg-white text-xs font-bold text-amber-900 outline-none">
+                        <button type="button" onclick="openExclusionModal()" class="bg-amber-700 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
+                            <i class="fas fa-user-gear"></i> الاستثناءات
+                        </button>
+
+                        <div class="flex items-center gap-1.5">
+                            <label class="text-xs font-bold text-amber-900">اليوم:</label>
+                            <select id="backupDaySelect" onchange="refreshBackupTeachers()" class="border border-amber-300 rounded-xl px-2.5 py-1.5 bg-white text-xs font-bold text-amber-900 outline-none">
                                 <option value="0">الأحد</option>
                                 <option value="1">الإثنين</option>
                                 <option value="2">الثلاثاء</option>
@@ -247,7 +261,10 @@
                     </div>
                 </div>
 
-                <div id="backupTeachersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <div id="printableBackupCard" class="bg-white rounded-xl p-3 border border-amber-200">
+                    <div class="text-center font-black text-slate-800 text-sm mb-2 hidden print-block">جدول بدلاء الشواغر والمراقبة اليومية - مدرسة الضياء</div>
+                    <div id="backupTeachersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
             </div>
         </section>
 
@@ -516,7 +533,8 @@
             }
         }
 
-        function exportTableToExcel() {
+        // تصدير جدول الحصص العام
+        function exportScheduleExcel() {
             let tableHTML = document.getElementById('printableScheduleCard').outerHTML;
             let blob = new Blob(['\ufeff' + tableHTML], { type: 'application/vnd.ms-excel' });
             let url = URL.createObjectURL(blob);
@@ -527,7 +545,7 @@
             URL.revokeObjectURL(url);
         }
 
-        function exportTableToWord() {
+        function exportScheduleWord() {
             let tableHTML = document.getElementById('printableScheduleCard').outerHTML;
             let wordContent = `<html dir="rtl"><head><meta charset="UTF-8"><title>جدول مدرسة الضياء</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:5px;text-align:center;font-size:12pt;}</style></head><body>${tableHTML}</body></html>`;
             let blob = new Blob(['\ufeff' + wordContent], { type: 'application/msword' });
@@ -539,37 +557,86 @@
             URL.revokeObjectURL(url);
         }
 
-        function exportScheduleAsImage() {
+        function printScheduleTable() {
+            window.print();
+        }
+
+        function exportScheduleImage() {
             const card = document.getElementById('printableScheduleCard');
             if (!card) return;
-
             const printTitle = card.querySelector('.print-block');
             if (printTitle) printTitle.classList.remove('hidden');
 
             html2canvas(card, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
                 if (printTitle) printTitle.classList.add('hidden');
-
                 canvas.toBlob(blob => {
                     const file = new File([blob], "school_schedule.png", { type: "image/png" });
-                    
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({
-                            files: [file],
-                            title: 'جدول مدرسة الضياء',
-                            text: 'إليك جدول الدروس الأسبوعي لمدرسة الضياء'
-                        }).catch(error => console.log('خطأ في المشاركة:', error));
+                        navigator.share({ files: [file], title: 'جدول مدرسة الضياء', text: 'إليك جدول الدروس الأسبوعي' }).catch(err => console.log(err));
                     } else {
                         const link = document.createElement('a');
                         link.download = 'schedule.png';
                         link.href = canvas.toDataURL('image/png');
                         link.click();
-                        alert('تم تنزيل صورة الجدول بنجاح! يمكنك مشاركتها الآن عبر الواتساب.');
+                        alert('تم تنزيل صورة الجدول بنجاح!');
                     }
                 });
-            }).catch(err => {
+            });
+        }
+
+        // دوال الطباعة والتصدير الخاصة بجدول بدلاء الشواغر والمراقبة
+        function printBackupTable() {
+            const printContent = document.getElementById('printableBackupCard').innerHTML;
+            const originalBody = document.body.innerHTML;
+            document.body.innerHTML = `<div dir="rtl" style="font-family: Tajawal, sans-serif; padding: 20px;"><h2 style="text-align:center; margin-bottom:15px;">جدول بدلاء الشواغر والمراقبة اليومية - مدرسة الضياء</h2>${printContent}</div>`;
+            window.print();
+            document.body.innerHTML = originalBody;
+            window.location.reload();
+        }
+
+        function exportBackupExcel() {
+            let cardHTML = document.getElementById('printableBackupCard').outerHTML;
+            let blob = new Blob(['\ufeff' + cardHTML], { type: 'application/vnd.ms-excel' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup_teachers_schedule.xls';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportBackupWord() {
+            let cardHTML = document.getElementById('printableBackupCard').outerHTML;
+            let wordContent = `<html dir="rtl"><head><meta charset="UTF-8"><title>بدلاء الشواغر والمراقبة</title><style>body{font-family:Tajawal,sans-serif;} div{margin-bottom:10px;}</style></head><body><h2 style="text-align:center;">جدول بدلاء الشواغر والمراقبة اليومية</h2>${cardHTML}</body></html>`;
+            let blob = new Blob(['\ufeff' + wordContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup_teachers_schedule.doc';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportBackupImage() {
+            const card = document.getElementById('printableBackupCard');
+            if (!card) return;
+            const printTitle = card.querySelector('.print-block');
+            if (printTitle) printTitle.classList.remove('hidden');
+
+            html2canvas(card, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
                 if (printTitle) printTitle.classList.add('hidden');
-                alert('حدث خطأ أثناء تصوير الجدول.');
-                console.error(err);
+                canvas.toBlob(blob => {
+                    const file = new File([blob], "backup_schedule.png", { type: "image/png" });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({ files: [file], title: 'جدول المراقبة والشواغر', text: 'إليك جدول بدلاء الشواغر والمراقبة' }).catch(err => console.log(err));
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = 'backup_schedule.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        alert('تم تنزيل صورة جدول المراقبة بنجاح!');
+                    }
+                });
             });
         }
 
@@ -1576,7 +1643,7 @@
             let excludedSet = getExcludedTeachersSet();
 
             let list = getTeachers().filter(t => {
-                if (!t.isPresent || t.role !== 'معلم') return false;
+                if (t.role !== 'معلم') return false;
                 let isExcluded = excludedSet.some(exc => t.name.includes(exc));
                 return !isExcluded;
             });
@@ -1585,7 +1652,7 @@
             let grid = getScheduleData();
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمون حاضرون متاحون للمراقبة بعد تطبيق الاستثناءات</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمات متاحات للمراقبة بعد تطبيق الاستثناءات</div>`;
                 return;
             }
 
@@ -1617,7 +1684,7 @@
                 let isTop5 = index < 5;
 
                 return `
-                <div class="bg-white p-4 rounded-2xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div class="bg-white p-4 rounded-xl border ${isTop5 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-200'} shadow-sm flex flex-col justify-between relative overflow-hidden">
                     ${isTop5 ? `<div class="absolute top-0 left-0 bg-amber-500 text-white px-2 py-0.5 rounded-br-xl text-[9px] font-black">مرشحة للمراقبة #${index+1}</div>` : ''}
                     <div>
                         <div class="flex items-center gap-3 mb-3">
@@ -1627,7 +1694,7 @@
                                     <h5 class="font-bold text-xs text-slate-800">${t.name}</h5>
                                     ${getRoleBadge(t.role)}
                                 </div>
-                                <span class="text-[10px] text-emerald-600 font-bold block mt-0.5">🟢 حاضرة منذ: ${t.checkInTime}</span>
+                                <span class="text-[10px] text-blue-600 font-bold block mt-0.5">📚 متاح من جدول الحصص</span>
                             </div>
                         </div>
 
@@ -1640,7 +1707,7 @@
                     </div>
 
                     ${t.phone ? `
-                        <a href="https://wa.me/${waPhone}" target="_blank" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                        <a href="https://wa.me/${waPhone}" target="_blank" class="w-full py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 no-print">
                             <i class="fab fa-whatsapp text-emerald-600 text-sm"></i> تكليف عبر الواتساب
                         </a>
                     ` : '<div class="text-[10px] text-slate-400 text-center font-bold">لا يوجد رقم هاتف مضاف</div>'}
