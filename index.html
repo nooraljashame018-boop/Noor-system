@@ -15,18 +15,18 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
-        .day-separator-red { border-bottom: 3px solid #ef4444 !important; }
-        .editable-cell:focus { outline: 1px solid #2563eb; background-color: #eff6ff !important; border-radius: 4px; }
+        .day-separator-red { border-bottom: 2px solid #ef4444 !important; }
+        .editable-cell:focus { outline: 1px solid #2563eb; background-color: #eff6ff !important; border-radius: 3px; }
         
-        /* مقاسات أصغر ومضغوطة للجدول بناءً على الطلب */
-        #mainScheduleTable th { font-size: 10px; font-weight: 800; padding: 4px 2px; }
-        #mainScheduleTable td { font-size: 9px; font-weight: 700; padding: 3px 2px; height: 34px; }
+        /* تقليص إضافي لمقاسات حقول الجدول لتكون أصغر وأكثر انضغاطاً */
+        #mainScheduleTable th, #studentsScheduleTable th { font-size: 9px; font-weight: 800; padding: 3px 1px; }
+        #mainScheduleTable td, #studentsScheduleTable td { font-size: 8.5px; font-weight: 700; padding: 2px 1px; height: 28px; }
 
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
             table { width: 100% !important; border-collapse: collapse !important; }
-            th, td { border: 1px solid #333 !important; padding: 4px !important; text-align: center !important; font-size: 8pt !important; }
+            th, td { border: 1px solid #333 !important; padding: 3px !important; text-align: center !important; font-size: 7pt !important; }
             .print-block { display: block !important; }
         }
     </style>
@@ -69,7 +69,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v53.0
+                نظام إدارة الجداول الثابت v54.0
             </div>
         </div>
     </aside>
@@ -82,7 +82,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم إضافة زر خاص بجدول التلاميذ (المواد فقط) بمقاسات أصغر للجدول.</p>
+                    <p class="text-xs text-slate-500">تم تقليص وتصغير مقاسات حقول الجدول بناءً على طلبك.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="openStudentsScheduleModal()" class="bg-violet-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-violet-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer" title="عرض جدول المواد الخاص بالتلاميذ فقط بدون المعلمات">
@@ -584,7 +584,7 @@
 
         function exportScheduleWord() {
             let tableHTML = document.getElementById('printableScheduleCard').outerHTML;
-            let wordContent = `<html dir="rtl"><head><meta charset="UTF-8"><title>جدول مدرسة الضياء</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:4px;text-align:center;font-size:10pt;}</style></head><body>${tableHTML}</body></html>`;
+            let wordContent = `<html dir="rtl"><head><meta charset="UTF-8"><title>جدول مدرسة الضياء</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:3px;text-align:center;font-size:9pt;}</style></head><body>${tableHTML}</body></html>`;
             let blob = new Blob(['\ufeff' + wordContent], { type: 'application/msword' });
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
@@ -650,13 +650,13 @@
 
             let savedGrid = getScheduleData();
 
-            let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white text-xs" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white text-xs" rowspan="2">الحصة</th>`;
+            let hGradesHtml = `<th class="p-1 border border-slate-700 bg-slate-900 text-white text-[9px]" rowspan="2">اليوم</th><th class="p-1 border border-slate-700 bg-slate-900 text-white text-[9px]" rowspan="2">الحصة</th>`;
             let hSubHtml = '';
 
             gradeNames.forEach(gName => {
-                hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white text-xs" colspan="3">الصف ${gName}</th>`;
+                hGradesHtml += `<th class="p-1 border border-slate-700 bg-slate-800 text-white text-[9px]" colspan="3">الصف ${gName}</th>`;
                 secShortNames.forEach(sName => {
-                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-900 font-extrabold text-xs">شعبة ${sName}</th>`;
+                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-900 font-extrabold text-[9px]">شعبة ${sName}</th>`;
                 });
             });
 
@@ -671,9 +671,9 @@
 
                     tbodyHtml += `<tr class="${rowClass}">`;
                     if (lIdx === 0) {
-                        tbodyHtml += `<td class="p-2 border border-slate-300 font-black bg-slate-100 text-slate-900 text-xs" rowspan="${lessons.length}">${day}</td>`;
+                        tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-slate-100 text-slate-900 text-[9px]" rowspan="${lessons.length}">${day}</td>`;
                     }
-                    tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-amber-50 text-amber-900 text-xs">${lesson}</td>`;
+                    tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-amber-50 text-amber-900 text-[9px]">${lesson}</td>`;
 
                     gradeNames.forEach((_, gIdx) => {
                         secShortNames.forEach((_, sIdx) => {
@@ -681,7 +681,7 @@
                             let cellData = savedGrid[cellKey] || { subject: '', name: '' };
                             let subjectName = cellData.subject || '-';
 
-                            tbodyHtml += `<td class="p-1.5 border border-slate-300 bg-white font-black text-slate-900 text-[11px] h-9 align-middle">
+                            tbodyHtml += `<td class="p-1 border border-slate-300 bg-white font-black text-slate-900 text-[9px] h-7 align-middle">
                                 ${subjectName}
                             </td>`;
                         });
@@ -697,7 +697,7 @@
         function printStudentsSchedule() {
             const printContent = document.getElementById('printableStudentsCard').innerHTML;
             const originalBody = document.body.innerHTML;
-            document.body.innerHTML = `<div dir="rtl" style="font-family: Tajawal, sans-serif; padding: 15px;">${printContent}</div>`;
+            document.body.innerHTML = `<div dir="rtl" style="font-family: Tajawal, sans-serif; padding: 10px;">${printContent}</div>`;
             window.print();
             document.body.innerHTML = originalBody;
             window.location.reload();
@@ -1861,13 +1861,13 @@
 
             let savedGrid = getScheduleData();
 
-            let hGradesHtml = `<th class="p-1.5 border border-slate-700 bg-slate-900 text-white text-[10px]" rowspan="2">اليوم</th><th class="p-1.5 border border-slate-700 bg-slate-900 text-white text-[10px]" rowspan="2">الحصة</th>`;
+            let hGradesHtml = `<th class="p-1 border border-slate-700 bg-slate-900 text-white text-[9px]" rowspan="2">اليوم</th><th class="p-1 border border-slate-700 bg-slate-900 text-white text-[9px]" rowspan="2">الحصة</th>`;
             let hSubHtml = '';
 
             gradeNames.forEach(gName => {
-                hGradesHtml += `<th class="p-1.5 border border-slate-700 bg-slate-800 text-white text-[10px]" colspan="3">الصف ${gName}</th>`;
+                hGradesHtml += `<th class="p-1 border border-slate-700 bg-slate-800 text-white text-[9px]" colspan="3">الصف ${gName}</th>`;
                 secShortNames.forEach(sName => {
-                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-900 font-extrabold text-[10px]">شعبة ${sName}</th>`;
+                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-900 font-extrabold text-[9px]">شعبة ${sName}</th>`;
                 });
             });
 
@@ -1882,9 +1882,9 @@
 
                     tbodyHtml += `<tr class="${rowClass}">`;
                     if (lIdx === 0) {
-                        tbodyHtml += `<td class="p-1.5 border border-slate-300 font-black bg-slate-100 text-slate-900 text-[10px]" rowspan="${lessons.length}">${day}</td>`;
+                        tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-slate-100 text-slate-900 text-[9px]" rowspan="${lessons.length}">${day}</td>`;
                     }
-                    tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-amber-50 text-amber-900 text-[10px]">${lesson}</td>`;
+                    tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-amber-50 text-amber-900 text-[9px]">${lesson}</td>`;
 
                     gradeNames.forEach((_, gIdx) => {
                         secShortNames.forEach((_, sIdx) => {
@@ -1894,9 +1894,9 @@
                             let teacherName = cellData.name || '';
                             let subjectName = cellData.subject || '';
 
-                            tbodyHtml += `<td class="p-1 border border-slate-300 bg-white min-w-[75px] h-9 align-middle">
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-black text-slate-900 text-[10px] outline-none">${subjectName}</div>
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell font-bold text-blue-700 text-[9px] outline-none mt-0.5">${teacherName}</div>
+                            tbodyHtml += `<td class="p-1 border border-slate-300 bg-white min-w-[65px] h-7 align-middle">
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-black text-slate-900 text-[9px] outline-none">${subjectName}</div>
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell font-bold text-blue-700 text-[8px] outline-none">${teacherName}</div>
                             </td>`;
                         });
                     });
