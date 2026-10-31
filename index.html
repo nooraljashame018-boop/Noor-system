@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v50.0
+                نظام إدارة الجداول الثابت v51.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم تفعيل خاصية منع تكرار المعلمة في المراقبة أكثر من مرة واحدة في الأسبوع.</p>
+                    <p class="text-xs text-slate-500">تم إضافة ميزة إرسال الجدول كاملاً كنص منسق عبر الواتساب.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -95,8 +95,8 @@
                     <button type="button" onclick="exportScheduleWord()" class="bg-sky-700 text-white font-bold py-2 px-3 rounded-xl hover:bg-sky-800 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-file-word"></i> تصدير Word
                     </button>
-                    <button type="button" onclick="exportScheduleImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
-                        <i class="fab fa-whatsapp text-sm"></i> إرسال لصورة (واتساب)
+                    <button type="button" onclick="copyScheduleAsTextForWhatsapp()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer" title="نسخ الجدول كاملاً كنص لإرساله عبر الواتساب">
+                        <i class="fab fa-whatsapp text-sm"></i> نسخ الجدول نصاً (واتساب)
                     </button>
                 </div>
             </div>
@@ -227,7 +227,7 @@
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
                             <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية (بدون تكرار أسبوعي)
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم ترتيب المعلمات حسب أقل الحصص، وتجنب تكرار المعلمة التي تمت مراقبتها في أيام سابقة من نفس الأسبوع.</p>
+                        <p class="text-xs text-amber-700 mt-1">توزيع عادل بدون تكرار، مع إمكانية نسخ الجدول كاملاً كنص للواتساب.</p>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
                         <button type="button" onclick="printBackupTable()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
@@ -239,8 +239,8 @@
                         <button type="button" onclick="exportBackupWord()" class="bg-sky-700 hover:bg-sky-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
                             <i class="fas fa-file-word"></i> Word
                         </button>
-                        <button type="button" onclick="exportBackupImage()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
-                            <i class="fab fa-whatsapp"></i> واتساب
+                        <button type="button" onclick="copyBackupAsTextForWhatsapp()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer" title="نسخ جدول المراقبة كنص للواتساب">
+                            <i class="fab fa-whatsapp"></i> نسخ المراقبة نصاً (واتساب)
                         </button>
 
                         <button type="button" onclick="openExclusionModal()" class="bg-amber-700 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
@@ -559,26 +559,80 @@
             window.print();
         }
 
-        function exportScheduleImage() {
-            const card = document.getElementById('printableScheduleCard');
-            if (!card) return;
-            const printTitle = card.querySelector('.print-block');
-            if (printTitle) printTitle.classList.remove('hidden');
+        // دالة نسخ الجدول الأسبوعي العام كاملاً كنص منسق للواتساب
+        function copyScheduleAsTextForWhatsapp() {
+            let savedGrid = getScheduleData();
+            let textOutput = "📋 *جدول دروس مدرسة الضياء الابتدائية الأسبوعي* 📋\n\n";
 
-            html2canvas(card, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-                if (printTitle) printTitle.classList.add('hidden');
-                canvas.toBlob(blob => {
-                    const file = new File([blob], "school_schedule.png", { type: "image/png" });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({ files: [file], title: 'جدول مدرسة الضياء', text: 'إليك جدول الدروس الأسبوعي' }).catch(err => console.log(err));
-                    } else {
-                        const link = document.createElement('a');
-                        link.download = 'schedule.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                        alert('تم تنزيل صورة الجدول بنجاح!');
-                    }
+            days.forEach((day, dIdx) => {
+                textOutput += `📌 *${day}*:\n`;
+                lessons.forEach((lesson, lIdx) => {
+                    textOutput += `   ▪️ *${lesson}:*\n`;
+                    gradeNames.forEach((gName, gIdx) => {
+                        let gradeHasLessons = false;
+                        let gradeLine = `      - الصف ${gName}: `;
+                        let parts = [];
+                        secShortNames.forEach((sName, sIdx) => {
+                            let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
+                            let cellData = savedGrid[cellKey];
+                            if (cellData && (cellData.subject || cellData.name)) {
+                                parts.push(`[شعبة ${sName}: ${cellData.subject || '-'} (${cellData.name || '-'})]`);
+                            }
+                        });
+                        if (parts.length > 0) {
+                            textOutput += `        ${gradeLine} ${parts.join(' | ')}\n`;
+                        }
+                    });
                 });
+                textOutput += `------------------------------------\n`;
+            });
+
+            navigator.clipboard.writeText(textOutput).then(() => {
+                alert('✅ تم نسخ الجدول كاملاً كنص بنجاح!\nيمكنك الآن لصقه مباشرة في محادثة الواتساب (Ctrl+V أو لصق).');
+            }).catch(err => {
+                alert('تعذر النسخ التلقائي، يرجى المحاولة مرة أخرى.');
+            });
+        }
+
+        // دالة نسخ جدول بدلاء الشواغر والمراقبة كنص للواتساب
+        function copyBackupAsTextForWhatsapp() {
+            let selectedDay = parseInt(document.getElementById('backupDaySelect').value) || 0;
+            let excludedSet = getExcludedTeachersSet();
+            let list = getTeachers().filter(t => {
+                if (t.role !== 'معلم') return false;
+                let isExcluded = excludedSet.some(exc => t.name.includes(exc));
+                return !isExcluded;
+            });
+            let grid = getScheduleData();
+
+            let currentDayStats = list.map(t => {
+                let dailyLessonsCount = 0;
+                lessons.forEach((_, lIdx) => {
+                    gradeNames.forEach((_, gIdx) => {
+                        secNames.forEach((_, sIdx) => {
+                            let cellKey = `${selectedDay}_${lIdx}_${gIdx}_${sIdx}`;
+                            let cell = grid[cellKey];
+                            if (cell && (cell.tId == t.id || (cell.name && cell.name.includes(t.name)))) {
+                                dailyLessonsCount++;
+                            }
+                        });
+                    });
+                });
+                return { teacher: t, dailyLessonsCount: dailyLessonsCount };
+            });
+
+            currentDayStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
+
+            let textOutput = `🛡️ *جدول بدلاء الشواغر والمراقبة اليومية - يوم ${days[selectedDay]}* 🛡️\n\n`;
+            currentDayStats.forEach((item, index) => {
+                let badge = index < 5 ? `⭐ (مرشحة للمراقبة #${index+1})` : '';
+                textOutput += `${index+1}. *${item.teacher.name}* ${badge}\n   - حصص اليوم: ${item.dailyLessonsCount} حصة\n   - الهاتف: ${item.teacher.phone || 'غير مضاف'}\n\n`;
+            });
+
+            navigator.clipboard.writeText(textOutput).then(() => {
+                alert('✅ تم نسخ جدول المراقبة والشواغر كنص بنجاح!\nيمكنك الآن لصقه مباشرة في محادثة الواتساب.');
+            }).catch(err => {
+                alert('تعذر النسخ.');
             });
         }
 
@@ -612,29 +666,6 @@
             a.download = 'backup_teachers_schedule.doc';
             a.click();
             URL.revokeObjectURL(url);
-        }
-
-        function exportBackupImage() {
-            const card = document.getElementById('printableBackupCard');
-            if (!card) return;
-            const printTitle = card.querySelector('.print-block');
-            if (printTitle) printTitle.classList.remove('hidden');
-
-            html2canvas(card, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-                if (printTitle) printTitle.classList.add('hidden');
-                canvas.toBlob(blob => {
-                    const file = new File([blob], "backup_schedule.png", { type: "image/png" });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        navigator.share({ files: [file], title: 'جدول المراقبة والشواغر', text: 'إليك جدول بدلاء الشواغر والمراقبة' }).catch(err => console.log(err));
-                    } else {
-                        const link = document.createElement('a');
-                        link.download = 'backup_schedule.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                        alert('تم تنزيل صورة جدول المراقبة بنجاح!');
-                    }
-                });
-            });
         }
 
         window.onload = function() {
@@ -1635,12 +1666,7 @@
             }).join('');
         }
 
-        // دالة تحديد ما إذا كانت المعلمة قد تمت مراقبتها في يوم سابق من نفس الأسبوع
         function hasBeenMonitoredEarlierThisWeek(teacherName, selectedDayIndex) {
-            let grid = getScheduleData();
-            let teacherAssignmentsMap = getTeachersAssignmentHistory();
-            
-            // تحقق في سجل التكليفات الأسبوعية المحفوظ مسبقاً
             let weeklyMonitorLog = JSON.parse(localStorage.getItem('app_weekly_monitor_log_v7') || '{}');
             for (let d = 0; d < selectedDayIndex; d++) {
                 if (weeklyMonitorLog[d] && weeklyMonitorLog[d].includes(teacherName)) {
@@ -1648,10 +1674,6 @@
                 }
             }
             return false;
-        }
-
-        function getTeachersAssignmentHistory() {
-            return {};
         }
 
         function refreshBackupTeachers() {
@@ -1672,10 +1694,7 @@
                 return;
             }
 
-            // تصفية المعلمات: استبعاد من راقبت في أيام سابقة من نفس الأسبوع لضمان عدم التكرار
             let availableForToday = list.filter(t => !hasBeenMonitoredEarlierThisWeek(t.name, selectedDay));
-
-            // إذا نفدت المعلمات بسبب شرط عدم التكرار، نسمح بإعادة تدوير القائمة منعاً لتوقف النظام
             if (availableForToday.length === 0) {
                 availableForToday = list;
             }
@@ -1693,16 +1712,11 @@
                         });
                     });
                 });
-
-                return {
-                    teacher: t,
-                    dailyLessonsCount: dailyLessonsCount
-                };
+                return { teacher: t, dailyLessonsCount: dailyLessonsCount };
             });
 
             currentDayStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
 
-            // حفظ أول 5 مرشحات لهذا اليوم في سجل المراقبة الأسبوعي لمنع تكرارهن في الأيام اللاحقة
             let top5Names = currentDayStats.slice(0, 5).map(item => item.teacher.name);
             let weeklyMonitorLog = JSON.parse(localStorage.getItem('app_weekly_monitor_log_v7') || '{}');
             weeklyMonitorLog[selectedDay] = top5Names;
