@@ -17,11 +17,16 @@
         .nav-btn.active { background-color: #2563eb; color: white; font-weight: bold; }
         .day-separator-red { border-bottom: 4px solid #ef4444 !important; }
         .editable-cell:focus { outline: 2px solid #2563eb; background-color: #eff6ff !important; border-radius: 6px; }
+        
+        /* تنسيق جدول عالي الدقة وواضح للموبايل */
+        #mainScheduleTable th { font-size: 12px; font-weight: 800; padding: 8px 4px; }
+        #mainScheduleTable td { font-size: 11px; font-weight: 700; padding: 6px 4px; height: 48px; }
+
         @media print {
             aside, .no-print, button, input, select { display: none !important; }
             body, main, .print-area { background: #ffffff !important; color: #000 !important; width: 100% !important; }
-            table { width: 100% !important; border-collapse: collapse !important; font-size: 8pt !important; }
-            th, td { border: 1px solid #333 !important; padding: 6px !important; text-align: center !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #333 !important; padding: 8px !important; text-align: center !important; }
             .print-block { display: block !important; }
         }
     </style>
@@ -64,7 +69,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v51.0
+                نظام إدارة الجداول الثابت v52.0
             </div>
         </div>
     </aside>
@@ -77,7 +82,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم إضافة ميزة إرسال الجدول كاملاً كنص منسق عبر الواتساب.</p>
+                    <p class="text-xs text-slate-500">تم تحسين تصدير صورة الجدول لتكون واضحة وبخط كبير ومقروء للموبايل (مثل الصورة رقم 2)[span_5](start_span)[span_5](end_span).</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -95,19 +100,19 @@
                     <button type="button" onclick="exportScheduleWord()" class="bg-sky-700 text-white font-bold py-2 px-3 rounded-xl hover:bg-sky-800 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-file-word"></i> تصدير Word
                     </button>
-                    <button type="button" onclick="copyScheduleAsTextForWhatsapp()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer" title="نسخ الجدول كاملاً كنص لإرساله عبر الواتساب">
-                        <i class="fab fa-whatsapp text-sm"></i> نسخ الجدول نصاً (واتساب)
+                    <button type="button" onclick="exportScheduleImageHighQuality()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer" title="تصدير صورة واضحة جداً وعريضة للجدول مثل الصورة 2">
+                        <i class="fab fa-whatsapp text-sm"></i> تصدير صورة جدول واضحة (واتساب)[span_6](start_span)[span_6](end_span)
                     </button>
                 </div>
             </div>
 
             <div id="printableScheduleCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
-                <div class="text-center font-black text-slate-800 text-sm mb-2 hidden print-block">جدول دروس مدرسة الضياء الابتدائية</div>
+                <div class="text-center font-black text-slate-800 text-base mb-3 hidden print-block">جدول دروس مدرسة الضياء الابتدائية الأسبوعي</div>
                 <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[75vh]">
-                    <table id="mainScheduleTable" class="w-full text-center border-collapse text-xs whitespace-nowrap">
-                        <thead class="bg-slate-800 text-white">
+                    <table id="mainScheduleTable" class="w-full text-center border-collapse whitespace-nowrap">
+                        <thead class="bg-slate-900 text-white">
                             <tr id="tableHeaderGrades"></tr>
-                            <tr id="tableHeaderSubColumns" class="bg-slate-200 text-slate-700 font-bold border-b border-slate-400"></tr>
+                            <tr id="tableHeaderSubColumns" class="bg-slate-200 text-slate-900 font-extrabold border-b border-slate-400"></tr>
                         </thead>
                         <tbody id="scheduleTableBody" class="divide-y divide-slate-300"></tbody>
                     </table>
@@ -227,7 +232,7 @@
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
                             <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية (بدون تكرار أسبوعي)
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">توزيع عادل بدون تكرار، مع إمكانية نسخ الجدول كاملاً كنص للواتساب.</p>
+                        <p class="text-xs text-amber-700 mt-1">توزيع عادل بدون تكرار، مع خيارات الطباعة والتصدير.</p>
                     </div>
                     <div class="flex items-center gap-2 flex-wrap">
                         <button type="button" onclick="printBackupTable()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
@@ -239,10 +244,6 @@
                         <button type="button" onclick="exportBackupWord()" class="bg-sky-700 hover:bg-sky-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
                             <i class="fas fa-file-word"></i> Word
                         </button>
-                        <button type="button" onclick="copyBackupAsTextForWhatsapp()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer" title="نسخ جدول المراقبة كنص للواتساب">
-                            <i class="fab fa-whatsapp"></i> نسخ المراقبة نصاً (واتساب)
-                        </button>
-
                         <button type="button" onclick="openExclusionModal()" class="bg-amber-700 hover:bg-amber-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1 cursor-pointer">
                             <i class="fas fa-user-gear"></i> الاستثناءات
                         </button>
@@ -559,80 +560,35 @@
             window.print();
         }
 
-        // دالة نسخ الجدول الأسبوعي العام كاملاً كنص منسق للواتساب
-        function copyScheduleAsTextForWhatsapp() {
-            let savedGrid = getScheduleData();
-            let textOutput = "📋 *جدول دروس مدرسة الضياء الابتدائية الأسبوعي* 📋\n\n";
+        // تصدير صورة جدول عالية الدقة والوضوح للموبايل (مثل الصورة رقم 2)
+        function exportScheduleImageHighQuality() {
+            const card = document.getElementById('printableScheduleCard');
+            if (!card) return;
+            const printTitle = card.querySelector('.print-block');
+            if (printTitle) printTitle.classList.remove('hidden');
 
-            days.forEach((day, dIdx) => {
-                textOutput += `📌 *${day}*:\n`;
-                lessons.forEach((lesson, lIdx) => {
-                    textOutput += `   ▪️ *${lesson}:*\n`;
-                    gradeNames.forEach((gName, gIdx) => {
-                        let gradeHasLessons = false;
-                        let gradeLine = `      - الصف ${gName}: `;
-                        let parts = [];
-                        secShortNames.forEach((sName, sIdx) => {
-                            let cellKey = `${dIdx}_${lIdx}_${gIdx}_${sIdx}`;
-                            let cellData = savedGrid[cellKey];
-                            if (cellData && (cellData.subject || cellData.name)) {
-                                parts.push(`[شعبة ${sName}: ${cellData.subject || '-'} (${cellData.name || '-'})]`);
-                            }
-                        });
-                        if (parts.length > 0) {
-                            textOutput += `        ${gradeLine} ${parts.join(' | ')}\n`;
-                        }
-                    });
-                });
-                textOutput += `------------------------------------\n`;
-            });
-
-            navigator.clipboard.writeText(textOutput).then(() => {
-                alert('✅ تم نسخ الجدول كاملاً كنص بنجاح!\nيمكنك الآن لصقه مباشرة في محادثة الواتساب (Ctrl+V أو لصق).');
+            html2canvas(card, { scale: 3, backgroundColor: '#ffffff', logging: false }).then(canvas => {
+                if (printTitle) printTitle.classList.add('hidden');
+                canvas.toBlob(blob => {
+                    const file = new File([blob], "school_schedule_clear.png", { type: "image/png" });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'جدول مدرسة الضياء الأسبوعي',
+                            text: 'إليك جدول الدروس الأسبوعي الواضح'
+                        }).catch(err => console.log(err));
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = 'school_schedule_clear.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        alert('✅ تم تنزيل صورة الجدول الواضحة بنجاح!\nالخط واضح ومثالي للعرض والمشاركة عبر الواتساب.');
+                    }
+                }, 'image/png', 1.0);
             }).catch(err => {
-                alert('تعذر النسخ التلقائي، يرجى المحاولة مرة أخرى.');
-            });
-        }
-
-        // دالة نسخ جدول بدلاء الشواغر والمراقبة كنص للواتساب
-        function copyBackupAsTextForWhatsapp() {
-            let selectedDay = parseInt(document.getElementById('backupDaySelect').value) || 0;
-            let excludedSet = getExcludedTeachersSet();
-            let list = getTeachers().filter(t => {
-                if (t.role !== 'معلم') return false;
-                let isExcluded = excludedSet.some(exc => t.name.includes(exc));
-                return !isExcluded;
-            });
-            let grid = getScheduleData();
-
-            let currentDayStats = list.map(t => {
-                let dailyLessonsCount = 0;
-                lessons.forEach((_, lIdx) => {
-                    gradeNames.forEach((_, gIdx) => {
-                        secNames.forEach((_, sIdx) => {
-                            let cellKey = `${selectedDay}_${lIdx}_${gIdx}_${sIdx}`;
-                            let cell = grid[cellKey];
-                            if (cell && (cell.tId == t.id || (cell.name && cell.name.includes(t.name)))) {
-                                dailyLessonsCount++;
-                            }
-                        });
-                    });
-                });
-                return { teacher: t, dailyLessonsCount: dailyLessonsCount };
-            });
-
-            currentDayStats.sort((a, b) => a.dailyLessonsCount - b.dailyLessonsCount);
-
-            let textOutput = `🛡️ *جدول بدلاء الشواغر والمراقبة اليومية - يوم ${days[selectedDay]}* 🛡️\n\n`;
-            currentDayStats.forEach((item, index) => {
-                let badge = index < 5 ? `⭐ (مرشحة للمراقبة #${index+1})` : '';
-                textOutput += `${index+1}. *${item.teacher.name}* ${badge}\n   - حصص اليوم: ${item.dailyLessonsCount} حصة\n   - الهاتف: ${item.teacher.phone || 'غير مضاف'}\n\n`;
-            });
-
-            navigator.clipboard.writeText(textOutput).then(() => {
-                alert('✅ تم نسخ جدول المراقبة والشواغر كنص بنجاح!\nيمكنك الآن لصقه مباشرة في محادثة الواتساب.');
-            }).catch(err => {
-                alert('تعذر النسخ.');
+                if (printTitle) printTitle.classList.add('hidden');
+                alert('حدث خطأ أثناء تصدير الصورة.');
+                console.error(err);
             });
         }
 
@@ -1767,13 +1723,13 @@
 
             let savedGrid = getScheduleData();
 
-            let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white" rowspan="2">الحصة</th>`;
+            let hGradesHtml = `<th class="p-2 border border-slate-700 bg-slate-900 text-white text-xs" rowspan="2">اليوم</th><th class="p-2 border border-slate-700 bg-slate-900 text-white text-xs" rowspan="2">الحصة</th>`;
             let hSubHtml = '';
 
             gradeNames.forEach(gName => {
-                hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white" colspan="3">الصف ${gName}</th>`;
+                hGradesHtml += `<th class="p-2 border border-slate-700 bg-slate-800 text-white text-xs" colspan="3">الصف ${gName}</th>`;
                 secShortNames.forEach(sName => {
-                    hSubHtml += `<th class="p-1 border border-slate-400 bg-slate-200 text-slate-800 text-[11px]">شعبة ${sName}</th>`;
+                    hSubHtml += `<th class="p-1.5 border border-slate-400 bg-slate-200 text-slate-900 font-extrabold text-xs">شعبة ${sName}</th>`;
                 });
             });
 
@@ -1788,9 +1744,9 @@
 
                     tbodyHtml += `<tr class="${rowClass}">`;
                     if (lIdx === 0) {
-                        tbodyHtml += `<td class="p-2 border border-slate-300 font-bold bg-slate-100 text-slate-800" rowspan="${lessons.length}">${day}</td>`;
+                        tbodyHtml += `<td class="p-2 border border-slate-300 font-black bg-slate-100 text-slate-900 text-xs" rowspan="${lessons.length}">${day}</td>`;
                     }
-                    tbodyHtml += `<td class="p-1 border border-slate-300 font-bold bg-amber-50 text-amber-900 text-[11px]">${lesson}</td>`;
+                    tbodyHtml += `<td class="p-1 border border-slate-300 font-black bg-amber-50 text-amber-900 text-xs">${lesson}</td>`;
 
                     gradeNames.forEach((_, gIdx) => {
                         secShortNames.forEach((_, sIdx) => {
@@ -1800,9 +1756,9 @@
                             let teacherName = cellData.name || '';
                             let subjectName = cellData.subject || '';
 
-                            tbodyHtml += `<td class="p-1 border border-slate-300 bg-white text-[10px] min-w-[85px] h-10 align-middle">
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-bold text-slate-800 outline-none">${subjectName}</div>
-                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell text-[9px] text-slate-500 font-normal outline-none">${teacherName}</div>
+                            tbodyHtml += `<td class="p-1 border border-slate-300 bg-white min-w-[95px] h-12 align-middle">
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'subject', this.innerText)" class="editable-cell font-black text-slate-900 text-[11px] outline-none">${subjectName}</div>
+                                <div contenteditable="true" onblur="updateCellManual('${cellKey}', 'name', this.innerText)" class="editable-cell font-bold text-blue-700 text-[10px] outline-none mt-0.5">${teacherName}</div>
                             </td>`;
                         });
                     });
