@@ -64,7 +64,7 @@
                 <i class="fas fa-rotate text-sm"></i> تحديث العرض
             </button>
             <div class="text-[10px] text-slate-500 text-center border-t border-slate-800 pt-3">
-                نظام إدارة الجداول الثابت v44.0
+                نظام إدارة الجداول الثابت v47.0
             </div>
         </div>
     </aside>
@@ -77,7 +77,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3 no-print">
                 <div>
                     <h2 class="text-lg font-bold text-slate-800">الجدول الأسبوعي العام (ثابت طوال العام)</h2>
-                    <p class="text-xs text-slate-500">تم تحديث لوحة توزيع مواد الكادر لتشمل 4 مواد لكل شعبة.</p>
+                    <p class="text-xs text-slate-500">تم إضافة ميزة التحكم اليدوي بالاستثناءات في قسم بدلاء الشواغر والمراقبة.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button type="button" onclick="autoGenerateFullSchedule()" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-indigo-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
@@ -89,6 +89,12 @@
                     <button type="button" onclick="window.print()" class="bg-emerald-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-emerald-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fas fa-print"></i> طباعة (PDF)
                     </button>
+                    <button type="button" onclick="exportTableToExcel()" class="bg-blue-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-blue-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-file-excel"></i> تصدير Excel
+                    </button>
+                    <button type="button" onclick="exportTableToWord()" class="bg-sky-700 text-white font-bold py-2 px-3 rounded-xl hover:bg-sky-800 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-file-word"></i> تصدير Word
+                    </button>
                     <button type="button" onclick="exportScheduleAsImage()" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-xl hover:bg-teal-700 transition text-xs shadow-md flex items-center gap-1.5 cursor-pointer">
                         <i class="fab fa-whatsapp text-sm"></i> إرسال الجدول لصورة (واتساب)
                     </button>
@@ -98,7 +104,7 @@
             <div id="printableScheduleCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 overflow-hidden print-area">
                 <div class="text-center font-black text-slate-800 text-sm mb-2 hidden print-block">جدول دروس مدرسة الضياء الابتدائية</div>
                 <div class="overflow-x-auto border border-slate-300 rounded-xl max-h-[75vh]">
-                    <table class="w-full text-center border-collapse text-xs whitespace-nowrap">
+                    <table id="mainScheduleTable" class="w-full text-center border-collapse text-xs whitespace-nowrap">
                         <thead class="bg-slate-800 text-white">
                             <tr id="tableHeaderGrades"></tr>
                             <tr id="tableHeaderSubColumns" class="bg-slate-200 text-slate-700 font-bold border-b border-slate-400"></tr>
@@ -221,17 +227,23 @@
                         <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
                             <i class="fas fa-shield-alt text-amber-600"></i> بدلاء الشواغر والمراقبة اليومية المربوطة بالجدول
                         </h3>
-                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة <b>مباشرة من الجدول العام المصمم</b>، وتحديد أقل 5 معلمات عدهم حصص في اليوم المختار.</p>
+                        <p class="text-xs text-amber-700 mt-1">يتم جلب حصص كل معلمة من الجدول العام وترتيبهن حسب أقل الحصص. يمكنك التحكم في استثناء أي معلمة عبر الزر أدناه.</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
-                        <select id="backupDaySelect" onchange="refreshBackupTeachers()" class="border border-amber-300 rounded-xl px-3 py-1.5 bg-white text-xs font-bold text-amber-900 outline-none">
-                            <option value="0">الأحد</option>
-                            <option value="1">الإثنين</option>
-                            <option value="2">الثلاثاء</option>
-                            <option value="3">الأربعاء</option>
-                            <option value="4">الخميس</option>
-                        </select>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <button type="button" onclick="openExclusionModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-user-gear"></i> إعدادات استثناء المعلمات
+                        </button>
+
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-amber-900">اختر اليوم:</label>
+                            <select id="backupDaySelect" onchange="refreshBackupTeachers()" class="border border-amber-300 rounded-xl px-3 py-1.5 bg-white text-xs font-bold text-amber-900 outline-none">
+                                <option value="0">الأحد</option>
+                                <option value="1">الإثنين</option>
+                                <option value="2">الثلاثاء</option>
+                                <option value="3">الأربعاء</option>
+                                <option value="4">الخميس</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -282,6 +294,25 @@
         </section>
 
     </main>
+
+    <!-- نافذة إعدادات استثناء المعلمات للمراقبة (Modal) -->
+    <div id="exclusionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-amber-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fas fa-user-slash text-amber-300"></i> تحديد المعلمات المستثناءات من المراقبة</h3>
+                <button type="button" onclick="closeExclusionModal()" class="text-amber-200 hover:text-white transition text-lg cursor-pointer"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-4 overflow-y-auto space-y-2 flex-1">
+                <p class="text-xs text-slate-600 mb-2 font-medium">اختر المعلمات اللواتي ترغب في <b>استثناءهن</b> من جدول بدلاء الشواغر والمراقبة:</p>
+                <div id="exclusionTeachersListContainer" class="space-y-2"></div>
+            </div>
+
+            <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end gap-2">
+                <button type="button" onclick="closeExclusionModal()" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer">حفظ وإغلاق</button>
+            </div>
+        </div>
+    </div>
 
     <!-- نافذة تعديل البيانات (Modal) -->
     <div id="editTeacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
@@ -461,6 +492,14 @@
             localStorage.setItem('app_teachers_v7', JSON.stringify(list));
         }
 
+        function getExcludedTeachersSet() {
+            try { return JSON.parse(localStorage.getItem('app_excluded_teachers_v7') || '["لقاء", "رجاء", "رونك", "ابتسام", "وسن"]'); } catch(e) { return ["لقاء", "رجاء", "رونك", "ابتسام", "وسن"]; }
+        }
+
+        function saveExcludedTeachersSet(arr) {
+            localStorage.setItem('app_excluded_teachers_v7', JSON.stringify(arr));
+        }
+
         function getScheduleData() {
             try { return JSON.parse(localStorage.getItem('app_schedule_grid_v7') || '{}'); } catch(e) { return {}; }
         }
@@ -475,6 +514,29 @@
                 renderSchedule();
                 refreshBackupTeachers();
             }
+        }
+
+        function exportTableToExcel() {
+            let tableHTML = document.getElementById('printableScheduleCard').outerHTML;
+            let blob = new Blob(['\ufeff' + tableHTML], { type: 'application/vnd.ms-excel' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'school_schedule.xls';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportTableToWord() {
+            let tableHTML = document.getElementById('printableScheduleCard').outerHTML;
+            let wordContent = `<html dir="rtl"><head><meta charset="UTF-8"><title>جدول مدرسة الضياء</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:5px;text-align:center;font-size:12pt;}</style></head><body>${tableHTML}</body></html>`;
+            let blob = new Blob(['\ufeff' + wordContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'school_schedule.doc';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function exportScheduleAsImage() {
@@ -529,6 +591,51 @@
             document.getElementById(tabId).classList.remove('hidden');
             document.getElementById(`btn-${tabId}`).classList.add('active');
             refreshAllViews();
+        }
+
+        function openExclusionModal() {
+            let list = getTeachers();
+            let excludedSet = getExcludedTeachersSet();
+            const container = document.getElementById('exclusionTeachersListContainer');
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-center py-4 text-slate-400 font-bold text-xs">لا يوجد كادر مسجل حالياً</div>`;
+            } else {
+                container.innerHTML = list.map(t => {
+                    let isChecked = excludedSet.includes(t.name);
+                    return `
+                    <label class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            ${t.photo ? `<img src="${t.photo}" class="w-7 h-7 rounded-full object-cover">` : `<div class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs"><i class="fas fa-user"></i></div>`}
+                            <span class="font-bold text-xs text-slate-800">${t.name}</span>
+                        </div>
+                        <input type="checkbox" value="${t.name}" ${isChecked ? 'checked' : ''} onchange="toggleTeacherExclusion(this)" class="rounded text-amber-600 w-4 h-4 cursor-pointer">
+                    </label>
+                    `;
+                }).join('');
+            }
+
+            let modal = document.getElementById('exclusionModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeExclusionModal() {
+            let modal = document.getElementById('exclusionModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            refreshBackupTeachers();
+        }
+
+        function toggleTeacherExclusion(checkbox) {
+            let name = checkbox.value;
+            let excludedSet = getExcludedTeachersSet();
+            if (checkbox.checked) {
+                if (!excludedSet.includes(name)) excludedSet.push(name);
+            } else {
+                excludedSet = excludedSet.filter(n => n !== name);
+            }
+            saveExcludedTeachersSet(excludedSet);
         }
 
         function buildGradesForm(containerId, prefix = '') {
@@ -1466,12 +1573,19 @@
 
         function refreshBackupTeachers() {
             const container = document.getElementById('backupTeachersList');
-            let list = getTeachers().filter(t => t.isPresent && t.role === 'معلم');
+            let excludedSet = getExcludedTeachersSet();
+
+            let list = getTeachers().filter(t => {
+                if (!t.isPresent || t.role !== 'معلم') return false;
+                let isExcluded = excludedSet.some(exc => t.name.includes(exc));
+                return !isExcluded;
+            });
+
             let selectedDay = parseInt(document.getElementById('backupDaySelect').value) || 0;
             let grid = getScheduleData();
 
             if (list.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمون حاضرون مسجلون حالياً للمراقبة</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-6 text-amber-800 font-bold">لا يوجد معلمون حاضرون متاحون للمراقبة بعد تطبيق الاستثناءات</div>`;
                 return;
             }
 
